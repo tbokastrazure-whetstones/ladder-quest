@@ -369,6 +369,42 @@ body.quake{animation:quake .5s}
 .intro.boss .card{animation:slidein .45s cubic-bezier(.3,1.5,.5,1)}
 .intro .card .warn{animation:none}
 
+/* ---------- 1画面で遊べる配置(ラダー図を上に、常に通電) ---------- */
+.stage{grid-template-areas:"mission mission" "editor machine" "bottom bottom"}
+.mission{grid-area:mission;background:#fff;border:2.5px solid var(--ink);border-left:10px solid var(--area);border-radius:14px;padding:8px 12px;font-weight:800;font-size:15.5px;line-height:1.45;box-shadow:0 3px 0 var(--ink)}
+.mission .chip{display:inline-block;font-size:11px;font-weight:900;background:var(--ink);color:#fff;border-radius:999px;padding:0 9px;margin-right:8px;vertical-align:2px}
+.rstat{font-size:13px;font-weight:800;padding:4px 10px;margin:2px 2px 6px;border-radius:8px;background:#f1edf8;color:var(--sub);min-height:1.6em}
+.rstat.ok{background:#dcfaec;color:#137a4b}
+.rstat.ng{background:#ffe6eb;color:#c0294a}
+.rstat:empty{display:none}
+.rung-svg .xbg,.rung-svg .xm{display:none}
+.rung-svg .xbg{fill:var(--ng);stroke:var(--ink);stroke-width:1.5}
+.rung-svg .xm{fill:#fff;font-size:11px;font-weight:900}
+.rung-svg .cell.blk .xbg,.rung-svg .cell.blk .xm{display:inline}
+.rung-svg .cell.blk .sym{stroke:var(--ng)}
+.rung-svg .cell.blk .blank{stroke:var(--ng);stroke-dasharray:none}
+.ctrlbar .btn.primary{flex:1.4 1 0}
+@media (max-width: 860px){
+  .stage{grid-template-areas:"mission" "editor" "machine" "bottom";gap:8px;padding:6px 6px 80px}
+  .mission{font-size:14.5px;padding:6px 10px}
+  .stage-head{padding:6px 8px;gap:6px;flex-wrap:nowrap}
+  .stage-head .t{font-size:14px;min-width:0;flex:1 1 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stage-head .btn.small{padding:3px 8px;min-height:34px;white-space:nowrap}
+  .stage-head .info{font-size:12px;white-space:nowrap}
+  .pane{padding:6px 6px 4px;border-radius:12px}
+  .editor h3,.machine h3{display:none}
+  .toolbar{margin-bottom:4px;gap:4px}
+  .toolbar .btn.small{padding:2px 8px;font-size:12px;min-height:30px}
+  .toolbar .cnt{font-size:12px}
+  .rung{margin-bottom:4px}
+  .mach-wrap{flex-direction:row;flex-wrap:wrap;gap:6px}
+  .plant{flex:1 1 52%;min-height:0;padding:6px;gap:8px}
+  .opanel{flex:1 1 38%;padding:6px;gap:8px;align-items:center}
+  .mach-ctrl{flex:1 1 100%;font-size:12px}
+  .dev{min-width:54px}
+  .conv{width:120px}
+  .cyl{width:120px}
+}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
@@ -629,7 +665,7 @@ const STAGES = [
       {name:'同時押しは停止が勝つ', s:[[0,'I0.0=1 I0.1=1',''],[300,'','Q0.0=0']]},
     ],
     hints:[
-      '同時に押したとき、電気はどの経路を通ってコイルに届いていますか?「実行」して両方押してみよう。',
+      '同時に押したとき、電気はどの経路を通ってコイルに届いていますか?機械のボタンを両方押してみよう。',
       '停止ボタンのb接点が、自己保持の行だけに入っていて、起動ボタンの行には入っていません。',
       '停止のb接点を並列部分の外(1行目の2列目)に移し、2行目は a接点 %QX0.0 だけにして、縦線を1列目と2列目の境目に引き直します。',
     ],
@@ -1268,7 +1304,7 @@ function talkHTML(text, mood, bounce){
 }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 const LINES = {
-  fail:['おしい!どこでずれたか、下の流れを見てみよう。','だいじょうぶ、実機でもよくあることだよ。','「実行」して同じ順番でボタンを押すと、原因が見えるかも!','あと一歩!接点の向き(a/b)も見直してみてね。'],
+  fail:['おしい!どこでずれたか、下の流れを見てみよう。','だいじょうぶ、実機でもよくあることだよ。','同じ順番でボタンを押してみると、原因が見えるかも!','あと一歩!接点の向き(a/b)も見直してみてね。'],
   clear:['やったね!回路がバッチリ動いたよ!','すごい!その調子でどんどん行こう!','工場のみんなも大喜びだよ!','いい配線だね。保全マンも感心してるよ!'],
   boss:['ボス撃破!!きみはもう立派なラダー使いだね!','ボスを倒した!次のエリアへの道がひらけたよ!'],
 };
@@ -1507,6 +1543,7 @@ function showMap(){
 function openStage(st){
   if(!st) return;
   touchStreak();
+  stopRun();
   G.stage=st; G.tab='task'; G.hold=false;
   const P=prep(st);
   const d=G.save.drafts[st.id];
@@ -1532,18 +1569,19 @@ function renderStage(){
     <span class="info">${starsHTML(rec.stars)}</span>${soundBtnHTML()}
   </div>
   <div class="stage">
+    <div class="mission"><span class="chip">おしごと</span>${esc(st.task)}</div>
     <section class="pane editor" id="editor"></section>
     <section class="pane machine" id="machine"></section>
     <section class="pane bottom" id="bottom"></section>
   </div>
   <div class="ctrlbar">
-    <button class="btn go" data-act="run">▶ 実行</button>
-    <button class="btn stop" data-act="stop">■ 停止</button>
-    <button class="btn" data-act="reset">↺ リセット</button>
+    <button class="btn" data-act="reset" title="機械を最初の状態に戻す">↺ 機械リセット</button>
+    <button class="btn" data-act="tab" data-tab="hint" data-go="1">💡 ヒント</button>
     <button class="btn primary" data-act="judge">✔ 判定</button>
   </div>`;
   app.onclick=onStageClick;
   renderEditor(); renderMachine(); renderBottom(); updateRunUI();
+  startRun();   // ステージ中は常に通電(置いた瞬間から動く)
   window.scrollTo(0,0);
 }
 function onStageClick(e){
@@ -1551,9 +1589,7 @@ function onStageClick(e){
   const act=t.dataset.act, ri=+t.dataset.ri, r=+t.dataset.r, c=+t.dataset.c;
   switch(act){
     case 'map': saveDraft(); showMap(); break;
-    case 'run': if(!G.running) SFX.play('run'); startRun(); break;
-    case 'stop': if(G.running) SFX.play('stop'); stopRun(); break;
-    case 'reset': resetRun(); break;
+    case 'reset': resetRun(); startRun(); break;
     case 'judge': judge(); break;
     case 'cell': cellPicker(ri, r, c); break;
     case 'out': outPicker(ri); break;
@@ -1566,7 +1602,9 @@ function onStageClick(e){
     case 'down': moveRung(ri,1); break;
     case 'clearAll': clearAll(); break;
     case 'answer': showAnswer(); break;
-    case 'tab': G.tab=t.dataset.tab; renderBottom(); break;
+    case 'tab': G.tab=t.dataset.tab; renderBottom();
+      if(t.dataset.go){ const b=document.getElementById('bottom'); if(b) b.scrollIntoView({behavior:reduced()?'auto':'smooth', block:'start'}); }
+      break;
     case 'hint': openHint(); break;
   }
 }
@@ -1640,6 +1678,7 @@ function rungSVG(rg, ri, st, opt){
         s+=contactSVG(cell,x,y,st);
       }
       if(isFill() && !lk && cell) s+=`<rect class="qbox" x="${x+4}" y="${y-31}" width="${CW-8}" height="62" rx="6" style="fill:none"/>`;
+      if(ed) s+=`<circle class="xbg" cx="${x+CW-9}" cy="${y-17}" r="8"/><text class="xm" x="${x+CW-9}" y="${y-13}" text-anchor="middle">✕</text>`;
       s+='</g>';
     }
   }
@@ -1683,7 +1722,7 @@ function renderEditor(){
           <button data-act="rowDel" data-ri="${ri}" ${rg.cells.length<=1?'disabled':''}>行−</button>
           <button data-act="rungDel" data-ri="${ri}">削除</button>`;
     }
-    h+=`</div>${rungSVG(rg,ri,st)}</div>`;
+    h+=`</div>${rungSVG(rg,ri,st)}<div class="rstat" id="rs-${ri}"></div></div>`;
   });
   h+='</div>';
   const el=document.getElementById('editor');
@@ -1841,17 +1880,49 @@ function outPicker(ri){
   });
 }
 
+/* ---------- 止まっている場所と理由 ---------- */
+// 電気が来ているのに通さないマスのうち、1行目・左側を優先して1つ選ぶ
+function blockOf(rg, res){
+  if(res.power) return null;
+  const R=rg.cells.length, C=rg.cells[0].length;
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+    if(res.nodes[c][r] && !res.closed[r][c]) return {r,c,cell:rg.cells[r][c]};
+  }
+  return null;
+}
+function rungStatusHTML(rg, res, blk){
+  const st=G.stage, nm=a=>{ const n=nameOf(st,a); return n?`${esc(n)}(${esc(dispAddr(a))})`:esc(dispAddr(a)); };
+  const o=rg.out;
+  if(res.power){
+    if(!o) return '⚡ 電気は右まで届いています。右端に出力を置こう';
+    if(o.t==='COIL') return `✅ 通電中 → ${nm(o.a)} ON`;
+    if(o.t==='TON') return G.plc.get(o.n) ? `✅ 通電中 → ${esc(o.n)} タイムアップ(${esc(o.n)}.Q ON)` : `⏳ 通電中 → ${esc(o.n)} が時間を計っています`;
+    if(o.t==='TOF') return `✅ 通電中 → ${esc(o.n)} ON(切れてから時間を計る)`;
+    return `✅ 通電中 → ${esc(o.n)} に1回数える信号`;
+  }
+  if(!blk) return '✕ どこかで線がつながっていません(縦線の位置を確認)';
+  const c=blk.cell;
+  if(!c) return '✕ ここで止まる:空きマスで線が切れています';
+  if(c.t==='NO') return `✕ ここで止まる:a接点 ${nm(c.a)} がOFFなので閉じない`;
+  if(c.t==='NC') return `✕ ここで止まる:b接点 ${nm(c.a)} がONなので開いている`;
+  return '✕ ここで止まる';
+}
+
 /* ---------- 通電表示の更新 ---------- */
 function updateLadderVis(){
   const vis=G.plc.vis;
   G.prog.forEach((rg,ri)=>{
     const res=vis && vis[ri] && vis[ri].closed.length===rg.cells.length ? vis[ri] : null;
     const R=rg.cells.length, C=rg.cells[0].length;
+    const blk=res ? blockOf(rg,res) : null;
     for(let r=0;r<R;r++) for(let c=0;c<C;c++){
       const el=document.getElementById(`c-${ri}-${r}-${c}`); if(!el) continue;
       el.classList.toggle('pl', !!(res && res.nodes[c][r]));
       el.classList.toggle('cl', !!(res && res.closed[r][c]));
+      el.classList.toggle('blk', !!(blk && blk.r===r && blk.c===c));
     }
+    const se=document.getElementById(`rs-${ri}`);
+    if(se){ const h=res?rungStatusHTML(rg,res,blk):''; if(se.dataset.h!==h){ se.dataset.h=h; se.innerHTML=h; se.className='rstat'+(res&&res.power?' ok':(blk?' ng':'')); } }
     for(let r=0;r<R-1;r++) for(let b=1;b<=C;b++){
       const el=document.getElementById(`v-${ri}-${r}-${b}`); if(!el) continue;
       el.classList.toggle('pl', !!(res && res.nodes[b][r] && res.nodes[b][r+1]));
@@ -1905,7 +1976,7 @@ function renderMachine(){
       <div class="plant">${pl||'<span class="note">出力機器なし</span>'}</div>
       <div class="opanel">${ip||'<span class="note">操作盤なし</span>'}</div>
       <div class="mach-ctrl">
-        ${hasPB?`<label><input type="checkbox" id="holdchk" ${G.hold?'checked':''}> ボタン固定モード(クリックでON/OFF切替。2つ同時押し用)</label>`:''}
+        ${hasPB?`<label><input type="checkbox" id="holdchk" ${G.hold?'checked':''}> 押しっぱなし(タップでON/OFF。2つ同時押し用)</label>`:''}
         <span class="clock" id="clock">停止中 0.0s</span>
       </div></div>`;
   const chk=el.querySelector('#holdchk');
@@ -2044,10 +2115,10 @@ function ioTableHTML(st){
 }
 function renderBottom(){
   const st=G.stage, P=prep(st), rec=stRec(st.id);
-  const tabs=[['task','課題'],['io','割付表'],['hint','ヒント ('+rec.hints+'/'+st.hints.length+')']];
+  const tabs=[['task','説明・評価'],['io','割付表'],['hint','ヒント ('+rec.hints+'/'+st.hints.length+')']];
   let h=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${G.tab===k?'act':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`;
   if(G.tab==='task'){
-    h+=`${st.story?talkHTML(`<p class="story">${esc(st.story)}</p>`, 'normal'):''}<p class="task">${esc(st.task)}</p>
+    h+=`${st.story?talkHTML(`<p class="story">${esc(st.story)}</p>`, 'normal'):''}
       <div class="goal">評価:★1 テスト合格 / ★2 接点数 ${P.target}個以下 / ★3 ヒントを使わずにクリア
       ${st.type==='short'?'<br><b>最短挑戦:</b>できるだけ少ない接点数でクリアを目指そう。'+(rec.best!=null?'(自己ベスト '+rec.best+'個)':''):''}
       ${st.type==='fill'?'<br><b>穴埋め:</b>「?」のマスだけ編集できます。':''}
@@ -2083,12 +2154,11 @@ function failHTML(st, r){
   return `<p class="result-ng">不合格… テスト${r.idx+1}「${esc(r.name)}」</p>
     <div class="note">入力の流れ(すべて最初はOFF)</div>
     <div class="timeline">${tl||'<div>(入力の操作なし)</div>'}<div class="bad">${bad}</div></div>
-    <p class="note">「実行」して同じ操作をすると、どこがずれるか確かめられます。</p>`;
+    <p class="note">機械のボタンで同じ順番に操作すると、ラダー図の「✕」と下の説明で、どこで止まるか確かめられます。</p>`;
 }
 function judge(){
   if(G.judging) return;
   const st=G.stage, P=prep(st), r=runAllTests(G.prog, st);
-  stopRun();
   const finish=()=>{
     G.judging=false;
     if(!r.ok){
