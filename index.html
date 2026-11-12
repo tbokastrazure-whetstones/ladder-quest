@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ラダー工場の冒険</title>
+<!-- アプリ化(PWA)用。GitHub Pages などで公開したときだけ有効。ファイルを直接開いた場合は無視される -->
+<meta name="theme-color" content="#ff5d8f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ラダー冒険">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --bg:#fff6e5; --bg2:#fffaf0; --panel:#ffffff; --panel2:#fff1cf; --soft:#f1e6cf;
+  --ink:#2b2340; --text:#2b2340; --sub:#6f6888; --line:#2b2340;
+  --accent:#ffc23d; --accent2:#3d9bff; --pink:#ff5d8f; --mint:#22c58b; --purple:#8b5cf6;
+  --on:#12c46b; --on-dim:rgba(18,196,107,.22); --wire:#9b94b0; --rail:#5b5470;
+  --ng:#ff4f6d; --ok:#12b464; --lock:#b9b2c8; --area:#ff9f43;
+}
+*{box-sizing:border-box}
+html,body{margin:0;color:var(--text);
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","BIZ UDPGothic","Yu Gothic UI","Meiryo",sans-serif;font-size:15px;line-height:1.6}
+body{background:var(--bg);background-image:radial-gradient(#f3dfb6 1.4px,transparent 1.4px);background-size:22px 22px}
+button{font:inherit;color:inherit;cursor:pointer}
+.hidden{display:none!important}
+.btn{background:#fff;border:2.5px solid var(--ink);border-radius:12px;padding:7px 14px;min-height:40px;font-weight:700;box-shadow:0 3px 0 var(--ink);transition:transform .06s,box-shadow .06s}
+.btn:hover:not(:disabled){filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 4px 0 var(--ink)}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.btn.primary{background:var(--accent);color:var(--ink)}
+.btn.go{background:var(--mint);color:#fff}
+.btn.stop{background:var(--pink);color:#fff}
+.btn.small{padding:3px 10px;min-height:32px;font-size:13px;border-width:2px;box-shadow:0 2px 0 var(--ink)}
+.btn:disabled{opacity:.4;cursor:default;box-shadow:0 1px 0 var(--ink)}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;padding:0 9px;border-radius:999px;background:#fff;border:2px solid var(--ink);color:var(--ink);white-space:nowrap;line-height:1.6}
+.badge.build{background:#cfe7ff}
+.badge.fill{background:#fff0b3}
+.badge.bug{background:#ffd3dc}
+.badge.short{background:#e6dbff}
+.badge.boss{background:var(--ng);color:#fff}
+.stars{color:var(--accent);letter-spacing:1px;-webkit-text-stroke:1px #c98a00}
+.stars .off{color:#e8dfcc;-webkit-text-stroke:1px #d4c8ae}
+
+/* ---------- マップ ---------- */
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;background:#fff;border-bottom:3px solid var(--ink);position:sticky;top:0;z-index:5}
+.topbar h1{font-size:21px;margin:0;flex:1 1 auto;white-space:nowrap;font-weight:900;letter-spacing:.5px;color:var(--pink);text-shadow:2px 2px 0 var(--accent)}
+.topbar h1 small{font-size:12px;color:var(--sub);text-shadow:none;font-weight:700;margin-left:6px}
+.status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;font-weight:700}
+.lvbadge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--purple);color:#fff;border:2.5px solid var(--ink);box-shadow:0 3px 0 var(--ink);flex-direction:column;line-height:1}
+.lvbadge small{font-size:9px}.lvbadge b{font-size:17px}
+.xpwrap{display:flex;flex-direction:column;gap:2px}
+.xpbar{width:130px;height:12px;background:#f3ecdf;border-radius:999px;overflow:hidden;border:2px solid var(--ink)}
+.xpbar > i{display:block;height:100%;background:repeating-linear-gradient(-45deg,#ffc23d 0 8px,#ffd76e 8px 16px);background-size:22px 22px;animation:stripe 1s linear infinite;border-radius:999px}
+@keyframes stripe{to{background-position:22px 0}}
+.xptext{font-size:11px;color:var(--sub)}
+.streak{background:#ffe6d6;border:2px solid var(--ink);border-radius:999px;padding:1px 10px}
+.map{max-width:980px;margin:0 auto;padding:14px 14px 30px}
+.area{background:#fff;border:3px solid var(--ink);border-radius:18px;margin-bottom:18px;box-shadow:0 5px 0 var(--ink);overflow:hidden}
+.area-head{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--area);color:#fff;border-bottom:3px solid var(--ink)}
+.area-icon{font-size:34px;line-height:1;width:54px;height:54px;display:flex;align-items:center;justify-content:center;background:#fff;border:2.5px solid var(--ink);border-radius:14px;flex:none;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.area-head h2{margin:0;font-size:18px;font-weight:900;text-shadow:0 2px 0 rgba(0,0,0,.25);line-height:1.3}
+.area-head h2 small{display:block;font-size:11.5px;font-weight:700;opacity:.95;text-shadow:none}
+.area-prog{margin-left:auto;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:1px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+.area-body{padding:12px 14px 14px}
+.area .learn{color:var(--sub);font-size:12.5px;margin-bottom:10px}
+.area.locked .area-head{background:#bdb6cc}
+.area.locked .area-icon{filter:grayscale(1);opacity:.6}
+.stage-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:10px}
+.stage-btn{position:relative;text-align:left;background:#fffdf8;border:2.5px solid var(--ink);border-radius:14px;padding:9px 10px;display:flex;gap:10px;align-items:center;box-shadow:0 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.stage-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 0 var(--ink)}
+.stage-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.stage-btn:disabled{cursor:default;background:#f2eee6;box-shadow:0 2px 0 #b9b2c8;border-color:#b9b2c8;color:#9a93ad}
+.stage-btn .num{flex:none;width:42px;height:42px;border-radius:50%;background:var(--area);color:#fff;border:2.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px}
+.stage-btn:disabled .num{background:#d8d2e2;border-color:#b9b2c8}
+.stage-btn .bd{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.stage-btn .row{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.stage-btn .ttl{font-weight:800;font-size:14.5px;line-height:1.35}
+.stage-btn.boss{grid-column:1/-1;background:linear-gradient(100deg,#fff 0%,#ffe9ee 100%)}
+.stage-btn.boss .num{width:52px;height:52px;font-size:26px;background:var(--ng)}
+.stage-btn .clr{position:absolute;right:-6px;top:-10px;background:var(--mint);color:#fff;font-size:10.5px;font-weight:900;border:2px solid var(--ink);border-radius:8px;padding:0 6px;transform:rotate(8deg)}
+.stage-btn .nxt{position:absolute;right:-6px;top:-12px;background:var(--pink);color:#fff;font-size:11px;font-weight:900;border:2px solid var(--ink);border-radius:8px;padding:0 7px;animation:bob 1s ease-in-out infinite}
+.stage-btn.next{border-color:var(--pink);box-shadow:0 3px 0 var(--pink),0 0 0 3px #ffd3dc}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.prep{color:var(--sub);font-size:13px;padding:10px;border:2.5px dashed #c9c1d8;border-radius:12px;text-align:center;font-weight:700}
+
+/* ---------- 案内キャラ ---------- */
+.talk{display:flex;gap:10px;align-items:flex-end;margin:0 0 10px}
+.mascot{flex:none;width:58px;height:58px}
+.mascot svg{width:100%;height:100%;display:block}
+.mascot.bounce{animation:hop .9s ease-in-out infinite}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.bubble{position:relative;background:#fff;border:2.5px solid var(--ink);border-radius:14px;padding:8px 12px;font-size:14px;box-shadow:0 3px 0 var(--ink);flex:1;min-width:0}
+.bubble::before{content:"";position:absolute;left:-11px;bottom:12px;border:8px solid transparent;border-right:10px solid var(--ink);border-left:0}
+.bubble::after{content:"";position:absolute;left:-7px;bottom:14px;border:6px solid transparent;border-right:8px solid #fff;border-left:0}
+.bubble b.who{display:block;font-size:11px;color:var(--purple)}
+.map .talk{margin:2px 0 16px}
+
+/* ---------- ステージ画面 ---------- */
+.stage-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;background:#fff;border-bottom:3px solid var(--ink);position:sticky;top:0;z-index:5;border-top:6px solid var(--area)}
+.stage-head .t{font-weight:900;font-size:16px;flex:1 1 auto}
+.stage-head .info{font-size:15px}
+.stage{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);grid-template-areas:"editor machine" "bottom bottom";gap:12px;padding:12px;padding-bottom:88px;max-width:1500px;margin:0 auto}
+.pane{background:#fff;border:2.5px solid var(--ink);border-radius:16px;padding:10px;min-width:0;box-shadow:0 4px 0 var(--ink)}
+.pane h3{margin:0 0 8px;font-size:14px;color:var(--ink);font-weight:900;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pane h3 .note{font-weight:normal}
+.editor{grid-area:editor}
+.machine{grid-area:machine}
+.bottom{grid-area:bottom}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.toolbar .cnt{margin-left:auto;font-size:13px;color:var(--sub);background:var(--panel2);border:2px solid var(--ink);border-radius:999px;padding:1px 10px}
+.toolbar .cnt.good{background:#d4f7e6}
+.rung{background:#fbf9ff;background-image:linear-gradient(#efeaf8 1px,transparent 1px),linear-gradient(90deg,#efeaf8 1px,transparent 1px);background-size:16px 16px;border:2px solid #d8d0ea;border-radius:12px;margin-bottom:8px;padding:4px 4px 0}
+.rung-head{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--sub);padding:0 4px;flex-wrap:wrap}
+.rung-head .n{margin-right:auto;font-weight:900;color:var(--purple)}
+.rung-head button{background:#fff;border:2px solid #cfc6e2;border-radius:8px;padding:0 8px;min-height:26px;font-size:12px;color:var(--sub);font-weight:700}
+.rung-head button:hover:not(:disabled){color:var(--ink);border-color:var(--ink)}
+.rung-head button:disabled{opacity:.4}
+.rung-svg{width:100%;height:auto;display:block;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.rung-svg line,.rung-svg path,.rung-svg rect.box,.rung-svg circle.hd{stroke:var(--wire);stroke-width:2.8;fill:none;stroke-linecap:round}
+.rung-svg .rail{stroke:var(--rail);stroke-width:5}
+.running .rung-svg .rail{stroke:var(--on)}
+.rung-svg .pl .ls,.rung-svg .pl.cl .rs,.rung-svg .vl.pl,.rung-svg .out.pl > line{stroke:var(--on);stroke-dasharray:9 6;animation:flow .5s linear infinite}
+.rung-svg .pl.cl .sym{stroke:var(--on)}
+.rung-svg .out.pl path,.rung-svg .out.pl rect.box{stroke:var(--on)}
+@keyframes flow{to{stroke-dashoffset:-15}}
+.rung-svg .cfill{fill:transparent;stroke:none}
+.rung-svg .cl .cfill{fill:var(--on-dim)}
+.rung-svg .out .ofill{fill:transparent;stroke:none}
+.rung-svg .out.q .ofill{fill:#7dffb8}
+.rung-svg .out.q path,.rung-svg .out.q rect.box{stroke-width:3.5}
+.rung-svg text{fill:var(--sub);font-size:11px;font-family:inherit;pointer-events:none}
+.rung-svg text.lab{fill:var(--ink);font-size:11.5px;font-weight:700}
+.rung-svg text.nm{fill:#e2476f;font-size:11px;font-weight:700}
+.rung-svg text.big{fill:var(--ink);font-size:13px;font-weight:900}
+.rung-svg text.q{fill:#d99a00;font-size:24px;font-weight:900}
+.rung-svg *{pointer-events:none}
+.rung-svg .hit,.rung-svg .vhit{pointer-events:all}
+.rung-svg .hit{fill:transparent;stroke:none;cursor:pointer}
+.rung-svg .hit:hover{fill:rgba(255,194,61,.18)}
+.rung-svg .hit.locked{cursor:not-allowed}
+.rung-svg .hit.locked:hover{fill:transparent}
+.rung-svg .blank{stroke:#cfc6e2;stroke-dasharray:4 4;stroke-width:2;fill:#fff}
+.rung-svg .qbox{stroke:#f0a800;stroke-dasharray:6 4;stroke-width:2.5;fill:rgba(255,194,61,.16)}
+.rung-svg .vhit{fill:transparent;stroke:none;cursor:pointer}
+.rung-svg .vdot{fill:#fff;stroke:#b6abd2;stroke-width:2}
+.rung-svg .vhit:hover + .vdot{fill:var(--accent2);stroke:var(--ink)}
+.rung-svg .lockmark{fill:var(--lock);font-size:10px}
+.rung-svg g.pop{transform-box:fill-box;transform-origin:center;animation:popin .35s cubic-bezier(.3,1.8,.5,1)}
+@keyframes popin{0%{transform:scale(.4)}100%{transform:scale(1)}}
+
+/* 機械 */
+.mach-wrap{display:flex;flex-direction:column;gap:10px}
+.plant{background:linear-gradient(#dff1ff 0%,#eef8ff 70%,#cfe6c8 70%,#bfdcb5 100%);border:2.5px solid var(--ink);border-radius:14px;padding:12px;display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:flex-end;min-height:130px}
+.opanel{background:#e3e7f0;background-image:linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,255,255,0));border:2.5px solid var(--ink);border-radius:14px;padding:12px;display:flex;flex-wrap:wrap;gap:14px;justify-content:center;position:relative}
+.opanel::before,.opanel::after{content:"";position:absolute;top:6px;width:7px;height:7px;border-radius:50%;background:#9aa3b5;border:1px solid #6b7385}
+.opanel::before{left:6px}.opanel::after{right:6px}
+.dev{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--sub);text-align:center;min-width:64px}
+.dev .ad{font-size:10.5px;color:var(--sub);font-family:Consolas,monospace}
+.dev .lbl{color:var(--ink);font-size:12.5px;font-weight:800}
+.pb{width:60px;height:60px;border-radius:50%;border:3px solid var(--ink);background:#c9cfda;box-shadow:0 5px 0 var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;position:relative;transition:transform .05s,box-shadow .05s}
+.pb i{position:absolute;inset:6px;border-radius:50%;display:block;border:2px solid rgba(0,0,0,.25);box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),inset 0 4px 0 rgba(255,255,255,.35)}
+.pb.green i{background:#2fcf73}.pb.red i{background:#ff4f6d}.pb.yellow i{background:#ffc23d}.pb.blue i{background:#3d9bff}.pb.black i{background:#3a3550}
+.pb.on{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.pb.on i{filter:brightness(1.25);box-shadow:inset 0 3px 0 rgba(0,0,0,.2)}
+.pb.held{outline:3px solid var(--pink);outline-offset:3px}
+.sw{width:64px;height:42px;border-radius:10px;background:#c9cfda;border:3px solid var(--ink);position:relative;touch-action:none;box-shadow:0 3px 0 var(--ink)}
+.sw::after{content:"";position:absolute;width:12px;height:30px;left:23px;top:3px;background:#fff;border:2px solid var(--ink);border-radius:5px;transform:rotate(-30deg);transition:transform .15s}
+.sw.on{background:#b9f0d2}
+.sw.on::after{transform:rotate(30deg)}
+.sens{width:60px;height:42px;border-radius:8px;background:#c9cfda;border:3px solid var(--ink);position:relative;font-size:11px;font-weight:700;color:var(--sub);touch-action:none;box-shadow:0 3px 0 var(--ink)}
+.sens.on{background:#ffe08a;color:var(--ink);box-shadow:0 3px 0 var(--ink),0 0 14px rgba(255,194,61,.9)}
+.sens.auto{cursor:default}
+.lamp{width:48px;height:48px;border-radius:50%;background:#d6d1e0;border:3px solid var(--ink);box-shadow:inset 0 -5px 0 rgba(0,0,0,.12);transition:background .1s,box-shadow .1s}
+.lamp.on{transform:scale(1.06)}
+.lamp.on.yellow{background:#ffd84d;box-shadow:0 0 24px 8px rgba(255,200,40,.75),inset 0 -5px 0 rgba(0,0,0,.08)}
+.lamp.on.green{background:#4dff8f;box-shadow:0 0 24px 8px rgba(40,220,120,.6),inset 0 -5px 0 rgba(0,0,0,.08)}
+.lamp.on.red{background:#ff5a6e;box-shadow:0 0 24px 8px rgba(255,70,90,.6),inset 0 -5px 0 rgba(0,0,0,.08)}
+.lamp.on.blue{background:#5ab0ff;box-shadow:0 0 24px 8px rgba(60,150,255,.6),inset 0 -5px 0 rgba(0,0,0,.08)}
+.lamp.on.white{background:#fffef2;box-shadow:0 0 24px 8px rgba(255,240,180,.8),inset 0 -5px 0 rgba(0,0,0,.08)}
+.motor svg{width:60px;height:60px}
+.motor .fan{transform-origin:29px 29px}
+.motor.on .fan{animation:spin .5s linear infinite}
+.motor.rev.on .fan{animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.conv{width:170px;height:46px;position:relative}
+.conv .belt{position:absolute;left:0;right:0;bottom:4px;height:16px;border-radius:8px;background:repeating-linear-gradient(90deg,#5b5470 0 10px,#3f3a52 10px 20px);border:2.5px solid var(--ink)}
+.conv.on .belt{animation:belt .4s linear infinite}
+.conv.rev.on .belt{animation-direction:reverse}
+@keyframes belt{to{background-position:20px 0}}
+.conv .box{position:absolute;bottom:22px;left:10px;width:26px;height:20px;background:#e0a35a;border:2.5px solid var(--ink);border-radius:4px}
+.conv.on .box{animation:jig .25s ease-in-out infinite}
+@keyframes jig{50%{transform:translateY(-2px)}}
+.cyl{width:150px;height:40px;position:relative}
+.cyl .body{position:absolute;left:0;top:6px;width:70px;height:28px;background:#8aa0c8;border:2.5px solid var(--ink);border-radius:6px}
+.cyl .rod{position:absolute;left:70px;top:16px;height:8px;background:#e8ecf5;border:2px solid var(--ink);border-radius:2px}
+.cyl .head{position:absolute;top:8px;width:10px;height:24px;background:#ffc23d;border:2px solid var(--ink);border-radius:3px}
+.buzz{font-size:32px;line-height:1;filter:grayscale(1) opacity(.5)}
+.buzz.on{filter:none;animation:shake .12s linear infinite}
+@keyframes shake{0%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}100%{transform:rotate(-10deg)}}
+.tank{width:70px;height:90px;border:3px solid var(--ink);border-top:none;border-radius:0 0 10px 10px;position:relative;background:#f5fbff;overflow:hidden}
+.tank .lv{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#6cc4ff,#2f86e0)}
+.mach-ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--sub)}
+.mach-ctrl label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.mach-ctrl .clock{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:800;background:#2b2340;color:#7dffb8;border-radius:8px;padding:1px 10px;font-family:Consolas,monospace}
+
+/* 下部 */
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tabs button{background:#fff;border:2px solid var(--ink);border-radius:999px;padding:3px 14px;color:var(--ink);font-weight:700;font-size:13.5px}
+.tabs button.act{background:var(--ink);color:#fff}
+.story{color:var(--ink);font-size:14px;margin:0}
+.task{font-size:15.5px;margin:0 0 8px;background:var(--panel2);border:2.5px solid var(--ink);border-radius:12px;padding:8px 12px;font-weight:700}
+.task::before{content:"📋 おしごと";display:block;font-size:11px;color:#b07800}
+.goal{font-size:13px;color:var(--sub)}
+table.io{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+table.io th,table.io td{border-bottom:1px solid var(--soft);border-right:1px solid var(--soft);padding:5px 8px;text-align:left}
+table.io th{background:var(--ink);color:#fff;font-weight:700}
+table.io td.mono{font-family:Consolas,"Courier New",monospace;color:var(--purple);font-weight:700}
+.hint{background:#fff7d6;border:2px solid var(--ink);border-left:8px solid var(--accent);padding:8px 10px;border-radius:10px;margin-bottom:8px}
+.ctrlbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:3px solid var(--ink);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center;z-index:6;flex-wrap:wrap}
+.ctrlbar .btn{min-width:90px;font-size:15px}
+.ctrlbar .btn.go:not(:disabled){animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 3px 0 var(--ink),0 0 0 0 rgba(34,197,139,.5)}50%{box-shadow:0 3px 0 var(--ink),0 0 0 7px rgba(34,197,139,0)}}
+
+/* モーダル */
+.modal-bg{position:fixed;inset:0;background:rgba(43,35,64,.55);display:flex;align-items:center;justify-content:center;z-index:20;padding:12px;animation:fade .15s}
+@keyframes fade{from{opacity:0}}
+.modal{background:#fff;border:3px solid var(--ink);border-radius:20px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:16px 18px;box-shadow:0 6px 0 var(--ink);animation:mpop .3s cubic-bezier(.3,1.6,.5,1)}
+@keyframes mpop{from{transform:scale(.8);opacity:0}}
+.modal.ng{animation:mpop .3s cubic-bezier(.3,1.6,.5,1),mshake .4s .3s}
+@keyframes mshake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.modal h2{margin:0 0 10px;font-size:18px;font-weight:900}
+.modal .acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.opt{background:#fff;border:2.5px solid #cfc6e2;border-radius:10px;padding:5px 12px;min-height:40px;font-weight:700}
+.opt:hover{border-color:var(--ink)}
+.opt.sel{border-color:var(--ink);background:var(--accent);box-shadow:0 2px 0 var(--ink)}
+.opt small{color:var(--sub);display:block;font-size:11px;font-weight:normal}
+.opt.sel small{color:var(--ink)}
+.fieldrow{display:flex;gap:10px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.fieldrow input,.fieldrow select{background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:8px;padding:6px 8px;font:inherit;min-height:38px}
+.result-ok{color:var(--ok);font-size:20px;font-weight:900}
+.result-ng{color:var(--ng);font-size:18px;font-weight:900}
+.clear-title{text-align:center;font-size:40px;font-weight:900;margin:0;color:var(--accent);-webkit-text-stroke:2px var(--ink);letter-spacing:4px;animation:zoomin .5s cubic-bezier(.3,1.8,.5,1)}
+.clear-title.boss{color:var(--pink)}
+@keyframes zoomin{from{transform:scale(.2) rotate(-10deg)}}
+.bigstars{font-size:46px;letter-spacing:8px;text-align:center;margin:0 0 4px}
+.bigstars .s{display:inline-block;color:var(--accent);-webkit-text-stroke:2px #c98a00;animation:starpop .45s cubic-bezier(.3,1.9,.5,1) both}
+.bigstars .s.off{color:#e8dfcc;-webkit-text-stroke:1px #d4c8ae}
+@keyframes starpop{from{transform:scale(0) rotate(-120deg);opacity:0}}
+.starlist{list-style:none;padding:0;margin:0 0 10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.starlist li{padding:1px 10px;border:2px solid var(--ink);border-radius:999px;font-size:13px;background:#fff}
+.starlist li.got{background:#fff0b3}
+.xpgain{text-align:center;font-size:22px;font-weight:900;color:var(--purple)}
+.lvup{text-align:center;margin:8px auto;padding:8px 12px;border:3px solid var(--ink);border-radius:14px;background:linear-gradient(90deg,#ff5d8f,#ffc23d,#22c58b,#3d9bff,#8b5cf6);background-size:300% 100%;animation:rainbow 2s linear infinite;color:#fff;font-weight:900;font-size:18px;text-shadow:0 2px 0 rgba(0,0,0,.35);box-shadow:0 4px 0 var(--ink)}
+@keyframes rainbow{to{background-position:300% 0}}
+.newdex{text-align:center;font-size:13.5px;background:#e6dbff;border:2px solid var(--ink);border-radius:10px;padding:4px 10px;margin:6px 0}
+.timeline{font-size:13.5px;background:var(--bg2);border:2px solid var(--ink);border-radius:10px;padding:8px 10px;margin:8px 0}
+.timeline div{padding:1px 0}
+.timeline .bad{color:var(--ng);font-weight:900}
+.dex-item{border:2.5px solid var(--ink);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fffdf8;box-shadow:0 3px 0 var(--ink)}
+.dex-item.locked{opacity:.55;box-shadow:none;border-style:dashed}
+.dex-item h4{margin:0 0 4px;font-size:15px}
+.dex-item .op{font-size:12px;color:var(--purple);font-weight:700}
+.toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#fff;border:2.5px solid var(--ink);box-shadow:0 3px 0 var(--ink);padding:7px 16px;border-radius:999px;z-index:40;max-width:90vw;font-weight:700;animation:tdrop .25s cubic-bezier(.3,1.6,.5,1)}
+@keyframes tdrop{from{transform:translate(-50%,-20px);opacity:0}}
+.preview-svg{background:#fbf9ff;border:2px solid #d8d0ea;border-radius:10px;padding:4px;margin-bottom:6px}
+.note{font-size:12.5px;color:var(--sub)}
+ol.steps{padding-left:22px;margin:6px 0}
+hr.sep{border:none;border-top:2.5px dashed #d8d0ea;margin:14px 0}
+
+/* 紙ふぶき・ステージ開始 */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:30;overflow:hidden}
+.confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(var(--r))}}
+.intro{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;background:rgba(43,35,64,.5);animation:fade .2s;cursor:pointer}
+.intro .card{background:var(--area);color:#fff;border:3px solid var(--ink);border-radius:20px;padding:18px 34px;text-align:center;box-shadow:0 6px 0 var(--ink);animation:slidein .45s cubic-bezier(.3,1.5,.5,1);max-width:92vw}
+.intro .card .a{font-size:13px;font-weight:700;opacity:.95}
+.intro .card .s{white-space:nowrap;font-size:clamp(30px,10vw,44px);font-weight:900;line-height:1.1;-webkit-text-stroke:2px var(--ink);letter-spacing:2px}
+.intro .card .n{font-size:20px;font-weight:900;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.intro.boss .card{background:var(--ng);animation:slidein .45s cubic-bezier(.3,1.5,.5,1),mshake .5s .45s 2}
+.intro .card .warn{font-size:15px;font-weight:900;background:var(--ink);border-radius:999px;padding:0 12px;display:inline-block;margin-bottom:4px;animation:blink .4s steps(2) infinite}
+@keyframes slidein{from{transform:translateX(-110vw) skewX(-12deg)}}
+@keyframes blink{50%{opacity:.3}}
+
+@media (max-width: 860px){
+  .stage{grid-template-columns:minmax(0,1fr);grid-template-areas:"bottom" "machine" "editor";padding:8px;padding-bottom:86px;gap:10px}
+  .topbar h1{font-size:18px}
+  .topbar h1 small{display:none}
+  .topbar{position:static}
+  .plant,.opanel{padding:8px;gap:10px}
+  .ctrlbar{gap:6px;padding-left:8px;padding-right:8px}
+  .ctrlbar .btn{min-width:0;flex:1 1 0;padding:7px 2px;white-space:nowrap;font-size:14px}
+  .clear-title{font-size:32px}
+  .mascot{width:48px;height:48px}
+}
+/* ---------- 派手な演出 ---------- */
+/* 火花(どこでも使う粒) */
+.spark{position:fixed;left:0;top:0;width:9px;height:9px;border-radius:50%;pointer-events:none;z-index:45;animation:spk var(--d,.7s) cubic-bezier(.2,.8,.3,1) forwards}
+.spark.star{border-radius:0;clip-path:polygon(50% 0,61% 38%,100% 50%,61% 62%,50% 100%,39% 62%,0 50%,39% 38%)}
+@keyframes spk{0%{transform:translate(var(--x),var(--y)) scale(1);opacity:1}100%{transform:translate(calc(var(--x) + var(--dx)),calc(var(--y) + var(--dy))) scale(.2) rotate(240deg);opacity:0}}
+/* 画面フラッシュ・揺れ */
+.flash{position:fixed;inset:0;background:#fff;z-index:44;pointer-events:none;animation:flashA .45s ease-out forwards}
+@keyframes flashA{from{opacity:.95}to{opacity:0}}
+body.quake{animation:quake .5s}
+@keyframes quake{10%,50%,90%{transform:translate(-7px,3px)}30%,70%{transform:translate(7px,-3px)}}
+/* 判定中ドラムロール */
+.judging{position:fixed;inset:0;z-index:28;background:rgba(43,35,64,.7);display:flex;align-items:center;justify-content:center;padding:12px;animation:fade .15s}
+.judging .jb{background:#fff;border:3px solid var(--ink);border-radius:20px;box-shadow:0 6px 0 var(--ink);padding:16px 20px;width:min(420px,100%)}
+.judging h2{margin:0 0 10px;text-align:center;font-weight:900;font-size:22px;letter-spacing:2px}
+.judging h2 span{display:inline-block;animation:bob .5s ease-in-out infinite}
+.judging h2 span:nth-child(2){animation-delay:.08s}.judging h2 span:nth-child(3){animation-delay:.16s}.judging h2 span:nth-child(4){animation-delay:.24s}.judging h2 span:nth-child(5){animation-delay:.32s}
+.jrow{display:flex;align-items:center;gap:10px;padding:5px 8px;border:2px solid #e6dcc6;border-radius:10px;margin-bottom:6px;font-weight:700;font-size:14px;opacity:.35}
+.jrow .mk{width:28px;height:28px;flex:none;border-radius:50%;border:2.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:900;background:#fff}
+.jrow.run{opacity:1;border-color:var(--accent);background:#fff7d6}
+.jrow.run .mk::after{content:"";width:12px;height:12px;border:3px solid var(--ink);border-top-color:transparent;border-radius:50%;animation:spin .5s linear infinite}
+.jrow.ok{opacity:1;border-color:var(--mint);background:#dcfaec}
+.jrow.ok .mk{background:var(--mint);color:#fff;animation:popin .3s cubic-bezier(.3,1.8,.5,1)}
+.jrow.ng{opacity:1;border-color:var(--ng);background:#ffe0e6}
+.jrow.ng .mk{background:var(--ng);color:#fff;animation:popin .3s cubic-bezier(.3,1.8,.5,1)}
+.bigx{position:fixed;left:50%;top:50%;z-index:46;font-size:min(46vw,260px);font-weight:900;color:var(--ng);-webkit-text-stroke:6px var(--ink);pointer-events:none;line-height:1;animation:bigx .7s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes bigx{0%{transform:translate(-50%,-50%) scale(3) rotate(-30deg);opacity:0}30%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-50%) scale(1.1);opacity:0}}
+/* クリアの後光 */
+.clear-wrap{position:relative;text-align:center;padding:8px 0 2px;overflow:hidden;margin:-16px -18px 0;border-radius:18px 18px 0 0}
+.clear-wrap::before{content:"";position:absolute;left:50%;top:50%;width:900px;height:900px;margin:-450px 0 0 -450px;background:repeating-conic-gradient(rgba(255,194,61,.35) 0 10deg,transparent 10deg 20deg);animation:spin 8s linear infinite;z-index:0}
+.clear-wrap.boss::before{background:repeating-conic-gradient(rgba(255,93,143,.35) 0 10deg,transparent 10deg 20deg)}
+.clear-wrap > *{position:relative;z-index:1}
+.clear-title{animation:zoomin .5s cubic-bezier(.3,1.8,.5,1),glow 1.2s .5s ease-in-out infinite}
+@keyframes glow{50%{transform:scale(1.07);filter:drop-shadow(0 0 10px #fff3a0)}}
+.bigstars .s.on{animation:starpop .45s cubic-bezier(.3,1.9,.5,1) both,twinkle 1.4s ease-in-out infinite}
+@keyframes twinkle{50%{filter:drop-shadow(0 0 8px #ffe066) brightness(1.15)}}
+/* レベルアップ画面 */
+.lvsplash{position:fixed;inset:0;z-index:35;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle,#8b5cf6 0%,#3b1f7a 70%);overflow:hidden;cursor:pointer;animation:fade .2s;color:#fff;text-align:center;padding:16px}
+.lvsplash::before{content:"";position:absolute;left:50%;top:50%;width:1600px;height:1600px;margin:-800px 0 0 -800px;background:repeating-conic-gradient(rgba(255,255,255,.12) 0 8deg,transparent 8deg 16deg);animation:spin 10s linear infinite}
+.lvsplash > *{position:relative}
+.lvsplash .big{font-size:clamp(46px,14vw,96px);font-weight:900;line-height:1;color:var(--accent);-webkit-text-stroke:3px var(--ink);text-shadow:0 6px 0 var(--ink);animation:zoomin .6s cubic-bezier(.3,1.8,.5,1),glow 1s .6s ease-in-out infinite;white-space:nowrap}
+.lvsplash .lv{font-size:clamp(28px,8vw,48px);font-weight:900;margin-top:12px;animation:slidein .5s .3s cubic-bezier(.3,1.5,.5,1) both}
+.lvsplash .lv b{display:inline-block;color:#7dffb8;font-size:1.3em;animation:popin .5s .8s cubic-bezier(.3,1.8,.5,1) both}
+.lvsplash .ttl{margin-top:12px;font-size:18px;font-weight:900;background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:4px 18px;box-shadow:0 4px 0 var(--ink);animation:popin .5s 1.1s cubic-bezier(.3,1.8,.5,1) both}
+.lvsplash .tap{margin-top:18px;font-size:12px;opacity:.8;animation:blink 1s steps(2) infinite}
+/* 機械がONになった瞬間 */
+.dev .on-burst{animation:onburst .35s cubic-bezier(.3,1.8,.5,1)}
+@keyframes onburst{0%{transform:scale(.7)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+/* マップの動く背景 */
+.bgdeco{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+.bgdeco span{position:absolute;bottom:-60px;font-size:28px;opacity:.22;animation:floatup linear infinite}
+@keyframes floatup{to{transform:translateY(-120vh) rotate(360deg)}}
+.topbar h1{background:linear-gradient(90deg,#ff5d8f,#ff9f43,#ffc23d,#22c58b,#3d9bff,#8b5cf6,#ff5d8f);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;animation:rainbow 4s linear infinite;-webkit-text-stroke:1px var(--ink)}
+.area-icon{animation:hop 2.4s ease-in-out infinite}
+.area.locked .area-icon{animation:none}
+.stage-btn.next .num{animation:pulseR 1.2s ease-in-out infinite}
+@keyframes pulseR{0%,100%{box-shadow:0 0 0 0 rgba(255,93,143,.6)}50%{box-shadow:0 0 0 9px rgba(255,93,143,0)}}
+.btn.primary[data-act="judge"]{background:linear-gradient(90deg,#ffc23d,#ffe28a,#ffc23d);background-size:200% 100%;animation:rainbow 2s linear infinite}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+
+<!-- =====================================================================
+     ステージデータ
+     ステージを増やすときは、このブロックの STAGES に追記するだけでよい。
+     ===================================================================== -->
+<script id="stage-data">
+/*
+ ラダーの書き方(answer / start 共通)
+   1ラング = { r: [行0, 行1, ...], o: 出力 }
+   行はスペース区切りのトークン:
+     a:I0.0  … a接点(%IX0.0)     b:I0.1 … b接点
+     -       … 横線               .      … 空き
+     ?       … 穴埋めの空欄(穴埋めステージ用。それ以外は固定)
+     +       … 直前のマスの右側に、下の行への縦線
+   出力: 'Q0.0'(コイル) / 'TON T0 2000'(ms) / 'TOF T0 1000' / 'CTU C0 3 I0.2'(PV, リセット) / 'CTD C0 3 I0.2'(PV, LD) / '?'(空欄)
+ テスト: s: [[時刻ms, '入力', '期待出力'], ...]   例 [0,'I0.0=1',''] [200,'','Q0.0=1']
+   入力はその時刻に変化させ、期待出力はその時刻のスキャン後に照合する。
+ forbid: [{all:['Q0.0','Q0.1'], msg:'…'}] … どの時点でも同時ONなら不合格
+*/
+const AREAS = [
+  {no:1, name:'はじまりの村', icon:'🏡', color:'#ff9f43', learn:'a接点・b接点、コイル、直列(AND)・並列(OR)'},
+  {no:2, name:'自己保持の森', icon:'🌲', color:'#22b573', learn:'自己保持、停止優先/起動優先、インターロック'},
+  {no:3, name:'タイマの塔',   icon:'🗼', color:'#8b5cf6', learn:'TON/TOF、点滅回路、遅延動作'},
+  {no:4, name:'カウンタの洞窟', icon:'💎', color:'#3d9bff', learn:'CTU/CTD、リセット、設定値到達'},
+  {no:5, name:'シーケンスの城', icon:'🏰', color:'#ff5d8f', learn:'内部リレー(M)、ステップ制御、順序動作'},
+  {no:6, name:'工場の迷宮',   icon:'🏭', color:'#5b6b8c', learn:'コンベア・パレット、複数機構、非常停止、手動/自動切替'},
+  {no:7, name:'検定の頂',     icon:'⛰️', color:'#e0a100', learn:'1級風の複合課題、接点数制限、制限時間'},
+];
+
+const STAGES = [
+  // ---------------- エリア1 はじまりの村 ----------------
+  {
+    id:'1-1', area:1, title:'灯りをともせ', type:'build',
+    story:'はじまりの村にやってきた。村の入口の灯りがつかない…。制御盤を開けると、ラダー図はまっさらだ。',
+    task:'押しボタン PB1 を押している間だけ、ランプ L1 が点灯する回路を組もう。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'押しボタン(押している間ON)'},
+      {a:'Q0.0', name:'L1',  desc:'入口ランプ'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[
+      {type:'pb', a:'I0.0', color:'green'},
+      {type:'lamp', a:'Q0.0', color:'yellow'},
+    ],
+    answer:[ {r:['a:I0.0 - - -'], o:'Q0.0'} ],
+    wrong:[ [ {r:['b:I0.0 - - -'], o:'Q0.0'} ], [ {r:['- - - -'], o:'Q0.0'} ] ],
+    target:1,
+    tests:[
+      {name:'押していないときは消灯', s:[[0,'',''],[300,'','Q0.0=0']]},
+      {name:'押すと点灯、離すと消灯', s:[[0,'I0.0=1',''],[200,'','Q0.0=1'],[400,'I0.0=0',''],[600,'','Q0.0=0']]},
+    ],
+    hints:[
+      '入力(ボタン)の状態を読む部品が「接点」、出力(ランプ)を動かす部品が「コイル」です。',
+      'ボタンを押したときに電気が通ってほしいので「a接点」を使います。',
+      '1行目のいちばん左のマスを「a接点 %IX0.0」に、右端の出力を「コイル %QX0.0」にします(残りのマスは横線のまま)。',
+    ],
+    unlock:['SCAN','NO','COIL'],
+    openplc:{check:['PB1 を TRUE にすると L1 が TRUE になる','PB1 を FALSE に戻すと L1 も FALSE になる']},
+  },
+  {
+    id:'1-2', area:1, title:'井戸ポンプの点検', type:'build',
+    story:'村の井戸ポンプはいつも回り続けている。点検のときだけ止めたいらしい。',
+    task:'ポンプ P1 はふだん運転し続け、点検ボタン PB1 を押している間だけ停止する回路を組もう。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'点検ボタン(押している間ON)'},
+      {a:'Q0.0', name:'P1',  desc:'井戸ポンプ'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ {type:'pb', a:'I0.0', color:'yellow'}, {type:'motor', a:'Q0.0'} ],
+    answer:[ {r:['b:I0.0 - - -'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.0'} ], [ {r:['- - - -'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'ふだんは運転', s:[[0,'',''],[300,'','Q0.0=1']]},
+      {name:'押している間だけ停止', s:[[0,'',''],[200,'I0.0=1',''],[400,'','Q0.0=0'],[600,'I0.0=0',''],[800,'','Q0.0=1']]},
+    ],
+    hints:[
+      '「押したら切れる」接点が必要です。',
+      'b接点は、信号がOFFのとき通電し、ONになると切れます。',
+      '1行目の左端を「b接点 %IX0.0」、出力を「コイル %QX0.0」にします。',
+    ],
+    unlock:['NC'],
+    openplc:{check:['シミュレーション開始直後から P1 が TRUE','PB1 を TRUE にすると P1 が FALSE になる']},
+  },
+  {
+    id:'1-3', area:1, title:'ふたりで開ける倉の扉', type:'fill',
+    story:'村の倉の扉は重い。安全のため、ふたりが同時にボタンを押したときだけ開くことにした。',
+    task:'左ボタン PB1 と右ボタン PB2 を両方押している間だけ、扉シリンダ Y1 が開く(前進する)ようにしよう。「?」のマスを埋めてください。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'左ボタン'},
+      {a:'I0.1', name:'PB2', desc:'右ボタン'},
+      {a:'Q0.0', name:'Y1',  desc:'扉シリンダ(ONで開く)'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'green'}, {type:'cylinder', a:'Q0.0', time:800} ],
+    start:[ {r:['a:I0.0 ? - -'], o:'Q0.0'} ],
+    answer:[ {r:['a:I0.0 a:I0.1 - -'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.0 b:I0.1 - -'], o:'Q0.0'} ], [ {r:['a:I0.0 - - -'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'左だけでは開かない', s:[[0,'I0.0=1',''],[200,'','Q0.0=0']]},
+      {name:'右だけでは開かない', s:[[0,'I0.1=1',''],[200,'','Q0.0=0']]},
+      {name:'両方押すと開く', s:[[0,'I0.0=1 I0.1=1',''],[200,'','Q0.0=1'],[300,'I0.1=0',''],[500,'','Q0.0=0']]},
+    ],
+    hints:[
+      '「AかつB」は接点を横に並べる(直列)です。',
+      '空欄には右ボタンの接点が入ります。押したら通電してほしいので…',
+      '「?」を「a接点 %IX0.1」にします。',
+    ],
+    unlock:['AND'],
+    openplc:{check:['PB1 だけ、PB2 だけを TRUE にしても Y1 は FALSE','両方 TRUE で Y1 が TRUE'], note:'PCで2つ同時に押すときは「ボタン固定モード」を使ってください。'},
+  },
+  {
+    id:'1-4', area:1, title:'廊下の灯りが片側しか…', type:'bug',
+    story:'村長の家の長い廊下。両端どちらのボタンでも灯りがつくはずが、奥のボタンでは反応しない。',
+    task:'手前ボタン PB1 と奥ボタン PB2 のどちらを押しても、押している間ランプ L1 が点灯するように、ラダーの不具合を直そう。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'手前のボタン'},
+      {a:'I0.1', name:'PB2', desc:'奥のボタン'},
+      {a:'Q0.0', name:'L1',  desc:'廊下ランプ'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ {type:'pb', a:'I0.0', color:'blue'}, {type:'pb', a:'I0.1', color:'blue'}, {type:'lamp', a:'Q0.0', color:'white'} ],
+    start:[ {r:['a:I0.0 - - -','a:I0.1'], o:'Q0.0'} ],
+    answer:[ {r:['a:I0.0 + - - -','a:I0.1'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.0 a:I0.1 - -'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'手前ボタンで点灯', s:[[0,'I0.0=1',''],[200,'','Q0.0=1'],[300,'I0.0=0',''],[500,'','Q0.0=0']]},
+      {name:'奥ボタンで点灯', s:[[0,'I0.1=1',''],[200,'','Q0.0=1'],[300,'I0.1=0',''],[500,'','Q0.0=0']]},
+      {name:'押さなければ消灯', s:[[0,'',''],[300,'','Q0.0=0']]},
+    ],
+    hints:[
+      '2行目のPB2の接点は、上の行(コイルにつながる行)とつながっていますか?',
+      '並列(OR)は、下の行の右端から上の行へ縦線でつなぐ必要があります。',
+      'PB2の接点のすぐ右(1列目と2列目の間)の●をタップして縦線を引きます。',
+    ],
+    unlock:['OR'],
+    openplc:{check:['PB1 だけ TRUE で L1 が TRUE','PB2 だけ TRUE で L1 が TRUE'], note:'OpenPLC Editorでも、分岐の行は左右両方をつながないと並列になりません。'},
+  },
+  {
+    id:'1-5', area:1, title:'ボス:村の水車小屋', type:'build', boss:true,
+    story:'村いちばんの大仕事、水車小屋の制御だ。条件が多いぞ。',
+    task:'水車モータ M1 は「運転許可スイッチ SW1 がON」かつ「起動ボタン PB1 または点検ボタン PB2 を押している」かつ「扉センサ S1 がOFF(扉が閉じている)」のときだけ回る。さらに、扉が開いている(S1がON)間は警告灯 L1 を点灯させよう。',
+    io:[
+      {a:'I0.0', name:'SW1', desc:'運転許可スイッチ(切替)'},
+      {a:'I0.1', name:'PB1', desc:'起動ボタン'},
+      {a:'I0.2', name:'PB2', desc:'点検ボタン'},
+      {a:'I0.3', name:'S1',  desc:'扉センサ(扉が開くとON)'},
+      {a:'Q0.0', name:'M1',  desc:'水車モータ'},
+      {a:'Q0.1', name:'L1',  desc:'扉開き警告灯'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:3, maxRungs:3,
+    machine:[
+      {type:'sw', a:'I0.0'}, {type:'pb', a:'I0.1', color:'green'}, {type:'pb', a:'I0.2', color:'yellow'}, {type:'sensor', a:'I0.3'},
+      {type:'motor', a:'Q0.0'}, {type:'lamp', a:'Q0.1', color:'red'},
+    ],
+    answer:[
+      {r:['a:I0.0 + a:I0.1 + b:I0.3 -','. a:I0.2'], o:'Q0.0'},
+      {r:['a:I0.3 - - -'], o:'Q0.1'},
+    ],
+    wrong:[
+      [ {r:['a:I0.0 a:I0.1 b:I0.3 -'], o:'Q0.0'}, {r:['a:I0.3 - - -'], o:'Q0.1'} ],
+      [ {r:['a:I0.0 + a:I0.1 + a:I0.3 -','. a:I0.2'], o:'Q0.0'}, {r:['a:I0.3 - - -'], o:'Q0.1'} ],
+    ],
+    tests:[
+      {name:'許可スイッチOFFでは回らない', s:[[0,'I0.1=1',''],[200,'','Q0.0=0']]},
+      {name:'許可ON+起動ボタンで回る', s:[[0,'I0.0=1',''],[100,'I0.1=1',''],[300,'','Q0.0=1'],[400,'I0.1=0',''],[600,'','Q0.0=0']]},
+      {name:'許可ON+点検ボタンでも回る', s:[[0,'I0.0=1 I0.2=1',''],[200,'','Q0.0=1']]},
+      {name:'扉が開くと止まって警告', s:[[0,'I0.0=1 I0.1=1',''],[200,'','Q0.0=1 Q0.1=0'],[300,'I0.3=1',''],[500,'','Q0.0=0 Q0.1=1'],[600,'I0.3=0',''],[800,'','Q0.0=1 Q0.1=0']]},
+    ],
+    hints:[
+      'ラングを2本に分けます。1本目が水車モータ、2本目が警告灯です。',
+      '1本目は「SW1」→「PB1とPB2の並列」→「S1のb接点」を直列につなぎます。',
+      '1行目:a接点SW1、a接点PB1、b接点S1、横線。2行目の2列目にa接点PB2を置き、その左右(1列目と2列目の境目、2列目と3列目の境目)に縦線。2本目のラングは a接点S1 → コイルL1。',
+    ],
+    unlock:[],
+    openplc:{check:['SW1 FALSE のときは PB1 を押しても M1 は FALSE','SW1 TRUE で PB1 か PB2 を TRUE にすると M1 が TRUE','S1 を TRUE にすると M1 が FALSE、L1 が TRUE'], note:'並列部分を直列の途中に入れるときは、分岐の始まりと終わりの両方に縦線が必要です。'},
+  },
+
+  // ---------------- エリア2 自己保持の森 ----------------
+  {
+    id:'2-1', area:2, title:'止まらない粉ひき機', type:'build',
+    story:'森の入口の粉ひき機。起動ボタンを押している間しか回らず、木こりたちが困っている。',
+    task:'起動ボタン PB1 を一度押したら、離しても粉ひきモータ M1 が回り続け、停止ボタン PB2 を押すと止まる回路(自己保持回路)を組もう。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'起動ボタン'},
+      {a:'I0.1', name:'PB2', desc:'停止ボタン'},
+      {a:'Q0.0', name:'M1',  desc:'粉ひきモータ'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'motor', a:'Q0.0'} ],
+    answer:[ {r:['a:I0.0 + b:I0.1 - -','a:Q0.0'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.0 b:I0.1 - -'], o:'Q0.0'} ], [ {r:['a:I0.0 + - - -','a:Q0.0'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'最初は停止', s:[[0,'',''],[200,'','Q0.0=0']]},
+      {name:'起動ボタンを離しても回り続ける', s:[[0,'',''],[200,'I0.0=1',''],[300,'I0.0=0',''],[600,'','Q0.0=1'],[1500,'','Q0.0=1']]},
+      {name:'停止ボタンで止まり、止まったまま', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[300,'','Q0.0=1'],[400,'I0.1=1',''],[500,'I0.1=0',''],[700,'','Q0.0=0'],[1200,'','Q0.0=0']]},
+    ],
+    hints:[
+      'ボタンを離したあとも「ONのまま」を覚えておくには、出力自身の状態を使います。',
+      '起動ボタンと並列に、モータ M1(%QX0.0)のa接点を入れます。停止はb接点で直列に。',
+      '1行目:a接点PB1、b接点PB2、横線、横線。2行目の1列目にa接点 %QX0.0、その右(1列目と2列目の境目)に縦線。',
+    ],
+    unlock:['SELF'],
+    openplc:{check:['PB1 を TRUE→FALSE としても M1 は TRUE のまま','PB2 を TRUE にすると M1 が FALSE に戻る']},
+  },
+  {
+    id:'2-2', area:2, title:'停止はいつでも最優先', type:'fill',
+    story:'森の木材コンベア。安全担当の妖精いわく「停止ボタンはいつでも勝たなきゃダメ」。',
+    task:'起動ボタン PB1 で コンベア CV1 が自己保持で動き、停止ボタン PB2 で止まる。起動と停止を同時に押したときは止まる(停止優先)ように、「?」を埋めよう。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'起動ボタン'},
+      {a:'I0.1', name:'PB2', desc:'停止ボタン'},
+      {a:'Q0.0', name:'CV1', desc:'木材コンベア'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'conveyor', a:'Q0.0'} ],
+    start:[ {r:['a:I0.0 + ? - -','?'], o:'Q0.0'} ],
+    answer:[ {r:['a:I0.0 + b:I0.1 - -','a:Q0.0'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.0 + - - -','b:I0.1'], o:'Q0.0'} ], [ {r:['a:I0.0 + a:I0.1 - -','a:Q0.0'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'起動して保持', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[400,'','Q0.0=1']]},
+      {name:'停止で止まる', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[300,'I0.1=1',''],[400,'I0.1=0',''],[600,'','Q0.0=0']]},
+      {name:'同時押しは停止が勝つ', s:[[0,'I0.0=1 I0.1=1',''],[300,'','Q0.0=0'],[400,'I0.0=0 I0.1=0',''],[600,'','Q0.0=0']]},
+      {name:'運転中に同時押しでも止まる', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[300,'I0.0=1 I0.1=1',''],[500,'','Q0.0=0']]},
+    ],
+    hints:[
+      '停止ボタンは並列部分の「外」に直列で入れると、どんなときでも回路を切れます。',
+      '上の「?」には停止ボタンのb接点、下の「?」には自己保持用の接点が入ります。',
+      '上の「?」= b接点 %IX0.1、下の「?」= a接点 %QX0.0。',
+    ],
+    unlock:['PRIOR'],
+    openplc:{check:['PB1 と PB2 を同時に TRUE にしても CV1 は FALSE','運転中に PB2 を TRUE にすると CV1 が FALSE']},
+  },
+  {
+    id:'2-3', area:2, title:'危ない起動優先', type:'bug',
+    story:'森の丸太ころがし機。前の担当者のラダーは、停止ボタンを押していても起動ボタンで動いてしまうらしい。',
+    task:'今のラダーは「起動優先」になっていて危険です。起動ボタン PB1 と停止ボタン PB2 を同時に押したら止まる「停止優先」に直そう(自己保持の動きはそのまま)。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'起動ボタン'},
+      {a:'I0.1', name:'PB2', desc:'停止ボタン'},
+      {a:'Q0.0', name:'M1',  desc:'丸太ころがしモータ'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'motor', a:'Q0.0'} ],
+    start:[ {r:['a:I0.0 - + - -','a:Q0.0 b:I0.1'], o:'Q0.0'} ],
+    answer:[ {r:['a:I0.0 + b:I0.1 - -','a:Q0.0'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.0 + - - -','a:Q0.0'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'起動して保持', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[400,'','Q0.0=1']]},
+      {name:'停止で止まる', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[300,'I0.1=1',''],[400,'I0.1=0',''],[600,'','Q0.0=0']]},
+      {name:'同時押しは停止が勝つ', s:[[0,'I0.0=1 I0.1=1',''],[300,'','Q0.0=0']]},
+    ],
+    hints:[
+      '同時に押したとき、電気はどの経路を通ってコイルに届いていますか?「実行」して両方押してみよう。',
+      '停止ボタンのb接点が、自己保持の行だけに入っていて、起動ボタンの行には入っていません。',
+      '停止のb接点を並列部分の外(1行目の2列目)に移し、2行目は a接点 %QX0.0 だけにして、縦線を1列目と2列目の境目に引き直します。',
+    ],
+    unlock:[],
+    openplc:{check:['PB1 と PB2 を同時に TRUE にすると M1 は FALSE'], note:'起動優先が必要な場面もありますが、モータなど危険のある機械は停止優先が基本です。'},
+  },
+  {
+    id:'2-4', area:2, title:'行ったり来たりの台車', type:'build',
+    story:'森の資材置き場には、前後に動くコンベアがある。正転と逆転が同時に入るとモータが焼けてしまう!',
+    task:'正転ボタン PB1 で正転 MF、逆転ボタン PB2 で逆転 MR が自己保持で動き、停止ボタン PB3 でどちらも止まる。正転中は逆転できない・逆転中は正転できないようにインターロックをかけよう。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'正転ボタン'},
+      {a:'I0.1', name:'PB2', desc:'逆転ボタン'},
+      {a:'I0.2', name:'PB3', desc:'停止ボタン'},
+      {a:'Q0.0', name:'MF',  desc:'正転'},
+      {a:'Q0.1', name:'MR',  desc:'逆転'},
+    ],
+    palette:['NO','NC','COIL'], cols:5, maxRows:2, maxRungs:3,
+    forbid:[ {all:['Q0.0','Q0.1'], msg:'正転と逆転が同時にONになった'} ],
+    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'blue'}, {type:'pb', a:'I0.2', color:'red'}, {type:'conveyor', a:'Q0.0', rev:'Q0.1'} ],
+    answer:[
+      {r:['a:I0.0 + b:I0.2 b:Q0.1 - -','a:Q0.0'], o:'Q0.0'},
+      {r:['a:I0.1 + b:I0.2 b:Q0.0 - -','a:Q0.1'], o:'Q0.1'},
+    ],
+    wrong:[ [
+      {r:['a:I0.0 + b:I0.2 - - -','a:Q0.0'], o:'Q0.0'},
+      {r:['a:I0.1 + b:I0.2 - - -','a:Q0.1'], o:'Q0.1'},
+    ] ],
+    tests:[
+      {name:'正転して保持', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[300,'','Q0.0=1 Q0.1=0']]},
+      {name:'正転中に逆転を押しても逆転しない', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[200,'I0.1=1',''],[300,'I0.1=0',''],[500,'','Q0.0=1 Q0.1=0']]},
+      {name:'停止してから逆転', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[300,'I0.2=1',''],[400,'I0.2=0',''],[600,'','Q0.0=0 Q0.1=0'],[700,'I0.1=1',''],[800,'I0.1=0',''],[1000,'','Q0.0=0 Q0.1=1']]},
+      {name:'逆転中に正転を押しても正転しない', s:[[0,'I0.1=1',''],[100,'I0.1=0',''],[200,'I0.0=1',''],[300,'I0.0=0',''],[500,'','Q0.0=0 Q0.1=1']]},
+      {name:'正転と逆転の同時押し', s:[[0,'I0.0=1 I0.1=1',''],[200,'I0.0=0 I0.1=0',''],[400,'','']]},
+    ],
+    hints:[
+      'まず正転・逆転それぞれの自己保持回路を2本のラングで作ります。',
+      '正転のラングに「逆転 MR のb接点」、逆転のラングに「正転 MF のb接点」を直列に入れます。',
+      'ラング1:a接点PB1、b接点PB3、b接点MR(%QX0.1)…2行目にa接点MF。ラング2は正転と逆転を入れ替えた形です。',
+    ],
+    unlock:['ILOCK'],
+    openplc:{check:['MF が TRUE のとき PB2 を TRUE にしても MR は FALSE のまま','PB3 で両方 FALSE になる'], note:'実機では、電磁接触器のb接点を使ったハード側のインターロックも併用します。'},
+  },
+  {
+    id:'2-5', area:2, title:'ボス:森の製材所', type:'build', boss:true,
+    story:'森の奥の製材所。丸のこが回っていないのに木材を送ると大事故になる。',
+    task:'起動 PB1 で丸のこモータ SAW が自己保持で回り、停止 PB2 で止まる。送りボタン PB3 で送りコンベア FEED が自己保持で動くが、丸のこが回っているときしか動かず、丸のこが止まると送りも止まる。丸のこ運転中は運転表示灯 L1 を点灯。',
+    io:[
+      {a:'I0.0', name:'PB1',  desc:'丸のこ起動'},
+      {a:'I0.1', name:'PB2',  desc:'停止'},
+      {a:'I0.2', name:'PB3',  desc:'送り起動'},
+      {a:'Q0.0', name:'SAW',  desc:'丸のこモータ'},
+      {a:'Q0.1', name:'FEED', desc:'送りコンベア'},
+      {a:'Q0.2', name:'L1',   desc:'運転表示灯'},
+    ],
+    palette:['NO','NC','COIL'], cols:5, maxRows:2, maxRungs:4,
+    machine:[
+      {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'pb', a:'I0.2', color:'blue'},
+      {type:'motor', a:'Q0.0'}, {type:'conveyor', a:'Q0.1'}, {type:'lamp', a:'Q0.2', color:'green'},
+    ],
+    answer:[
+      {r:['a:I0.0 + b:I0.1 - - -','a:Q0.0'], o:'Q0.0'},
+      {r:['a:I0.2 + a:Q0.0 - - -','a:Q0.1'], o:'Q0.1'},
+      {r:['a:Q0.0 - - - -'], o:'Q0.2'},
+    ],
+    wrong:[
+      [ {r:['a:I0.0 + b:I0.1 - - -','a:Q0.0'], o:'Q0.0'}, {r:['a:I0.2 + b:I0.1 - - -','a:Q0.1'], o:'Q0.1'}, {r:['a:Q0.0 - - - -'], o:'Q0.2'} ],
+      [ {r:['a:I0.0 + b:I0.1 - - -','a:Q0.0'], o:'Q0.0'}, {r:['a:I0.2 a:Q0.0 - - -'], o:'Q0.1'}, {r:['a:Q0.0 - - - -'], o:'Q0.2'} ],
+    ],
+    tests:[
+      {name:'丸のこ停止中は送りが動かない', s:[[0,'I0.2=1',''],[200,'I0.2=0',''],[300,'','Q0.0=0 Q0.1=0 Q0.2=0']]},
+      {name:'丸のこ→送りの順に起動して保持', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[300,'','Q0.0=1 Q0.2=1 Q0.1=0'],[400,'I0.2=1',''],[500,'I0.2=0',''],[800,'','Q0.0=1 Q0.1=1']]},
+      {name:'停止で全部止まる', s:[[0,'I0.0=1',''],[100,'I0.0=0',''],[200,'I0.2=1',''],[300,'I0.2=0',''],[500,'','Q0.1=1'],[600,'I0.1=1',''],[700,'I0.1=0',''],[900,'','Q0.0=0 Q0.1=0 Q0.2=0'],[1500,'','Q0.1=0']]},
+    ],
+    hints:[
+      'ラングは3本。丸のこ、送り、表示灯の順に作ると考えやすいです。',
+      '送りのラングは、送りボタンの自己保持回路に「丸のこ SAW のa接点」を直列に入れます。丸のこが止まれば送りも切れます。',
+      'ラング2:a接点PB3、a接点SAW(%QX0.0)…2行目にa接点FEED(%QX0.1)、縦線は1列目と2列目の境目。ラング3:a接点SAW → コイルL1。',
+    ],
+    unlock:[],
+    openplc:{check:['SAW が FALSE のとき PB3 を TRUE にしても FEED は FALSE','運転中に PB2 で SAW・FEED・L1 がすべて FALSE']},
+  },
+
+  // ---------------- エリア3 タイマの塔 ----------------
+  {
+    id:'3-1', area:3, title:'ゆっくり開く塔の門', type:'build',
+    story:'タイマの塔の門番いわく「スイッチを入れて3秒たってから門を開けるのが塔の決まり」。',
+    task:'門スイッチ SW1 をONにしてから3秒後に門シリンダ Y1 が開く(ON)ようにしよう。SW1 をOFFにしたらすぐ閉じる(OFF)こと。',
+    io:[
+      {a:'I0.0', name:'SW1', desc:'門スイッチ(切替)'},
+      {a:'Q0.0', name:'Y1',  desc:'門シリンダ(ONで開く)'},
+    ],
+    timers:['T0'],
+    palette:['NO','NC','COIL','TON'], cols:4, maxRows:2, maxRungs:3,
+    machine:[ {type:'sw', a:'I0.0'}, {type:'cylinder', a:'Q0.0', time:1000} ],
+    answer:[ {r:['a:I0.0 - - -'], o:'TON T0 3000'}, {r:['a:T0 - - -'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.0'} ], [ {r:['a:I0.0 - - -'], o:'TON T0 1000'}, {r:['a:T0 - - -'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'3秒たつまでは閉じたまま', s:[[0,'I0.0=1',''],[200,'','Q0.0=0'],[2800,'','Q0.0=0']]},
+      {name:'3秒後に開き、OFFで閉じる', s:[[0,'I0.0=1',''],[3200,'','Q0.0=1'],[4000,'I0.0=0',''],[4200,'','Q0.0=0']]},
+    ],
+    hints:[
+      '「ONになってから一定時間後にON」はオンディレイタイマ TON の仕事です。',
+      'ラング1でSW1をTONの入力に、ラング2でタイマの出力(T0.Q)を使ってY1を動かします。',
+      'ラング1:a接点SW1 → 出力TON(T0、PT 3.0秒)。ラング2:a接点 T0.Q → コイルY1。',
+    ],
+    unlock:['TON'],
+    openplc:{check:['SW1 を TRUE にして約3秒後に Y1 が TRUE','SW1 を FALSE にすると Y1 がすぐ FALSE'], note:'PT は T#3s と入力します。'},
+  },
+  {
+    id:'3-2', area:3, title:'消したあとも回る換気扇', type:'fill',
+    story:'塔の2階の作業部屋。照明を消したあとも、しばらく換気扇を回しておきたい。',
+    task:'照明スイッチ SW1 がONの間は照明 L1 と換気扇 FAN がON。SW1 をOFFにすると照明はすぐ消え、換気扇は5秒後に止まる。「?」を埋めよう(タイマの種類と時間も選ぶ)。',
+    io:[
+      {a:'I0.0', name:'SW1', desc:'照明スイッチ(切替)'},
+      {a:'Q0.0', name:'L1',  desc:'照明'},
+      {a:'Q0.1', name:'FAN', desc:'換気扇'},
+    ],
+    timers:['T0'],
+    palette:['NO','NC','COIL','TON','TOF'], cols:4, maxRows:2, maxRungs:3,
+    machine:[ {type:'sw', a:'I0.0'}, {type:'lamp', a:'Q0.0', color:'white'}, {type:'motor', a:'Q0.1'} ],
+    start:[ {r:['a:I0.0 - - -'], o:'Q0.0'}, {r:['a:I0.0 - - -'], o:'?'}, {r:['? - - -'], o:'Q0.1'} ],
+    answer:[ {r:['a:I0.0 - - -'], o:'Q0.0'}, {r:['a:I0.0 - - -'], o:'TOF T0 5000'}, {r:['a:T0 - - -'], o:'Q0.1'} ],
+    wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.0'}, {r:['a:I0.0 - - -'], o:'TON T0 5000'}, {r:['a:T0 - - -'], o:'Q0.1'} ] ],
+    tests:[
+      {name:'最初はどちらもOFF', s:[[0,'',''],[500,'','Q0.0=0 Q0.1=0']]},
+      {name:'スイッチONで両方ON、OFFで換気扇だけ5秒残る', s:[[0,'I0.0=1',''],[200,'','Q0.0=1 Q0.1=1'],[2000,'I0.0=0',''],[2200,'','Q0.0=0 Q0.1=1'],[6800,'','Q0.1=1'],[7300,'','Q0.1=0']]},
+    ],
+    hints:[
+      '「OFFになってから一定時間後にOFF」はオフディレイタイマ TOF です。',
+      'ラング2の出力に TOF を置き、ラング3の接点でそのタイマの出力を使います。',
+      'ラング2の出力 = TOF(T0、PT 5.0秒)、ラング3の「?」= a接点 T0.Q。',
+    ],
+    unlock:['TOF'],
+    openplc:{check:['SW1 TRUE で L1・FAN が TRUE','SW1 FALSE で L1 はすぐ FALSE、FAN は約5秒後に FALSE'], note:'PT は T#5s と入力します。'},
+  },
+  {
+    id:'3-3', area:3, title:'点滅する警告灯', type:'build',
+    story:'塔の階段は暗くて危ない。点滅する警告灯をつけよう。',
+    task:'スイッチ SW1 がONの間、警告灯 L1 を「0.5秒消灯 → 0.5秒点灯」のくり返しで点滅させよう(ONにした直後は消灯から始まる)。SW1 をOFFにしたら消灯。',
+    io:[
+      {a:'I0.0', name:'SW1', desc:'点滅スイッチ(切替)'},
+      {a:'Q0.0', name:'L1',  desc:'警告灯'},
+    ],
+    timers:['T0','T1'],
+    palette:['NO','NC','COIL','TON','TOF'], cols:4, maxRows:2, maxRungs:4,
+    machine:[ {type:'sw', a:'I0.0'}, {type:'lamp', a:'Q0.0', color:'red'} ],
+    answer:[
+      {r:['a:I0.0 b:T1 - -'], o:'TON T0 500'},
+      {r:['a:T0 - - -'], o:'TON T1 500'},
+      {r:['a:T0 - - -'], o:'Q0.0'},
+    ],
+    wrong:[
+      [ {r:['a:I0.0 - - -'], o:'TON T0 500'}, {r:['a:T0 - - -'], o:'Q0.0'} ],
+      [ {r:['a:I0.0 - - -'], o:'Q0.0'} ],
+    ],
+    tests:[
+      {name:'OFFの間は消灯', s:[[0,'',''],[1000,'','Q0.0=0']]},
+      {name:'0.5秒ごとに点滅', s:[[0,'I0.0=1',''],[250,'','Q0.0=0'],[750,'','Q0.0=1'],[1250,'','Q0.0=0'],[1750,'','Q0.0=1'],[2250,'','Q0.0=0'],[2750,'','Q0.0=1']]},
+      {name:'スイッチOFFで消灯', s:[[0,'I0.0=1',''],[750,'','Q0.0=1'],[800,'I0.0=0',''],[900,'','Q0.0=0'],[2000,'','Q0.0=0']]},
+    ],
+    hints:[
+      'タイマを2個使います。T0 は「消灯の0.5秒」、T1 は「点灯の0.5秒」を数えます。',
+      'T0 が終わったら T1 をスタート。T1 が終わったら T0 をリセットする(T0 の入力に T1.Q のb接点を入れる)と、くり返しになります。',
+      'ラング1:a接点SW1、b接点T1.Q → TON T0 0.5秒。ラング2:a接点T0.Q → TON T1 0.5秒。ラング3:a接点T0.Q → コイルL1。',
+    ],
+    unlock:['FLICK'],
+    openplc:{check:['SW1 TRUE で L1 が約0.5秒ごとに TRUE/FALSE をくり返す','SW1 FALSE で L1 が FALSE'], note:'OpenPLC のシミュレーションでも、タイマどうしでリセットし合う形は同じように動きます。'},
+  },
+  {
+    id:'3-4', area:3, title:'階段のあかり(最短挑戦)', type:'short',
+    story:'塔の階段のあかり。ボタンを押すとしばらく点いて、自動で消えるようにしたい。',
+    task:'ボタン PB1 を押して離すと、階段灯 L1 が点灯し、離してから5秒後に自動で消える。できるだけ少ない接点数で作ろう(★目標 2個)。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'階段灯ボタン'},
+      {a:'Q0.0', name:'L1',  desc:'階段灯'},
+    ],
+    timers:['T0'],
+    palette:['NO','NC','COIL','TON','TOF'], cols:4, maxRows:2, maxRungs:3,
+    machine:[ {type:'pb', a:'I0.0', color:'yellow'}, {type:'lamp', a:'Q0.0', color:'yellow'} ],
+    answer:[ {r:['a:I0.0 - - -'], o:'TOF T0 5000'}, {r:['a:T0 - - -'], o:'Q0.0'} ],
+    target:2,
+    wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.0'} ], [ {r:['a:I0.0 - - -'], o:'TON T0 5000'}, {r:['a:T0 - - -'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'押すまでは消灯', s:[[0,'',''],[500,'','Q0.0=0']]},
+      {name:'押して離すと点灯し、約5秒後に消灯', s:[[0,'I0.0=1',''],[200,'I0.0=0',''],[300,'','Q0.0=1'],[4800,'','Q0.0=1'],[5600,'','Q0.0=0']]},
+    ],
+    hints:[
+      '自己保持+TONでも作れますが、接点が増えます。タイマの種類を見直そう。',
+      'TOF は「入力がOFFになってから設定時間だけ出力をONに保つ」タイマです。',
+      'ラング1:a接点PB1 → TOF T0 5.0秒。ラング2:a接点T0.Q → コイルL1。接点2個です。',
+    ],
+    unlock:[],
+    openplc:{check:['PB1 を TRUE→FALSE にすると L1 が TRUE になり、約5秒後に FALSE']},
+  },
+  {
+    id:'3-5', area:3, title:'ボス:塔の信号機', type:'build', boss:true,
+    story:'塔の最上階には、街道の信号機の制御盤がある。正しい順番で光らせれば塔を制覇だ!',
+    task:'運転スイッチ SW1 がONの間、信号機を「青 3秒 → 黄 1秒 → 赤 3秒」の順でくり返し点灯させる(ONにした瞬間は青から)。どの色も同時に2つ点かないこと。SW1 をOFFにしたら全部消灯。',
+    io:[
+      {a:'I0.0', name:'SW1', desc:'運転スイッチ(切替)'},
+      {a:'Q0.0', name:'G',   desc:'青信号'},
+      {a:'Q0.1', name:'Y',   desc:'黄信号'},
+      {a:'Q0.2', name:'R',   desc:'赤信号'},
+    ],
+    timers:['T0','T1','T2'],
+    palette:['NO','NC','COIL','TON','TOF'], cols:4, maxRows:2, maxRungs:7,
+    forbid:[
+      {all:['Q0.0','Q0.1'], msg:'青と黄が同時に点灯した'},
+      {all:['Q0.1','Q0.2'], msg:'黄と赤が同時に点灯した'},
+      {all:['Q0.0','Q0.2'], msg:'青と赤が同時に点灯した'},
+    ],
+    machine:[ {type:'sw', a:'I0.0'}, {type:'lamp', a:'Q0.0', color:'green'}, {type:'lamp', a:'Q0.1', color:'yellow'}, {type:'lamp', a:'Q0.2', color:'red'} ],
+    answer:[
+      {r:['a:I0.0 b:T2 - -'], o:'TON T0 3000'},
+      {r:['a:T0 - - -'], o:'TON T1 1000'},
+      {r:['a:T1 - - -'], o:'TON T2 3000'},
+      {r:['a:I0.0 b:T0 - -'], o:'Q0.0'},
+      {r:['a:T0 b:T1 - -'], o:'Q0.1'},
+      {r:['a:T1 - - -'], o:'Q0.2'},
+    ],
+    wrong:[
+      [ {r:['a:I0.0 b:T2 - -'], o:'TON T0 3000'}, {r:['a:T0 - - -'], o:'TON T1 1000'}, {r:['a:T1 - - -'], o:'TON T2 3000'},
+        {r:['a:I0.0 b:T0 - -'], o:'Q0.0'}, {r:['a:T0 - - -'], o:'Q0.1'}, {r:['a:T1 - - -'], o:'Q0.2'} ],
+      [ {r:['a:I0.0 - - -'], o:'TON T0 3000'}, {r:['a:T0 - - -'], o:'TON T1 1000'}, {r:['a:T1 - - -'], o:'TON T2 3000'},
+        {r:['a:I0.0 b:T0 - -'], o:'Q0.0'}, {r:['a:T0 b:T1 - -'], o:'Q0.1'}, {r:['a:T1 - - -'], o:'Q0.2'} ],
+    ],
+    tests:[
+      {name:'OFFの間は全部消灯', s:[[0,'',''],[500,'','Q0.0=0 Q0.1=0 Q0.2=0']]},
+      {name:'青→黄→赤→青の順にくり返す', s:[[0,'I0.0=1',''],[1000,'','Q0.0=1 Q0.1=0 Q0.2=0'],[3500,'','Q0.0=0 Q0.1=1 Q0.2=0'],[5000,'','Q0.0=0 Q0.1=0 Q0.2=1'],[7500,'','Q0.0=1 Q0.1=0 Q0.2=0'],[10500,'','Q0.0=0 Q0.1=1 Q0.2=0'],[12000,'','Q0.0=0 Q0.1=0 Q0.2=1']]},
+      {name:'スイッチOFFで全部消灯', s:[[0,'I0.0=1',''],[5000,'','Q0.2=1'],[5100,'I0.0=0',''],[5300,'','Q0.0=0 Q0.1=0 Q0.2=0']]},
+    ],
+    hints:[
+      'タイマを3個つなぎます:T0=青の3秒、T1=黄の1秒、T2=赤の3秒。T0が終わるとT1、T1が終わるとT2がスタート。',
+      'T2 が終わったら T0 の入力を切る(T2.Q のb接点)と全部リセットされ、また青から始まります。各色は「前のタイマが終わっていて、次のタイマがまだ」の条件で点けます。',
+      'ラング1:SW1・b接点T2.Q → TON T0 3秒。ラング2:T0.Q → TON T1 1秒。ラング3:T1.Q → TON T2 3秒。青:SW1・b接点T0.Q。黄:T0.Q・b接点T1.Q。赤:T1.Q。',
+    ],
+    unlock:[],
+    openplc:{check:['SW1 TRUE で G→Y→R の順に点灯し、7秒周期でくり返す','どの時点でも2色が同時に TRUE にならない','SW1 FALSE で全色 FALSE'], note:'タイマは TON を3個(T0, T1, T2)置き、PT を T#3s, T#1s, T#3s にします。'},
+  },
+];
+
+/* 命令図鑑 */
+const DEX = [
+  {id:'SCAN', name:'スキャン', op:'(PLCの動き方)', area:1,
+   text:'PLCは「入力を読む → ラダーを上のラングから順に、左から右へ計算する → 出力を書く」を数ミリ秒ごとにくり返します。これをスキャンと呼びます。このゲームでは1スキャン=10msです。',
+   tip:'上のラングで決まったコイルの状態は、同じスキャン内の下のラングからすぐ見えます。'},
+  {id:'NO', name:'a接点(メーク接点)', op:'OpenPLC: 接点 ─| |─', area:1,
+   text:'割り付けた信号がONのときに通電(閉じる)接点です。押しボタンを押したら動く、などに使います。',
+   tip:'「ONのとき通す」と覚えましょう。'},
+  {id:'NC', name:'b接点(ブレーク接点)', op:'OpenPLC: 否定接点 ─|/|─', area:1,
+   text:'割り付けた信号がOFFのときに通電し、ONになると切れる接点です。停止ボタンや「〜でないとき」の条件に使います。',
+   tip:'a接点の逆。信号がOFFでも通電している点に注意。'},
+  {id:'COIL', name:'コイル(出力)', op:'OpenPLC: コイル ─( )─', area:1,
+   text:'ラングの右端に置き、左から電気が届いていればON、届いていなければOFFにします。%QX(出力)や%MX(内部リレー)に割り付けます。',
+   tip:'同じコイルを2か所で使う(二重コイル)と、下のラングの結果が勝ちます。避けましょう。'},
+  {id:'AND', name:'直列(AND)', op:'接点を横に並べる', area:1,
+   text:'接点を横一列につなぐと、すべての接点が通電したときだけ出力がONになります。',
+   tip:'「AかつB」=直列。'},
+  {id:'OR', name:'並列(OR)', op:'行を追加して縦線でつなぐ', area:1,
+   text:'2行目に接点を置き、縦線で上の行とつなぐと、どちらかの接点が通電すれば出力がONになります。',
+   tip:'「AまたはB」=並列。縦線は左右両側に必要です。'},
+  {id:'SELF', name:'自己保持回路', op:'出力自身のa接点を並列に', area:2,
+   text:'起動ボタンと並列に出力自身のa接点を入れると、ボタンを離しても出力がONのまま保持されます。停止はb接点で切ります。',
+   tip:'工場の運転回路の基本中の基本。'},
+  {id:'PRIOR', name:'停止優先/起動優先', op:'b接点の位置で決まる', area:2,
+   text:'停止のb接点を並列部分の外(直列)に置くと停止優先、並列の起動側の行だけに置くと起動優先になります。',
+   tip:'安全のため、ふつうは停止優先にします。'},
+  {id:'ILOCK', name:'インターロック', op:'相手の出力のb接点', area:2,
+   text:'正転と逆転のように同時にONになってはいけない出力どうしで、相手の出力のb接点を自分の回路に入れて同時ONを防ぎます。',
+   tip:'モータの正逆転、シリンダの前進/後退で必須。'},
+  {id:'TON', name:'オンディレイタイマ TON', op:'OpenPLC: TON (IN, PT → Q, ET)', area:3,
+   text:'入力(IN)がONになってから設定時間(PT)が経つと出力QがONになります。INがOFFになると即リセット。',
+   tip:'OpenPLCではPTを T#2s のように書きます。接点で使うときはインスタンス名.Q(例: T0.Q)。'},
+  {id:'TOF', name:'オフディレイタイマ TOF', op:'OpenPLC: TOF (IN, PT → Q, ET)', area:3,
+   text:'INがONの間はQもON。INがOFFになってからPT経過後にQがOFFになります。',
+   tip:'「止めたあと少しだけ動かし続ける」換気扇などに。'},
+  {id:'FLICK', name:'点滅(フリッカ)回路', op:'タイマ2個の組合せ', area:3,
+   text:'タイマ2個で互いをリセットし合うと、一定周期でON/OFFをくり返す信号が作れます。',
+   tip:'警告灯の点滅に使います。'},
+  {id:'CTU', name:'アップカウンタ CTU', op:'OpenPLC: CTU (CU, R, PV → Q, CV)', area:4,
+   text:'CU入力の立ち上がりごとにCVを+1し、CVがPV以上になるとQがON。RがONでCV=0に戻ります。',
+   tip:'このゲームでは出力欄にCTUを置き、R入力に割り付ける信号を設定します。'},
+  {id:'CTD', name:'ダウンカウンタ CTD', op:'OpenPLC: CTD (CD, LD, PV → Q, CV)', area:4,
+   text:'LDがONでCV=PVにセット。CD入力の立ち上がりごとにCVを−1し、CVが0以下でQがON。',
+   tip:'最初にLDでプリセットしてから使います(CV=0の初期状態ではQはON)。'},
+  {id:'MREL', name:'内部リレー(%MX)', op:'OpenPLC: %MX0.0', area:5,
+   text:'外部に出ない、PLC内部だけのON/OFF記憶です。途中の状態やステップを覚えるのに使います。',
+   tip:'工程ごとに内部リレーを割り当てるとステップ制御が組みやすくなります。'},
+];
+</script>
+
+<!-- =====================================================================
+     エンジン(シミュレータ・エディタ・機械表示・進捗保存)
+     ===================================================================== -->
+<script id="engine">
+'use strict';
+const SCAN_MS = 10;            // 1スキャン = 10ms(シミュレーション時間)
+const SAVE_KEY = 'ladderQuest_v1';
+const TYPE_NAME = {build:'組む', fill:'穴埋め', bug:'バグ探し', short:'最短挑戦'};
+
+/* ---------- アドレス ---------- */
+function A(s){
+  if(s==null) return s;
+  s = String(s).trim();
+  if(s[0]==='%') return s.toUpperCase();
+  const m = /^([IQM])(\d+)\.([0-7])$/i.exec(s);
+  if(m) return '%'+m[1].toUpperCase()+'X'+m[2]+'.'+m[3];
+  return s.toUpperCase();
+}
+function kindOf(a){
+  if(!a) return '?';
+  if(a.startsWith('%IX')) return 'I';
+  if(a.startsWith('%QX')) return 'Q';
+  if(a.startsWith('%MX')) return 'M';
+  if(a[0]==='T') return 'T';
+  if(a[0]==='C') return 'C';
+  return '?';
+}
+function dispAddr(a){ const k=kindOf(a); return (k==='T'||k==='C') ? a+'.Q' : a; }
+const clone = o => JSON.parse(JSON.stringify(o));
+
+/* ---------- ラダーの記述(DSL)を読み込む ---------- */
+function parseOut(s){
+  if(s==null || s==='' || s==='?') return null;
+  const p = String(s).trim().split(/\s+/);
+  if(p.length===1) return {t:'COIL', a:A(p[0])};
+  if(p[0]==='TON'||p[0]==='TOF') return {t:p[0], n:p[1].toUpperCase(), pt:+p[2]};
+  if(p[0]==='CTU'||p[0]==='CTD') return {t:p[0], n:p[1].toUpperCase(), pv:+p[2], r:p[3]?A(p[3]):null};
+  throw new Error('出力の書式エラー: '+s);
+}
+function parseRung(def, cols){
+  const rows = Array.isArray(def.r) ? def.r : [def.r];
+  const R = rows.length;
+  const rung = {cells:[], v:[], lock:[], olock: def.o!=='?'};
+  for(let r=0;r<R;r++){
+    rung.cells.push(Array(cols).fill(null));
+    rung.lock.push(Array(cols).fill(true));
+    if(r<R-1) rung.v.push(Array(cols+1).fill(false));
+  }
+  rows.forEach((str,r)=>{
+    let c=0;
+    str.trim().split(/\s+/).filter(Boolean).forEach(tok=>{
+      if(tok==='+'){
+        if(r>=R-1 || c===0) throw new Error('縦線の位置エラー: '+str);
+        rung.v[r][c]=true; return;
+      }
+      if(c>=cols) throw new Error('列があふれています: '+str);
+      let cell=null, lk=true;
+      if(tok==='.') cell=null;
+      else if(tok==='-') cell={t:'W'};
+      else if(tok==='?') { cell=null; lk=false; }
+      else {
+        const m=/^([ab]):(.+)$/.exec(tok);
+        if(!m) throw new Error('トークンの書式エラー: '+tok);
+        cell={t: m[1]==='a'?'NO':'NC', a:A(m[2])};
+      }
+      rung.cells[r][c]=cell; rung.lock[r][c]=lk; c++;
+    });
+  });
+  rung.out = parseOut(def.o);
+  return rung;
+}
+function parseProg(defs, cols){ return (defs||[]).map(d=>parseRung(d, cols)); }
+function newRung(cols){
+  return {cells:[Array.from({length:cols},()=>({t:'W'}))], v:[], lock:null, olock:false, out:null};
+}
+function countContacts(prog){
+  let n=0;
+  for(const rg of prog) for(const row of rg.cells) for(const c of row) if(c && (c.t==='NO'||c.t==='NC')) n++;
+  return n;
+}
+
+/* ---------- PLCシミュレータ(スキャン方式) ---------- */
+class PLC {
+  constructor(){ this.reset(); }
+  reset(){ this.mem={}; this.tm={}; this.ct={}; this.inputs={}; this.time=0; this.vis=null; }
+  get(a){
+    const k=kindOf(a);
+    if(k==='T') return !!(this.tm[a] && this.tm[a].q);
+    if(k==='C') return !!(this.ct[a] && this.ct[a].q);
+    return !!this.mem[a];
+  }
+  conducts(cell){
+    if(!cell) return false;
+    if(cell.t==='W') return true;
+    if(!cell.a) return false;
+    const v=this.get(cell.a);
+    return cell.t==='NO' ? v : !v;
+  }
+  // 1ラングの通電計算:左母線から右へ、境界ごとに通電を広げる(右→左の逆流はしない)
+  evalRung(rung){
+    const R=rung.cells.length, C=rung.cells[0].length;
+    let prev=Array(R).fill(true);              // 境界0 = 左母線
+    const nodes=[prev], closed=rung.cells.map(row=>row.map(()=>false));
+    for(let b=1;b<=C;b++){
+      const cur=Array(R).fill(false);
+      for(let r=0;r<R;r++){
+        const cond=this.conducts(rung.cells[r][b-1]);
+        closed[r][b-1]=cond;
+        if(cond && prev[r]) cur[r]=true;
+      }
+      if(R>1){
+        let ch=true;
+        while(ch){ ch=false;
+          for(let r=0;r<R-1;r++){
+            if(rung.v[r] && rung.v[r][b] && cur[r]!==cur[r+1]){ cur[r]=cur[r+1]=true; ch=true; }
+          }
+        }
+      }
+      nodes.push(cur); prev=cur;
+    }
+    return {power:prev[0], nodes, closed};
+  }
+  doOut(o, p, dt){
+    if(!o) return;
+    if(o.t==='COIL'){ if(o.a) this.mem[o.a]=p; return; }
+    if(o.t==='TON'){
+      const t=this.tm[o.n]||(this.tm[o.n]={et:0,q:false,in:false});
+      t.type='TON'; t.pt=o.pt;
+      if(p){ t.et = t.in ? Math.min(o.pt, t.et+dt) : 0; t.q = t.et>=o.pt; }
+      else { t.et=0; t.q=false; }
+      t.in=p; return;
+    }
+    if(o.t==='TOF'){
+      const t=this.tm[o.n]||(this.tm[o.n]={et:0,q:false,in:false});
+      t.type='TOF'; t.pt=o.pt;
+      if(p){ t.q=true; t.et=0; }
+      else {
+        if(t.in) t.et=0; else if(t.q) t.et=Math.min(o.pt, t.et+dt);
+        if(t.q && t.et>=o.pt) t.q=false;
+      }
+      t.in=p; return;
+    }
+    if(o.t==='CTU'){
+      const c=this.ct[o.n]||(this.ct[o.n]={cv:0,q:false,in:false});
+      c.type='CTU'; c.pv=o.pv;
+      if(o.r && this.get(o.r)) c.cv=0;
+      else if(p && !c.in) c.cv=Math.min(32767,c.cv+1);
+      c.in=p; c.q = c.cv>=o.pv; return;
+    }
+    if(o.t==='CTD'){
+      const c=this.ct[o.n]||(this.ct[o.n]={cv:0,q:true,in:false});
+      c.type='CTD'; c.pv=o.pv;
+      if(o.r && this.get(o.r)) c.cv=o.pv;
+      else if(p && !c.in && c.cv>0) c.cv--;
+      c.in=p; c.q = c.cv<=0; return;
+    }
+  }
+  scan(prog, dt){
+    for(const a in this.inputs) this.mem[a]=!!this.inputs[a];   // 入力リフレッシュ
+    const vis=[];
+    for(const rung of prog){                                   // 上から下へ
+      const res=this.evalRung(rung);
+      this.doOut(rung.out, res.power, dt);
+      vis.push(res);
+    }
+    this.time+=dt; this.vis=vis;
+  }
+}
+
+/* ---------- テスト(合否判定) ---------- */
+function parseAssign(s){
+  const o={};
+  if(!s) return o;
+  for(const part of String(s).trim().split(/\s+/).filter(Boolean)){
+    const [k,v]=part.split('=');
+    o[A(k)] = (v==='1');
+  }
+  return o;
+}
+function normTest(t){
+  return {name:t.name, steps:t.s.map(([tm,i,e])=>({t:tm, in:parseAssign(i), ex:parseAssign(e)})).sort((a,b)=>a.t-b.t)};
+}
+function runOneTest(prog, test, stage){
+  const plc=new PLC();
+  const steps=test.steps;
+  const end=Math.max(...steps.map(s=>s.t));
+  const applied=steps.map(()=>false), checked=steps.map(()=>false);
+  const forbid=(stage.forbid||[]).map(f=>({all:f.all.map(A), msg:f.msg}));
+  for(let tau=0; tau<=end; tau+=SCAN_MS){
+    steps.forEach((s,i)=>{ if(!applied[i] && s.t<=tau){ Object.assign(plc.inputs, s.in); applied[i]=true; } });
+    plc.scan(prog, SCAN_MS);
+    for(const f of forbid){
+      if(f.all.every(a=>plc.get(a))) return {ok:false, t:tau, forbid:f, steps};
+    }
+    for(let i=0;i<steps.length;i++){
+      const s=steps[i];
+      if(checked[i] || s.t>tau) continue;
+      checked[i]=true;
+      for(const a in s.ex){
+        const act=plc.get(a);
+        if(act!==s.ex[a]) return {ok:false, t:s.t, addr:a, exp:s.ex[a], act, steps};
+      }
+    }
+  }
+  return {ok:true};
+}
+function runAllTests(prog, stage){
+  const P=prep(stage);
+  for(let i=0;i<P.tests.length;i++){
+    const r=runOneTest(prog, P.tests[i], stage);
+    if(!r.ok) return Object.assign(r,{idx:i, name:P.tests[i].name});
+  }
+  return {ok:true};
+}
+
+/* ---------- ステージ前処理 ---------- */
+const PREP={};
+function prep(st){
+  if(PREP[st.id]) return PREP[st.id];
+  const cols=st.cols||5;
+  const P={
+    cols, maxRows:st.maxRows||3, maxRungs:st.maxRungs||6,
+    io:(st.io||[]).map(x=>Object.assign({},x,{a:A(x.a)})),
+    mem:(st.mem||[]).map(x=>Object.assign({},x,{a:A(x.a)})),
+    timers:st.timers||[], counters:st.counters||[],
+    answer:parseProg(st.answer, cols),
+    start: st.start ? parseProg(st.start, cols) : null,
+    wrong:(st.wrong||[]).map(w=>parseProg(w, cols)),
+    tests:st.tests.map(normTest),
+    palette:st.palette||['NO','NC','COIL'],
+  };
+  P.target = st.target!=null ? st.target : countContacts(P.answer);
+  PREP[st.id]=P;
+  return P;
+}
+function nameOf(st, a){
+  const P=prep(st);
+  const f=P.io.concat(P.mem).find(x=>x.a===a);
+  if(f) return f.name;
+  const k=kindOf(a);
+  if(k==='T'||k==='C') return a+'.Q';
+  return '';
+}
+function areaStages(no){ return STAGES.filter(s=>s.area===no); }
+
+/* ---------- 自己点検(コンソールから selfTest() で実行可) ---------- */
+function selfTest(){
+  const rep=[];
+  for(const st of STAGES){
+    const P=prep(st), row={id:st.id, answer:false, empty:false, start:null, wrong:[]};
+    row.answer = runAllTests(P.answer, st).ok;
+    row.empty  = !runAllTests([newRung(P.cols)], st).ok && !runAllTests([], st).ok;
+    if(P.start) row.start = !runAllTests(P.start, st).ok;
+    row.wrong = P.wrong.map(w=>!runAllTests(w, st).ok);
+    row.pass = row.answer && row.empty && (row.start!==false) && row.wrong.every(x=>x);
+    rep.push(row);
+  }
+  return rep;
+}
+
+/* ---------- 進捗データ ---------- */
+function defaultSave(){ return {v:1, xp:0, stages:{}, dex:[], streak:{last:null,count:0,best:0}, drafts:{}}; }
+function loadSave(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SAVE_KEY));
+    if(s && s.v===1) return Object.assign(defaultSave(), s);
+  }catch(e){}
+  return defaultSave();
+}
+function validSave(s){ return s && s.v===1 && typeof s.xp==='number' && typeof s.stages==='object'; }
+const TITLES=[[1,'見習い'],[3,'新人オペレータ'],[5,'配線工'],[8,'保全マン'],[12,'制御技師'],[16,'熟練技師'],[20,'技能士']];
+function levelOf(xp){ let L=1; while(25*L*(L+1)<=xp) L++; return L; }   // Lv L+1 に必要な累計XP = 25*L*(L+1)
+function lvlRange(L){ return [25*(L-1)*L, 25*L*(L+1)]; }
+function titleOf(L){ let t=TITLES[0][1]; for(const [l,n] of TITLES) if(L>=l) t=n; return t; }
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+/* =====================================================================
+   ここから画面(ブラウザでのみ実行)
+   ===================================================================== */
+const G = { save:null, stage:null, prog:null, plc:new PLC(), running:false, acc:0, last:0,
+            hold:false, tab:'task', phys:{}, raf:0 };
+
+function persist(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(G.save)); }
+  catch(e){ if(!G.warned){ G.warned=true; toast('ブラウザに保存できませんでした(データ→JSONに書き出すで保存してください)'); } }
+}
+function stRec(id){ return G.save.stages[id] || (G.save.stages[id]={cleared:false, stars:[false,false,false], best:null, hints:0}); }
+function isCleared(id){ const r=G.save.stages[id]; return !!(r && r.cleared); }
+function areaReady(no){ return areaStages(no).length>0; }
+function areaUnlocked(no){
+  if(!areaReady(no)) return false;
+  if(no===1) return true;
+  const prev=areaStages(no-1);
+  return prev.length>0 && isCleared(prev[prev.length-1].id);
+}
+function stageUnlocked(st){
+  if(!areaUnlocked(st.area)) return false;
+  const list=areaStages(st.area), i=list.indexOf(st);
+  return i===0 || isCleared(list[i-1].id);
+}
+function touchStreak(){
+  const now=new Date(), today=ymd(now);
+  const y=new Date(now.getFullYear(), now.getMonth(), now.getDate()-1);
+  const s=G.save.streak;
+  if(s.last===today) return;
+  s.count = (s.last===ymd(y)) ? s.count+1 : 1;
+  s.last=today; s.best=Math.max(s.best||0, s.count);
+  persist();
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){
+  const d=document.createElement('div'); d.className='toast'; d.textContent=msg;
+  document.body.appendChild(d); setTimeout(()=>d.remove(), 2600);
+}
+function starsHTML(arr){ return '<span class="stars">'+arr.map(b=>b?'★':'<span class="off">★</span>').join('')+'</span>'; }
+function areaColor(no){ const a=AREAS[no-1]; return (a && a.color) || '#ff9f43'; }
+
+/* ---------- 案内キャラ「リレーくん」(見た目だけの演出) ---------- */
+function mascotSVG(mood){
+  const lit = mood==='happy' ? '#7dffb8' : mood==='sad' ? '#9b94b0' : '#ffc23d';
+  const eyes = mood==='happy'
+    ? '<path d="M19 30 q4 -6 8 0 M37 30 q4 -6 8 0" stroke="#2b2340" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    : mood==='sad'
+    ? '<circle cx="23" cy="31" r="3.5" fill="#2b2340"/><circle cx="41" cy="31" r="3.5" fill="#2b2340"/><path d="M17 25 l9 2 M47 25 l-9 2" stroke="#2b2340" stroke-width="2.5" stroke-linecap="round"/>'
+    : '<circle cx="23" cy="30" r="4" fill="#2b2340"/><circle cx="41" cy="30" r="4" fill="#2b2340"/><circle cx="24.5" cy="28.5" r="1.3" fill="#fff"/><circle cx="42.5" cy="28.5" r="1.3" fill="#fff"/>';
+  const mouth = mood==='happy'
+    ? '<path d="M24 39 q8 9 16 0 z" fill="#ff5d8f" stroke="#2b2340" stroke-width="2.5" stroke-linejoin="round"/>'
+    : mood==='sad'
+    ? '<path d="M25 44 q7 -6 14 0" stroke="#2b2340" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    : '<path d="M25 40 q7 5 14 0" stroke="#2b2340" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  return `<svg viewBox="0 0 64 64"><line x1="32" y1="12" x2="32" y2="5" stroke="#2b2340" stroke-width="3"/>
+    <circle cx="32" cy="5" r="4.5" fill="${lit}" stroke="#2b2340" stroke-width="2.5"/>
+    <rect x="5" y="22" width="6" height="16" rx="3" fill="#ff9f43" stroke="#2b2340" stroke-width="2.5"/>
+    <rect x="53" y="22" width="6" height="16" rx="3" fill="#ff9f43" stroke="#2b2340" stroke-width="2.5"/>
+    <rect x="9" y="12" width="46" height="40" rx="14" fill="#ffc23d" stroke="#2b2340" stroke-width="3"/>
+    <rect x="14" y="19" width="36" height="28" rx="9" fill="#fff8e6" stroke="#2b2340" stroke-width="2"/>
+    ${eyes}${mouth}
+    <circle cx="17" cy="40" r="3" fill="#ffb3c7"/><circle cx="47" cy="40" r="3" fill="#ffb3c7"/>
+    <rect x="22" y="52" width="20" height="8" rx="3" fill="#8b5cf6" stroke="#2b2340" stroke-width="2.5"/></svg>`;
+}
+function talkHTML(text, mood, bounce){
+  return `<div class="talk"><div class="mascot ${bounce?'bounce':''}">${mascotSVG(mood||'normal')}</div>
+    <div class="bubble"><b class="who">リレーくん</b>${text}</div></div>`;
+}
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+const LINES = {
+  fail:['おしい!どこでずれたか、下の流れを見てみよう。','だいじょうぶ、実機でもよくあることだよ。','「実行」して同じ順番でボタンを押すと、原因が見えるかも!','あと一歩!接点の向き(a/b)も見直してみてね。'],
+  clear:['やったね!回路がバッチリ動いたよ!','すごい!その調子でどんどん行こう!','工場のみんなも大喜びだよ!','いい配線だね。保全マンも感心してるよ!'],
+  boss:['ボス撃破!!きみはもう立派なラダー使いだね!','ボスを倒した!次のエリアへの道がひらけたよ!'],
+};
+function confetti(n){
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box=document.createElement('div'); box.className='confetti';
+  const cols=['#ff5d8f','#ffc23d','#22c58b','#3d9bff','#8b5cf6','#ff9f43'];
+  for(let i=0;i<(n||90);i++){
+    const p=document.createElement('i');
+    p.style.left=(Math.random()*100)+'vw';
+    p.style.background=cols[i%cols.length];
+    p.style.setProperty('--dx',(Math.random()*160-80)+'px');
+    p.style.setProperty('--r',(Math.random()*900-450)+'deg');
+    p.style.animationDuration=(1.6+Math.random()*1.6)+'s';
+    p.style.animationDelay=(Math.random()*.5)+'s';
+    if(i%3===0){ p.style.width='8px'; p.style.height='8px'; p.style.borderRadius='50%'; }
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);
+  setTimeout(()=>box.remove(), 4000);
+}
+/* ---------- 効果音(Web Audioで合成。外部ファイルなし) ---------- */
+const SFX = {
+  ctx:null,
+  on(){ try{ return localStorage.getItem('ladderQuest_sound')!=='off'; }catch(e){ return true; } },
+  set(v){ try{ localStorage.setItem('ladderQuest_sound', v?'on':'off'); }catch(e){} },
+  ac(){
+    if(!this.on()) return null;
+    try{
+      if(!this.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; this.ctx=new C(); }
+      if(this.ctx.state==='suspended') this.ctx.resume();
+      return this.ctx;
+    }catch(e){ return null; }
+  },
+  tone(f, t0, dur, type, vol, f2){
+    const c=this.ac(); if(!c) return;
+    const t=c.currentTime+(t0||0), o=c.createOscillator(), g=c.createGain();
+    o.type=type||'square'; o.frequency.setValueAtTime(f,t);
+    if(f2) o.frequency.exponentialRampToValueAtTime(f2, t+dur);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol||0.12, t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+0.02);
+  },
+  noise(t0, dur, vol){
+    const c=this.ac(); if(!c) return;
+    const t=c.currentTime+(t0||0), n=Math.floor(c.sampleRate*dur), b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    const s=c.createBufferSource(), g=c.createGain(), f=c.createBiquadFilter();
+    f.type='bandpass'; f.frequency.value=1800; s.buffer=b; g.gain.value=vol||0.15;
+    s.connect(f); f.connect(g); g.connect(c.destination); s.start(t);
+  },
+  play(name){
+    const T=(...a)=>this.tone(...a);
+    switch(name){
+      case 'click': T(660,0,.05,'square',.06); break;
+      case 'place': T(520,0,.06,'square',.08); T(880,.05,.09,'square',.08); break;
+      case 'remove': T(400,0,.08,'triangle',.1,200); break;
+      case 'press': T(300,0,.05,'square',.07); break;
+      case 'outOn': T(1200,0,.05,'triangle',.05); break;
+      case 'run': T(392,0,.07,'square',.08); T(523,.07,.07,'square',.08); T(784,.14,.12,'square',.08); break;
+      case 'stop': T(523,0,.08,'square',.07); T(330,.08,.14,'square',.07); break;
+      case 'tick': T(880,0,.04,'square',.05); break;
+      case 'testOk': T(988,0,.06,'square',.08); T(1319,.06,.1,'square',.08); break;
+      case 'drum': for(let i=0;i<10;i++) this.noise(i*.05,.04,.06); break;
+      case 'fail': T(180,0,.28,'sawtooth',.14); T(140,.3,.45,'sawtooth',.14); break;
+      case 'clear': [523,659,784,1047].forEach((f,i)=>T(f,i*.09,.12,'square',.1)); T(784,.4,.1,'square',.1); T(1047,.5,.5,'square',.11); T(1319,.5,.5,'triangle',.07); break;
+      case 'boss': [392,523,659,784,659,784].forEach((f,i)=>T(f,i*.11,.13,'square',.1)); T(1047,.7,.8,'square',.12); T(523,.7,.8,'triangle',.1); this.noise(.7,.4,.12); break;
+      case 'star': T(1568,0,.08,'triangle',.09); T(2093,.06,.15,'triangle',.08); break;
+      case 'lvup': [523,659,784,1047,1319,1568].forEach((f,i)=>T(f,i*.07,.1,'square',.09)); T(2093,.45,.6,'triangle',.1); T(1047,.45,.6,'square',.08); break;
+      case 'intro': T(200,0,.25,'sawtooth',.06,1200); this.noise(0,.25,.06); break;
+      case 'alarm': for(let i=0;i<4;i++){ T(880,i*.24,.11,'square',.08); T(660,i*.24+.12,.11,'square',.08); } break;
+      case 'hint': T(740,0,.08,'sine',.12); T(988,.08,.16,'sine',.1); break;
+    }
+  }
+};
+function soundBtnHTML(){ return `<button class="btn small" data-snd="1" title="効果音のON/OFF">${SFX.on()?'🔊':'🔇'}</button>`; }
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-snd]');
+  if(b){ SFX.set(!SFX.on()); document.querySelectorAll('[data-snd]').forEach(x=>x.textContent=SFX.on()?'🔊':'🔇'); if(SFX.on()) SFX.play('place'); return; }
+  const btn=e.target.closest('.btn,.opt,.tabs button,.rung-head button');
+  if(btn && !btn.disabled && !btn.matches('[data-act="run"],[data-act="stop"],[data-act="judge"],[data-act="hint"],[data-m="ok"]')) SFX.play('click');
+}, true);
+
+/* ---------- 派手な演出の部品 ---------- */
+function reduced(){ return window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function burst(x, y, n, opt){
+  if(reduced()) return;
+  opt=opt||{};
+  const cols=opt.colors||['#ff5d8f','#ffc23d','#22c58b','#3d9bff','#8b5cf6','#fff'];
+  for(let i=0;i<n;i++){
+    const p=document.createElement('i');
+    p.className='spark'+(i%2?' star':'');
+    const a=Math.random()*Math.PI*2, sp=(opt.power||90)*(0.5+Math.random());
+    const sz=(opt.size||9)*(0.6+Math.random()*0.8);
+    p.style.width=p.style.height=sz+'px';
+    p.style.background=cols[i%cols.length];
+    p.style.setProperty('--x',(x-sz/2)+'px'); p.style.setProperty('--y',(y-sz/2)+'px');
+    p.style.setProperty('--dx',Math.cos(a)*sp+'px'); p.style.setProperty('--dy',(Math.sin(a)*sp+(opt.fall||0))+'px');
+    p.style.setProperty('--d',(0.5+Math.random()*0.5)*(opt.dur||1)+'s');
+    if(opt.delay) p.style.animationDelay=opt.delay+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 1600+(opt.delay||0)*1000);
+  }
+}
+function burstAt(el, n, opt){ if(!el) return; const r=el.getBoundingClientRect(); burst(r.left+r.width/2, r.top+r.height/2, n, opt); }
+function fireworks(k){
+  if(reduced()) return;
+  for(let i=0;i<k;i++){
+    setTimeout(()=>{
+      burst(innerWidth*(0.15+Math.random()*0.7), innerHeight*(0.12+Math.random()*0.4), 34, {power:140, size:10, fall:40, dur:1.4});
+      SFX.noise(0,.12,.05);
+    }, i*260);
+  }
+}
+function flash(){ if(reduced()) return; const f=document.createElement('div'); f.className='flash'; document.body.appendChild(f); setTimeout(()=>f.remove(),500); }
+function quake(){ if(reduced()) return; document.body.classList.remove('quake'); void document.body.offsetWidth; document.body.classList.add('quake'); setTimeout(()=>document.body.classList.remove('quake'),550); }
+function bgDecoHTML(){
+  const items=['⚙️','⚡','💡','🔩','⚙️','✨','⚡','🔧'];
+  return '<div class="bgdeco">'+items.map((s,i)=>`<span style="left:${(i*13+4)%96}%;animation-duration:${14+i*3}s;animation-delay:-${i*2.3}s;font-size:${22+(i%3)*10}px">${s}</span>`).join('')+'</div>';
+}
+function levelSplash(oldL, newL){
+  const d=document.createElement('div'); d.className='lvsplash';
+  const nt=titleOf(newL)!==titleOf(oldL);
+  d.innerHTML=`<div class="big">LEVEL UP!</div><div class="lv">Lv.${oldL} → <b>${newL}</b></div>
+    ${nt?`<div class="ttl">🏅 新しい称号「${esc(titleOf(newL))}」</div>`:`<div class="ttl">${esc(titleOf(newL))}</div>`}
+    <div class="tap">タップで閉じる</div>`;
+  const close=()=>d.remove();
+  d.addEventListener('click', close);
+  document.body.appendChild(d);
+  SFX.play('lvup'); flash();
+  setTimeout(()=>{ burst(innerWidth/2, innerHeight/2, 60, {power:260, size:12, dur:1.6}); }, 200);
+  setTimeout(close, 3800);
+}
+
+function stageIntro(st){
+  SFX.play(st.boss?'alarm':'intro');
+  if(reduced()) return;
+  const ar=AREAS[st.area-1];
+  const d=document.createElement('div');
+  d.className='intro'+(st.boss?' boss':'');
+  d.style.setProperty('--area', areaColor(st.area));
+  d.innerHTML=`<div class="card">${st.boss?'<div class="warn">⚠ BOSS BATTLE ⚠</div>':''}
+    <div class="a">${esc(ar.icon||'')} エリア${st.area} ${esc(ar.name)}</div>
+    <div class="s">STAGE ${esc(st.id)}</div><div class="n">${esc(st.title)}</div></div>`;
+  const close=()=>{ d.remove(); };
+  d.addEventListener('click', close);
+  document.body.appendChild(d);
+  setTimeout(close, st.boss?2200:1500);
+}
+
+/* ---------- マップ画面 ---------- */
+function statusHTML(){
+  const xp=G.save.xp, L=levelOf(xp), [a,b]=lvlRange(L);
+  const pct=Math.round((xp-a)/(b-a)*100);
+  const s=G.save.streak;
+  return `<div class="status">
+    <span class="lvbadge"><small>Lv</small><b>${L}</b></span>
+    <span class="xpwrap"><span>${esc(titleOf(L))}</span>
+      <span class="xpbar" title="${xp} XP"><i style="width:${pct}%"></i></span>
+      <span class="xptext">${xp} / ${b} XP</span></span>
+    <span class="streak" title="最高 ${s.best||0}日">🔥 連続 ${s.count||0}日</span>
+  </div>`;
+}
+function mapGreeting(){
+  const cleared=STAGES.filter(s=>isCleared(s.id)).length;
+  if(cleared===0) return 'ようこそ、ラダー工場へ!ぼくは<b>リレーくん</b>。いっしょに回路を組んで、機械を動かしていこう!';
+  const nx=STAGES.find(s=>stageUnlocked(s) && !isCleared(s.id));
+  if(nx) return `${pick(['おかえり!','今日もがんばろう!','いい調子だね!'])} つぎは <b>${esc(nx.id)}「${esc(nx.title)}」</b> だよ。${nx.boss?'ボス戦だ、気合いを入れて!':''}`;
+  const allStars=STAGES.every(s=>{ const r=G.save.stages[s.id]; return r && r.stars.every(Boolean); });
+  return allStars ? '全ステージ星3つ!完ぺきだね。新しいエリアは準備中だよ。' : '公開中のステージはぜんぶクリア!星が足りないステージに再挑戦してみよう。';
+}
+function showMap(){
+  stopRun();
+  G.stage=null;
+  document.querySelectorAll('.intro').forEach(e=>e.remove());
+  let h=`<div class="topbar"><h1>ラダー工場の冒険<small>⚡ OpenPLC ラダー修行</small></h1>${statusHTML()}
+    <button class="btn small" data-act="dex">📖 命令図鑑</button>
+    <button class="btn small" data-act="data">💾 データ</button>${soundBtnHTML()}</div>${bgDecoHTML()}<div class="map">`;
+  h+=talkHTML(mapGreeting(), 'normal', true);
+  const nextId=(STAGES.find(s=>stageUnlocked(s) && !isCleared(s.id))||{}).id;
+  for(const ar of AREAS){
+    const ready=areaReady(ar.no), un=areaUnlocked(ar.no);
+    const list=areaStages(ar.no);
+    const nClr=list.filter(s=>isCleared(s.id)).length;
+    const nStar=list.reduce((t,s)=>{ const r=G.save.stages[s.id]; return t+(r?r.stars.filter(Boolean).length:0); },0);
+    h+=`<section class="area ${un?'':'locked'}" style="--area:${ar.color||'#ff9f43'}">
+        <div class="area-head"><span class="area-icon">${un?esc(ar.icon||''):'🔒'}</span>
+          <h2><small>エリア${ar.no}</small>${esc(ar.name)}</h2>
+          ${ready?`<span class="area-prog">★${nStar}/${list.length*3}・${nClr}/${list.length}クリア</span>`:'<span class="area-prog">準備中</span>'}</div>
+        <div class="area-body"><div class="learn">学ぶこと:${esc(ar.learn)}</div>`;
+    if(!ready){ h+=`<div class="prep">🚧 準備中 — このエリアはこれから追加されます</div></div></section>`; continue; }
+    h+='<div class="stage-list">';
+    for(const st of list){
+      const ok=stageUnlocked(st), rec=G.save.stages[st.id], clr=isCleared(st.id), nx=st.id===nextId;
+      h+=`<button class="stage-btn ${st.boss?'boss':''} ${nx?'next':''}" data-act="open" data-id="${st.id}" ${ok?'':'disabled'}>
+          ${clr?'<span class="clr">CLEAR</span>':''}${nx?'<span class="nxt">NEXT!</span>':''}
+          <span class="num">${!ok?'🔒':st.boss?'👾':esc(st.id)}</span>
+          <span class="bd"><span class="ttl">${st.boss?esc(st.id)+' ':''}${esc(st.title)}</span>
+          <span class="row"><span>${st.boss?'<span class="badge boss">ボス</span> ':''}<span class="badge ${st.type}">${TYPE_NAME[st.type]}</span></span>
+          ${starsHTML(rec?rec.stars:[false,false,false])}</span></span></button>`;
+    }
+    h+='</div></div></section>';
+  }
+  h+='</div>';
+  const app=document.getElementById('app');
+  app.innerHTML=h;
+  app.onclick=e=>{
+    const t=e.target.closest('[data-act]'); if(!t) return;
+    if(t.dataset.act==='open') openStage(STAGES.find(s=>s.id===t.dataset.id));
+    if(t.dataset.act==='dex') showDex();
+    if(t.dataset.act==='data') showData();
+  };
+  window.scrollTo(0,0);
+}
+
+/* ---------- ステージ画面 ---------- */
+function openStage(st){
+  if(!st) return;
+  touchStreak();
+  G.stage=st; G.tab='task'; G.hold=false;
+  const P=prep(st);
+  const d=G.save.drafts[st.id];
+  G.prog = d ? clone(d) : initialProg(st);
+  G.plc=new PLC(); G.running=false; resetPhys();
+  renderStage();
+  stageIntro(st);
+}
+function initialProg(st){
+  const P=prep(st);
+  return P.start ? clone(P.start) : [newRung(P.cols)];
+}
+function saveDraft(){ if(G.stage){ G.save.drafts[G.stage.id]=G.prog; persist(); } }
+
+function renderStage(){
+  const st=G.stage, P=prep(st), rec=stRec(st.id);
+  const app=document.getElementById('app');
+  app.style.setProperty('--area', areaColor(st.area));
+  app.innerHTML=`
+  <div class="stage-head">
+    <button class="btn small" data-act="map">← マップ</button>
+    <span class="t">${esc(AREAS[st.area-1].icon||'')} ${st.id} ${esc(st.title)} ${st.boss?'<span class="badge boss">ボス</span>':''} <span class="badge ${st.type}">${TYPE_NAME[st.type]}</span></span>
+    <span class="info">${starsHTML(rec.stars)}</span>${soundBtnHTML()}
+  </div>
+  <div class="stage">
+    <section class="pane editor" id="editor"></section>
+    <section class="pane machine" id="machine"></section>
+    <section class="pane bottom" id="bottom"></section>
+  </div>
+  <div class="ctrlbar">
+    <button class="btn go" data-act="run">▶ 実行</button>
+    <button class="btn stop" data-act="stop">■ 停止</button>
+    <button class="btn" data-act="reset">↺ リセット</button>
+    <button class="btn primary" data-act="judge">✔ 判定</button>
+  </div>`;
+  app.onclick=onStageClick;
+  renderEditor(); renderMachine(); renderBottom(); updateRunUI();
+  window.scrollTo(0,0);
+}
+function onStageClick(e){
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  const act=t.dataset.act, ri=+t.dataset.ri, r=+t.dataset.r, c=+t.dataset.c;
+  switch(act){
+    case 'map': saveDraft(); showMap(); break;
+    case 'run': if(!G.running) SFX.play('run'); startRun(); break;
+    case 'stop': if(G.running) SFX.play('stop'); stopRun(); break;
+    case 'reset': resetRun(); break;
+    case 'judge': judge(); break;
+    case 'cell': cellPicker(ri, r, c); break;
+    case 'out': outPicker(ri); break;
+    case 'v': toggleV(ri, r, +t.dataset.b); break;
+    case 'addRung': addRung(); break;
+    case 'rowAdd': rowAdd(ri); break;
+    case 'rowDel': rowDel(ri); break;
+    case 'rungDel': rungDel(ri); break;
+    case 'up': moveRung(ri,-1); break;
+    case 'down': moveRung(ri,1); break;
+    case 'clearAll': clearAll(); break;
+    case 'answer': showAnswer(); break;
+    case 'tab': G.tab=t.dataset.tab; renderBottom(); break;
+    case 'hint': openHint(); break;
+  }
+}
+
+/* ---------- エディタ ---------- */
+const GEO={X0:24, CW:78, OW:150, TOP:36, RH:66};
+function isFill(){ return G.stage && G.stage.type==='fill'; }
+function cellLocked(rg,r,c){ return isFill() && rg.lock && rg.lock[r] ? rg.lock[r][c]!==false : false; }
+function outLocked(rg){ return isFill() && rg.olock!==false; }
+
+function contactSVG(cell, x, y, st){
+  const cx=x+GEO.CW/2;
+  let s=`<line class="ls" x1="${x}" y1="${y}" x2="${cx-9}" y2="${y}"/>`;
+  s+=`<rect class="cfill" x="${cx-9}" y="${y-14}" width="18" height="28"/>`;
+  s+=`<line class="sym" x1="${cx-9}" y1="${y-15}" x2="${cx-9}" y2="${y+15}"/><line class="sym" x1="${cx+9}" y1="${y-15}" x2="${cx+9}" y2="${y+15}"/>`;
+  if(cell.t==='NC') s+=`<line class="sym" x1="${cx-14}" y1="${y+13}" x2="${cx+14}" y2="${y-13}"/>`;
+  s+=`<line class="rs" x1="${cx+9}" y1="${y}" x2="${x+GEO.CW}" y2="${y}"/>`;
+  s+=`<text class="lab" x="${cx}" y="${y-20}" text-anchor="middle">${esc(dispAddr(cell.a))}</text>`;
+  s+=`<text class="nm" x="${cx}" y="${y+28}" text-anchor="middle">${esc(nameOf(st,cell.a))}</text>`;
+  return s;
+}
+function outSVG(o, x0, xR, y, st, ri){
+  const cx=(x0+xR)/2;
+  let s='';
+  if(!o){
+    return s;
+  }
+  if(o.t==='COIL'){
+    s+=`<line x1="${x0}" y1="${y}" x2="${cx-14}" y2="${y}"/>`;
+    s+=`<circle class="ofill" cx="${cx}" cy="${y}" r="13"/>`;
+    s+=`<path d="M${cx-8} ${y-15} A 17 17 0 0 0 ${cx-8} ${y+15}"/><path d="M${cx+8} ${y-15} A 17 17 0 0 1 ${cx+8} ${y+15}"/>`;
+    s+=`<line x1="${cx+14}" y1="${y}" x2="${xR}" y2="${y}"/>`;
+    s+=`<text class="lab" x="${cx}" y="${y-21}" text-anchor="middle">${esc(o.a)}</text>`;
+    s+=`<text class="nm" x="${cx}" y="${y+29}" text-anchor="middle">${esc(nameOf(st,o.a))}</text>`;
+    return s;
+  }
+  const bw=104, bh=50, bx=cx-bw/2, by=y-20;
+  s+=`<line x1="${x0}" y1="${y}" x2="${bx}" y2="${y}"/>`;
+  s+=`<rect class="ofill" x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="4"/>`;
+  s+=`<rect class="box" x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="4"/>`;
+  s+=`<line x1="${bx+bw}" y1="${y}" x2="${xR}" y2="${y}"/>`;
+  s+=`<text class="big" x="${cx}" y="${by-5}" text-anchor="middle">${o.t} ${esc(o.n)}</text>`;
+  if(o.t==='TON'||o.t==='TOF'){
+    s+=`<text class="lab" x="${bx+6}" y="${by+18}">PT ${(o.pt/1000).toFixed(1)}s</text>`;
+    s+=`<text class="lab" id="et-${ri}" x="${bx+6}" y="${by+36}">ET 0.0s</text>`;
+  } else {
+    s+=`<text class="lab" x="${bx+6}" y="${by+18}">PV ${o.pv}  CV <tspan id="cv-${ri}">0</tspan></text>`;
+    s+=`<text class="lab" x="${bx+6}" y="${by+36}">${o.t==='CTU'?'R':'LD'}: ${esc(o.r||'なし')}</text>`;
+  }
+  return s;
+}
+function rungSVG(rg, ri, st, opt){
+  opt=opt||{};
+  const ed=!opt.readonly;
+  const R=rg.cells.length, C=rg.cells[0].length, {X0,CW,OW,TOP,RH}=GEO;
+  const xO=X0+C*CW, xR=xO+OW, W=xR+14, H=TOP+(R-1)*RH+40;
+  const yc=r=>TOP+r*RH;
+  let s=`<svg class="rung-svg" viewBox="0 0 ${W} ${H}" data-ri="${ri}">`;
+  s+=`<line class="rail" x1="${X0}" y1="4" x2="${X0}" y2="${H-4}"/><line class="rail" x1="${xR}" y1="4" x2="${xR}" y2="${H-4}"/>`;
+  for(let r=0;r<R;r++){
+    for(let c=0;c<C;c++){
+      const cell=rg.cells[r][c], x=X0+c*CW, y=yc(r), lk=cellLocked(rg,r,c);
+      s+=`<g class="cell" id="c-${ri}-${r}-${c}">`;
+      if(ed) s+=`<rect class="hit ${lk?'locked':''}" data-act="cell" data-ri="${ri}" data-r="${r}" data-c="${c}" x="${x+1}" y="${y-RH/2+1}" width="${CW-2}" height="${RH-2}" rx="6"/>`;
+      if(!cell){
+        if(isFill() && !lk) s+=`<rect class="qbox" x="${x+8}" y="${y-22}" width="${CW-16}" height="44" rx="6"/><text class="q" x="${x+CW/2}" y="${y+8}" text-anchor="middle">?</text>`;
+        else if(ed && !lk) s+=`<rect class="blank" x="${x+10}" y="${y-18}" width="${CW-20}" height="36" rx="5"/>`;
+      } else if(cell.t==='W'){
+        s+=`<line class="ls" x1="${x}" y1="${y}" x2="${x+CW}" y2="${y}"/>`;
+      } else {
+        s+=contactSVG(cell,x,y,st);
+      }
+      if(isFill() && !lk && cell) s+=`<rect class="qbox" x="${x+4}" y="${y-31}" width="${CW-8}" height="62" rx="6" style="fill:none"/>`;
+      s+='</g>';
+    }
+  }
+  // 縦線
+  for(let r=0;r<R-1;r++){
+    for(let b=1;b<=C;b++){
+      const x=X0+b*CW, y1=yc(r), y2=yc(r+1);
+      if(rg.v[r][b]) s+=`<line class="vl" id="v-${ri}-${r}-${b}" x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/>`;
+      if(ed && !isFill()){
+        s+=`<rect class="vhit" data-act="v" data-ri="${ri}" data-r="${r}" data-b="${b}" x="${x-15}" y="${y1+12}" width="30" height="${y2-y1-24}"/>`;
+        if(!rg.v[r][b]) s+=`<circle class="vdot" cx="${x}" cy="${(y1+y2)/2}" r="5"/>`;
+      }
+    }
+  }
+  // 出力
+  const olk=outLocked(rg);
+  s+=`<g class="out" id="o-${ri}">`;
+  if(ed) s+=`<rect class="hit ${olk?'locked':''}" data-act="out" data-ri="${ri}" x="${xO+2}" y="${yc(0)-RH/2+1}" width="${OW-4}" height="${RH-2}" rx="6"/>`;
+  if(rg.out) s+=outSVG(rg.out, xO, xR, yc(0), st, ri);
+  else if(isFill() && !olk) s+=`<rect class="qbox" x="${xO+30}" y="${yc(0)-22}" width="${OW-60}" height="44" rx="6"/><text class="q" x="${xO+OW/2}" y="${yc(0)+8}" text-anchor="middle">?</text>`;
+  else if(ed) s+=`<rect class="blank" x="${xO+30}" y="${yc(0)-18}" width="${OW-60}" height="36" rx="5"/><text x="${xO+OW/2}" y="${yc(0)+4}" text-anchor="middle">出力</text>`;
+  s+='</g></svg>';
+  return s;
+}
+function renderEditor(){
+  const st=G.stage, P=prep(st), fill=isFill();
+  const n=countContacts(G.prog);
+  let h=`<h3>ラダーエディタ <span class="note">マスをタップして部品を置く/●をタップで縦線</span></h3>
+    <div class="toolbar">
+      ${fill?'':`<button class="btn small" data-act="addRung" ${G.prog.length>=P.maxRungs?'disabled':''}>+ ラング追加</button>`}
+      <button class="btn small" data-act="clearAll">最初に戻す</button>
+      <button class="btn small" data-act="answer">模範解答</button>
+      <span class="cnt ${n>0&&n<=P.target?'good':''}">接点数 <b>${n}</b> 個(★目標 ${P.target}個以下)</span>
+    </div><div id="rungs">`;
+  G.prog.forEach((rg,ri)=>{
+    h+=`<div class="rung"><div class="rung-head"><span class="n">ラング ${ri+1}</span>`;
+    if(!fill){
+      h+=`<button data-act="up" data-ri="${ri}" ${ri===0?'disabled':''}>↑</button>
+          <button data-act="down" data-ri="${ri}" ${ri===G.prog.length-1?'disabled':''}>↓</button>
+          <button data-act="rowAdd" data-ri="${ri}" ${rg.cells.length>=P.maxRows?'disabled':''}>行+</button>
+          <button data-act="rowDel" data-ri="${ri}" ${rg.cells.length<=1?'disabled':''}>行−</button>
+          <button data-act="rungDel" data-ri="${ri}">削除</button>`;
+    }
+    h+=`</div>${rungSVG(rg,ri,st)}</div>`;
+  });
+  h+='</div>';
+  const el=document.getElementById('editor');
+  el.innerHTML=h;
+  el.classList.toggle('running', G.running);
+  if(G.pop){ const pe=document.getElementById(G.pop); if(pe){ pe.classList.add('pop'); burstAt(pe, 14, {power:50, size:7}); } SFX.play('place'); G.pop=null; }
+  updateLadderVis();
+}
+function edited(){ saveDraft(); renderEditor(); }
+function addRung(){ const P=prep(G.stage); if(G.prog.length<P.maxRungs){ G.prog.push(newRung(P.cols)); edited(); } }
+function rowAdd(ri){
+  const P=prep(G.stage), rg=G.prog[ri];
+  if(rg.cells.length>=P.maxRows) return;
+  rg.cells.push(Array(P.cols).fill(null)); rg.v.push(Array(P.cols+1).fill(false)); edited();
+}
+function rowDel(ri){
+  const rg=G.prog[ri]; if(rg.cells.length<=1) return;
+  rg.cells.pop(); rg.v.pop(); edited();
+}
+function rungDel(ri){
+  if(!confirm('ラング'+(ri+1)+'を削除しますか?')) return;
+  G.prog.splice(ri,1);
+  if(G.prog.length===0) G.prog.push(newRung(prep(G.stage).cols));
+  edited();
+}
+function moveRung(ri,d){ const j=ri+d; if(j<0||j>=G.prog.length) return; [G.prog[ri],G.prog[j]]=[G.prog[j],G.prog[ri]]; edited(); }
+function toggleV(ri,r,b){ if(isFill()) return; const rg=G.prog[ri]; rg.v[r][b]=!rg.v[r][b]; edited(); }
+function clearAll(){
+  if(!confirm('回路を最初の状態に戻しますか?')) return;
+  G.prog=initialProg(G.stage); edited();
+}
+
+/* ---------- 部品選択 ---------- */
+function openModal(html, onClick){
+  const root=document.getElementById('modal-root');
+  root.innerHTML=`<div class="modal-bg"><div class="modal">${html}</div></div>`;
+  const bg=root.firstChild;
+  bg.addEventListener('click', e=>{
+    if(e.target===bg){ closeModal(); return; }
+    const t=e.target.closest('[data-m]');
+    if(t && t.dataset.m==='close'){ closeModal(); return; }
+    if(t && onClick) onClick(t, e);
+  });
+  return bg;
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+
+function contactChoices(st){
+  const P=prep(st), list=[];
+  P.io.forEach(x=>list.push({a:x.a, label:x.name, sub:x.a}));
+  P.mem.forEach(x=>list.push({a:x.a, label:x.name, sub:x.a}));
+  P.timers.forEach(n=>list.push({a:n, label:n+'.Q', sub:'タイマ出力'}));
+  P.counters.forEach(n=>list.push({a:n, label:n+'.Q', sub:'カウンタ出力'}));
+  return list;
+}
+function cellPicker(ri,r,c){
+  const rg=G.prog[ri], st=G.stage, P=prep(st);
+  if(cellLocked(rg,r,c)){ toast('このマスは固定されています'); return; }
+  const cur=rg.cells[r][c];
+  let type=cur? cur.t : 'E', addr=cur && cur.a ? cur.a : null;
+  const pal=P.palette;
+  const draw=()=>{
+    const types=[['E','空き'],['W','─ 横線']];
+    if(pal.includes('NO')) types.push(['NO','┤├ a接点']);
+    if(pal.includes('NC')) types.push(['NC','┤/├ b接点']);
+    let h=`<h2>ラング${ri+1} / ${r+1}行目 / ${c+1}列目</h2>
+      <div class="opts">${types.map(([k,l])=>`<button class="opt ${type===k?'sel':''}" data-m="type" data-v="${k}">${l}</button>`).join('')}</div>`;
+    if(type==='NO'||type==='NC'){
+      h+=`<div class="note">割り付ける信号</div><div class="opts">`+
+        contactChoices(st).map(x=>`<button class="opt ${addr===x.a?'sel':''}" data-m="addr" data-v="${x.a}">${esc(x.label)}<small>${esc(x.sub)}</small></button>`).join('')+`</div>`;
+    }
+    if(!isFill() && rg.cells.length>1){
+      const vb=[];
+      if(r<rg.cells.length-1){ vb.push([r,c,'左に縦線(下の行へ)'],[r,c+1,'右に縦線(下の行へ)']); }
+      if(r>0){ vb.push([r-1,c,'左に縦線(上の行へ)'],[r-1,c+1,'右に縦線(上の行へ)']); }
+      const ok=vb.filter(([vr,b])=>b>=1);
+      if(ok.length) h+=`<div class="note">縦線(並列)</div><div class="opts">`+ok.map(([vr,b,l])=>`<button class="opt ${rg.v[vr][b]?'sel':''}" data-m="v" data-r="${vr}" data-b="${b}">${l}</button>`).join('')+`</div>`;
+    }
+    h+=`<div class="acts"><button class="btn" data-m="close">キャンセル</button><button class="btn primary" data-m="ok">決定</button></div>`;
+    return h;
+  };
+  const bg=openModal(draw(), (t)=>{
+    const m=t.dataset.m;
+    if(m==='type'){ type=t.dataset.v; }
+    else if(m==='addr'){ addr=t.dataset.v; }
+    else if(m==='v'){ const vr=+t.dataset.r, b=+t.dataset.b; rg.v[vr][b]=!rg.v[vr][b]; saveDraft(); }
+    else if(m==='ok'){
+      if((type==='NO'||type==='NC') && !addr){ toast('割り付ける信号を選んでください'); return; }
+      rg.cells[r][c] = type==='E'?null : type==='W'?{t:'W'} : {t:type, a:addr};
+      if(type!=='E') G.pop=`c-${ri}-${r}-${c}`;
+      closeModal(); edited(); return;
+    }
+    bg.querySelector('.modal').innerHTML=draw();
+  });
+}
+function outPicker(ri){
+  const rg=G.prog[ri], st=G.stage, P=prep(st);
+  if(outLocked(rg)){ toast('この出力は固定されています'); return; }
+  const o=rg.out ? clone(rg.out) : null;
+  let type=o?o.t:'E';
+  let addr=o&&o.t==='COIL'?o.a:null;
+  let tn=o&&o.n?o.n:(P.timers[0]||'T0'), pt=o&&o.pt?o.pt:1000;
+  let cn=o&&o.n?o.n:(P.counters[0]||'C0'), pv=o&&o.pv?o.pv:3, rs=o&&o.r?o.r:'';
+  const pal=P.palette;
+  const draw=()=>{
+    const types=[['E','なし']];
+    if(pal.includes('COIL')) types.push(['COIL','( ) コイル']);
+    ['TON','TOF','CTU','CTD'].forEach(k=>{ if(pal.includes(k)) types.push([k,k]); });
+    let h=`<h2>ラング${ri+1} の出力</h2><div class="opts">${types.map(([k,l])=>`<button class="opt ${type===k?'sel':''}" data-m="type" data-v="${k}">${l}</button>`).join('')}</div>`;
+    if(type==='COIL'){
+      const ch=P.io.filter(x=>kindOf(x.a)==='Q').concat(P.mem);
+      h+=`<div class="note">割り付ける出力</div><div class="opts">`+ch.map(x=>`<button class="opt ${addr===x.a?'sel':''}" data-m="addr" data-v="${x.a}">${esc(x.name)}<small>${x.a}</small></button>`).join('')+`</div>`;
+    }
+    if(type==='TON'||type==='TOF'){
+      h+=`<div class="fieldrow">インスタンス名 <select data-f="tn">${(P.timers.length?P.timers:['T0']).map(n=>`<option ${n===tn?'selected':''}>${n}</option>`).join('')}</select>
+          設定時間 PT <input data-f="pt" type="number" min="0.1" max="600" step="0.1" value="${pt/1000}" style="width:90px"> 秒</div>`;
+    }
+    if(type==='CTU'||type==='CTD'){
+      const rch=contactChoices(st).filter(x=>['I','M'].includes(kindOf(x.a)));
+      h+=`<div class="fieldrow">インスタンス名 <select data-f="cn">${(P.counters.length?P.counters:['C0']).map(n=>`<option ${n===cn?'selected':''}>${n}</option>`).join('')}</select>
+          設定値 PV <input data-f="pv" type="number" min="1" max="999" step="1" value="${pv}" style="width:80px"></div>
+          <div class="fieldrow">${type==='CTU'?'リセット入力 R':'プリセット入力 LD'} <select data-f="rs"><option value="">なし</option>${rch.map(x=>`<option value="${x.a}" ${x.a===rs?'selected':''}>${esc(x.label)} (${x.a})</option>`).join('')}</select></div>`;
+    }
+    h+=`<div class="acts"><button class="btn" data-m="close">キャンセル</button><button class="btn primary" data-m="ok">決定</button></div>`;
+    return h;
+  };
+  const readFields=()=>{
+    const q=s=>bg.querySelector(`[data-f="${s}"]`);
+    if(q('tn')) tn=q('tn').value;
+    if(q('pt')) pt=Math.round(Math.max(0.1, parseFloat(q('pt').value)||1)*10)*100;
+    if(q('cn')) cn=q('cn').value;
+    if(q('pv')) pv=Math.max(1, parseInt(q('pv').value)||1);
+    if(q('rs')) rs=q('rs').value;
+  };
+  const bg=openModal(draw(), (t)=>{
+    const m=t.dataset.m;
+    readFields();
+    if(m==='type') type=t.dataset.v;
+    else if(m==='addr') addr=t.dataset.v;
+    else if(m==='ok'){
+      if(type==='E') rg.out=null;
+      else if(type==='COIL'){ if(!addr){ toast('割り付ける出力を選んでください'); return; } rg.out={t:'COIL', a:addr}; }
+      else if(type==='TON'||type==='TOF') rg.out={t:type, n:tn, pt};
+      else rg.out={t:type, n:cn, pv, r:rs||null};
+      if(type!=='E') G.pop=`o-${ri}`;
+      closeModal(); edited(); return;
+    } else return;
+    bg.querySelector('.modal').innerHTML=draw();
+  });
+}
+
+/* ---------- 通電表示の更新 ---------- */
+function updateLadderVis(){
+  const vis=G.plc.vis;
+  G.prog.forEach((rg,ri)=>{
+    const res=vis && vis[ri] && vis[ri].closed.length===rg.cells.length ? vis[ri] : null;
+    const R=rg.cells.length, C=rg.cells[0].length;
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+      const el=document.getElementById(`c-${ri}-${r}-${c}`); if(!el) continue;
+      el.classList.toggle('pl', !!(res && res.nodes[c][r]));
+      el.classList.toggle('cl', !!(res && res.closed[r][c]));
+    }
+    for(let r=0;r<R-1;r++) for(let b=1;b<=C;b++){
+      const el=document.getElementById(`v-${ri}-${r}-${b}`); if(!el) continue;
+      el.classList.toggle('pl', !!(res && res.nodes[b][r] && res.nodes[b][r+1]));
+    }
+    const oe=document.getElementById(`o-${ri}`);
+    if(oe){
+      oe.classList.toggle('pl', !!(res && res.power));
+      let q=false;
+      const o=rg.out;
+      if(o && res){
+        if(o.t==='COIL') q=G.plc.get(o.a);
+        else q=G.plc.get(o.n);
+      }
+      oe.classList.toggle('q', q);
+      if(o && (o.t==='TON'||o.t==='TOF')){
+        const e=document.getElementById(`et-${ri}`), t=G.plc.tm[o.n];
+        if(e) e.textContent='ET '+((t?t.et:0)/1000).toFixed(1)+'s';
+      }
+      if(o && (o.t==='CTU'||o.t==='CTD')){
+        const e=document.getElementById(`cv-${ri}`), c=G.plc.ct[o.n];
+        if(e) e.textContent=String(c?c.cv:0);
+      }
+    }
+  });
+}
+
+/* ---------- 機械 ---------- */
+const IN_TYPES=['pb','sw','sensor'];
+function devLabel(st, d){ return d.label || nameOf(st, A(d.a)) || ''; }
+function renderMachine(){
+  const st=G.stage;
+  const devs=st.machine||[];
+  let ip='', pl='';
+  devs.forEach((d,i)=>{
+    const a=A(d.a), lab=esc(devLabel(st,d)), ad=`<span class="ad">${a}</span>`;
+    switch(d.type){
+      case 'pb': ip+=`<div class="dev"><button class="pb ${d.color||'green'}" data-in="${a}" data-kind="pb" aria-label="${lab}"><i></i></button><span class="lbl">${lab}</span>${ad}</div>`; break;
+      case 'sw': ip+=`<div class="dev"><button class="sw" data-in="${a}" data-kind="sw" aria-label="${lab}"></button><span class="lbl">${lab}</span>${ad}</div>`; break;
+      case 'sensor': ip+=`<div class="dev"><button class="sens ${d.auto?'auto':''}" data-in="${a}" data-kind="${d.auto?'auto':'sw'}" aria-label="${lab}">センサ</button><span class="lbl">${lab}</span>${ad}</div>`; break;
+      case 'lamp': pl+=`<div class="dev"><div class="lamp ${d.color||'yellow'}" data-out="${a}"></div><span class="lbl">${lab}</span>${ad}</div>`; break;
+      case 'buzzer': pl+=`<div class="dev"><div class="buzz" data-out="${a}">🔔</div><span class="lbl">${lab}</span>${ad}</div>`; break;
+      case 'motor': pl+=`<div class="dev"><div class="motor" data-out="${a}" ${d.rev?`data-rev="${A(d.rev)}"`:''}><svg viewBox="0 0 58 58"><circle cx="29" cy="29" r="26" fill="#2a3542" stroke="#56687b" stroke-width="3"/><g class="fan"><path d="M29 29 L29 6 A10 10 0 0 1 39 16Z M29 29 L52 29 A10 10 0 0 1 42 39Z M29 29 L29 52 A10 10 0 0 1 19 42Z M29 29 L6 29 A10 10 0 0 1 16 19Z" fill="#9fb0c0"/></g><circle cx="29" cy="29" r="4" fill="#cfd8e2"/></svg></div><span class="lbl">${lab}</span><span class="ad">${a}${d.rev?' / 逆 '+A(d.rev):''}</span></div>`; break;
+      case 'conveyor': pl+=`<div class="dev"><div class="conv" data-out="${a}" ${d.rev?`data-rev="${A(d.rev)}"`:''}><div class="box"></div><div class="belt"></div></div><span class="lbl">${lab}</span><span class="ad">${a}${d.rev?' / 逆 '+A(d.rev):''}</span></div>`; break;
+      case 'cylinder': pl+=`<div class="dev"><div class="cyl" data-cyl="${i}"><div class="body"></div><div class="rod"></div><div class="head"></div></div><span class="lbl">${lab}</span>${ad}</div>`; break;
+      case 'tank': pl+=`<div class="dev"><div class="tank" data-tank="${i}"><div class="lv"></div></div><span class="lbl">${lab}</span><span class="ad">給水 ${A(d.a)}${d.drain?' / 排水 '+A(d.drain):''}</span></div>`; break;
+    }
+  });
+  const hasPB=devs.some(d=>d.type==='pb');
+  const el=document.getElementById('machine');
+  el.innerHTML=`<h3>機械</h3><div class="mach-wrap">
+      <div class="plant">${pl||'<span class="note">出力機器なし</span>'}</div>
+      <div class="opanel">${ip||'<span class="note">操作盤なし</span>'}</div>
+      <div class="mach-ctrl">
+        ${hasPB?`<label><input type="checkbox" id="holdchk" ${G.hold?'checked':''}> ボタン固定モード(クリックでON/OFF切替。2つ同時押し用)</label>`:''}
+        <span class="clock" id="clock">停止中 0.0s</span>
+      </div></div>`;
+  const chk=el.querySelector('#holdchk');
+  if(chk) chk.onchange=()=>{ G.hold=chk.checked; if(!G.hold){ el.querySelectorAll('.pb').forEach(b=>{ setIn(b.dataset.in,false); }); } updateMachineVis(); };
+  el.querySelectorAll('[data-in]').forEach(btn=>{
+    const a=btn.dataset.in, kind=btn.dataset.kind;
+    if(kind==='auto') return;
+    btn.addEventListener('contextmenu', e=>e.preventDefault());
+    btn.addEventListener('pointerdown', e=>{
+      e.preventDefault();
+      SFX.play('press');
+      if(kind==='sw' || G.hold){ setIn(a, !G.plc.inputs[a]); }
+      else { setIn(a, true); try{ btn.setPointerCapture(e.pointerId); }catch(_){} }
+    });
+    const up=()=>{ if(kind==='pb' && !G.hold) setIn(a,false); };
+    btn.addEventListener('pointerup', up);
+    btn.addEventListener('pointercancel', up);
+    btn.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); if(kind==='sw'||G.hold){ if(!e.repeat) setIn(a,!G.plc.inputs[a]); } else setIn(a,true);} });
+    btn.addEventListener('keyup', e=>{ if((e.key===' '||e.key==='Enter') && kind==='pb' && !G.hold) setIn(a,false); });
+  });
+  updateMachineVis();
+}
+function setIn(a,v){ G.plc.inputs[a]=v; updateMachineVis(); }
+function resetPhys(){
+  G.phys={};
+  (G.stage && G.stage.machine||[]).forEach((d,i)=>{
+    if(d.type==='cylinder') G.phys[i]={pos:0};
+    if(d.type==='tank') G.phys[i]={lv:d.init||0};
+  });
+  applyPhysSensors();
+}
+function physics(dt){
+  (G.stage.machine||[]).forEach((d,i)=>{
+    const p=G.phys[i]; if(!p) return;
+    if(d.type==='cylinder'){
+      const on=G.plc.get(A(d.a)), T=d.time||1000;
+      p.pos=Math.max(0, Math.min(1, p.pos + (on?1:-1)*dt/T));
+    }
+    if(d.type==='tank'){
+      const f=G.plc.get(A(d.a)), dr=d.drain?G.plc.get(A(d.drain)):false;
+      p.lv=Math.max(0, Math.min(1, p.lv + (f?dt/(d.fill||5000):0) - (dr?dt/(d.drainTime||5000):0)));
+    }
+  });
+  applyPhysSensors();
+}
+function applyPhysSensors(){
+  (G.stage && G.stage.machine||[]).forEach((d,i)=>{
+    const p=G.phys[i]; if(!p) return;
+    if(d.type==='cylinder'){
+      if(d.ext) G.plc.inputs[A(d.ext)] = p.pos>=1;
+      if(d.ret) G.plc.inputs[A(d.ret)] = p.pos<=0;
+    }
+    if(d.type==='tank'){
+      if(d.lo) G.plc.inputs[A(d.lo)] = p.lv>=0.15;
+      if(d.hi) G.plc.inputs[A(d.hi)] = p.lv>=0.85;
+    }
+  });
+}
+function updateMachineVis(){
+  const el=document.getElementById('machine'); if(!el) return;
+  el.querySelectorAll('[data-in]').forEach(b=>{
+    const on=!!G.plc.inputs[b.dataset.in];
+    b.classList.toggle('on', on);
+    if(b.classList.contains('pb')) b.classList.toggle('held', G.hold && on);
+  });
+  const outv=a=> G.running || G.plc.time>0 ? G.plc.get(a) : false;
+  el.querySelectorAll('[data-out]').forEach(d=>{
+    const f=outv(d.dataset.out), r=d.dataset.rev?outv(d.dataset.rev):false;
+    if((f||r) && !d.classList.contains('on') && G.running){
+      SFX.play('outOn'); burstAt(d, 10, {power:45, size:6, colors:['#ffc23d','#fff3a0','#7dffb8']});
+      d.classList.remove('on-burst'); void d.offsetWidth; d.classList.add('on-burst');
+    }
+    d.classList.toggle('on', f||r);
+    d.classList.toggle('rev', !f && r);
+  });
+  el.querySelectorAll('[data-cyl]').forEach(d=>{
+    const p=G.phys[d.dataset.cyl]||{pos:0}, L=8+p.pos*60;
+    d.querySelector('.rod').style.width=L+'px';
+    d.querySelector('.head').style.left=(70+L)+'px';
+  });
+  el.querySelectorAll('[data-tank]').forEach(d=>{
+    const p=G.phys[d.dataset.tank]||{lv:0};
+    d.querySelector('.lv').style.height=(p.lv*100)+'%';
+  });
+  const ck=document.getElementById('clock');
+  if(ck) ck.textContent=(G.running?'実行中 ':'停止中 ')+(G.plc.time/1000).toFixed(1)+'s';
+}
+
+/* ---------- 実行ループ ---------- */
+function startRun(){
+  if(G.running) return;
+  G.running=true; G.acc=0; G.last=performance.now();
+  updateRunUI();
+  // 実時間に合わせてスキャンを進める(タブが裏に回っても時間がずれにくいよう setInterval を使用)
+  const loop=()=>{
+    if(!G.running) return;
+    const ts=performance.now();
+    let el=ts-G.last; G.last=ts;
+    if(el>1000) el=1000;
+    G.acc+=el;
+    while(G.acc>=SCAN_MS){
+      physics(SCAN_MS);
+      G.plc.scan(G.prog, SCAN_MS);
+      G.acc-=SCAN_MS;
+    }
+    updateLadderVis(); updateMachineVis();
+  };
+  G.raf=setInterval(loop, 20);
+}
+function stopRun(){
+  G.running=false; clearInterval(G.raf);
+  if(G.stage) updateRunUI();
+}
+function resetRun(){
+  stopRun();
+  G.plc=new PLC();
+  resetPhys();
+  updateLadderVis(); updateMachineVis();
+}
+function updateRunUI(){
+  const ed=document.getElementById('editor'); if(ed) ed.classList.toggle('running', G.running);
+  document.querySelectorAll('[data-act="run"]').forEach(b=>b.disabled=G.running);
+  document.querySelectorAll('[data-act="stop"]').forEach(b=>b.disabled=!G.running);
+  updateMachineVis();
+}
+
+/* ---------- 下部(課題・割付表・ヒント) ---------- */
+function ioTableHTML(st){
+  const P=prep(st);
+  const kname={I:'入力',Q:'出力',M:'内部リレー'};
+  let h=`<table class="io"><tr><th>名前</th><th>種類</th><th>アドレス(OpenPLC)</th><th>説明</th></tr>`;
+  P.io.concat(P.mem).forEach(x=>{ h+=`<tr><td>${esc(x.name)}</td><td>${kname[kindOf(x.a)]||''}</td><td class="mono">${x.a}</td><td>${esc(x.desc||'')}</td></tr>`; });
+  P.timers.forEach(n=>{ h+=`<tr><td>${n}</td><td>タイマ</td><td class="mono">${n}(TON/TOF)</td><td>接点では ${n}.Q として使う</td></tr>`; });
+  P.counters.forEach(n=>{ h+=`<tr><td>${n}</td><td>カウンタ</td><td class="mono">${n}(CTU/CTD)</td><td>接点では ${n}.Q として使う</td></tr>`; });
+  return h+'</table>';
+}
+function renderBottom(){
+  const st=G.stage, P=prep(st), rec=stRec(st.id);
+  const tabs=[['task','課題'],['io','割付表'],['hint','ヒント ('+rec.hints+'/'+st.hints.length+')']];
+  let h=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${G.tab===k?'act':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`;
+  if(G.tab==='task'){
+    h+=`${st.story?talkHTML(`<p class="story">${esc(st.story)}</p>`, 'normal'):''}<p class="task">${esc(st.task)}</p>
+      <div class="goal">評価:★1 テスト合格 / ★2 接点数 ${P.target}個以下 / ★3 ヒントを使わずにクリア
+      ${st.type==='short'?'<br><b>最短挑戦:</b>できるだけ少ない接点数でクリアを目指そう。'+(rec.best!=null?'(自己ベスト '+rec.best+'個)':''):''}
+      ${st.type==='fill'?'<br><b>穴埋め:</b>「?」のマスだけ編集できます。':''}
+      ${st.type==='bug'?'<br><b>バグ探し:</b>今のラダーには不具合があります。直してから判定しよう。':''}</div>`;
+  } else if(G.tab==='io'){
+    h+=ioTableHTML(st);
+  } else {
+    for(let i=0;i<rec.hints;i++) h+=`<div class="hint"><b>ヒント${i+1}</b> ${esc(st.hints[i])}</div>`;
+    if(rec.hints<st.hints.length) h+=`<button class="btn" data-act="hint">ヒント${rec.hints+1}を見る(★3が消えます)</button>`;
+    else h+='<div class="note">ヒントはここまで。「模範解答」ボタンで答えも見られます。</div>';
+  }
+  document.getElementById('bottom').innerHTML=h;
+}
+function openHint(){
+  const st=G.stage, rec=stRec(st.id);
+  if(rec.hints>=st.hints.length) return;
+  rec.hints++; persist(); renderBottom(); SFX.play('hint');
+}
+
+/* ---------- 判定・クリア ---------- */
+function failHTML(st, r){
+  const name=a=>{ const n=nameOf(st,a); return n? `${n}(${dispAddr(a)})` : dispAddr(a); };
+  const sec=t=>(t/1000).toFixed(2)+'秒';
+  let tl='';
+  for(const s of r.steps){
+    if(s.t>r.t) break;
+    const ins=Object.entries(s.in).map(([a,v])=>`${name(a)}を${v?'ON':'OFF'}`);
+    if(ins.length) tl+=`<div>${sec(s.t)}:${esc(ins.join('、'))}</div>`;
+  }
+  let bad;
+  if(r.forbid) bad=`${sec(r.t)}:危険! ${esc(r.forbid.msg || r.forbid.all.map(name).join(' と ')+' が同時にON')}`;
+  else bad=`${sec(r.t)}:${esc(name(r.addr))} は <b>${r.exp?'ON':'OFF'}</b> のはずが、実際は <b>${r.act?'ON':'OFF'}</b>`;
+  return `<p class="result-ng">不合格… テスト${r.idx+1}「${esc(r.name)}」</p>
+    <div class="note">入力の流れ(すべて最初はOFF)</div>
+    <div class="timeline">${tl||'<div>(入力の操作なし)</div>'}<div class="bad">${bad}</div></div>
+    <p class="note">「実行」して同じ操作をすると、どこがずれるか確かめられます。</p>`;
+}
+function judge(){
+  if(G.judging) return;
+  const st=G.stage, P=prep(st), r=runAllTests(G.prog, st);
+  stopRun();
+  const finish=()=>{
+    G.judging=false;
+    if(!r.ok){
+      SFX.play('fail'); quake();
+      if(!reduced()){ const x=document.createElement('div'); x.className='bigx'; x.textContent='✕'; document.body.appendChild(x); setTimeout(()=>x.remove(),800); }
+      const bg=openModal(`${talkHTML(pick(LINES.fail),'sad')}${failHTML(st,r)}<div class="acts"><button class="btn primary" data-m="close">直してみる</button></div>`);
+      bg.querySelector('.modal').classList.add('ng');
+      return;
+    }
+    onClear();
+  };
+  if(reduced()){ finish(); return; }
+  // 判定中の演出:テストを1つずつ確認していく(結果はすでに計算済み)
+  G.judging=true;
+  const upto = r.ok ? P.tests.length : r.idx+1;
+  const ov=document.createElement('div'); ov.className='judging';
+  ov.innerHTML=`<div class="jb"><h2><span>判</span><span>定</span><span>中</span><span>…</span><span>!</span></h2>
+    ${P.tests.map((t,i)=>`<div class="jrow" id="jr${i}"><span class="mk"></span><span>テスト${i+1} ${esc(t.name||'')}</span></div>`).join('')}</div>`;
+  document.body.appendChild(ov);
+  SFX.play('drum');
+  const step=Math.max(160, Math.min(380, 1500/P.tests.length));
+  let i=0;
+  const next=()=>{
+    if(i>0){
+      const prev=ov.querySelector('#jr'+(i-1)), bad=!r.ok && i-1===r.idx;
+      prev.classList.remove('run'); prev.classList.add(bad?'ng':'ok');
+      prev.querySelector('.mk').textContent=bad?'✕':'✓';
+      if(!bad){ SFX.play('testOk'); burstAt(prev.querySelector('.mk'), 8, {power:35, size:6, colors:['#22c58b','#7dffb8','#fff']}); }
+    }
+    if(i>=upto){ setTimeout(()=>{ ov.remove(); finish(); }, r.ok?260:520); return; }
+    const cur=ov.querySelector('#jr'+i); cur.classList.add('run'); SFX.play('tick');
+    i++; setTimeout(next, step);
+  };
+  setTimeout(next, 250);
+}
+function onClear(){
+  const st=G.stage, P=prep(st), rec=stRec(st.id);
+  const n=countContacts(G.prog);
+  const stars=[true, n<=P.target, rec.hints===0 && !rec.peeked];
+  const oldL=levelOf(G.save.xp);
+  let gain=0;
+  const base=st.xp || (10+st.area*10)*(st.boss?2:1);
+  if(!rec.cleared) gain+=base;
+  stars.forEach((s,i)=>{ if(s && !rec.stars[i]){ gain+=10; rec.stars[i]=true; } });
+  const firstClear=!rec.cleared;
+  rec.cleared=true;
+  if(rec.best==null || n<rec.best) rec.best=n;
+  const newDex=[];
+  (st.unlock||[]).forEach(id=>{ if(!G.save.dex.includes(id)){ G.save.dex.push(id); newDex.push(id); } });
+  G.save.xp+=gain;
+  rec.hints=0; rec.peeked=false;          // 次の挑戦は★3を再び狙える
+  persist();
+  const newL=levelOf(G.save.xp);
+  const next=nextStage(st);
+  const dexNames=newDex.map(id=>{ const d=DEX.find(x=>x.id===id); return d?d.name:id; });
+  const lvUp=newL>oldL, newTitle=titleOf(newL)!==titleOf(oldL);
+  const html=`<div class="clear-wrap ${st.boss?'boss':''}"><p class="clear-title ${st.boss?'boss':''}">${st.boss?'BOSS CLEAR!':'CLEAR!'}</p>
+    <p class="result-ok" style="text-align:center;margin:0">${st.id} ${esc(st.title)} 合格</p>
+    <div class="bigstars">${stars.map((s,i)=>`<span class="s ${s?'on':'off'}" style="animation-delay:${.35+i*.25}s">★</span>`).join('')}</div></div>
+    <ul class="starlist">
+      <li class="${stars[0]?'got':''}">${stars[0]?'★':'☆'} テスト合格</li>
+      <li class="${stars[1]?'got':''}">${stars[1]?'★':'☆'} 接点数 ${n}個(目標 ${P.target}個以下)</li>
+      <li class="${stars[2]?'got':''}">${stars[2]?'★':'☆'} ヒント未使用</li>
+    </ul>
+    <div class="xpgain">${gain>0?`+<span id="xpcount">0</span> XP`:'<span class="note">(獲得XPなし:すでに取得済み)</span>'}</div>
+    ${lvUp?`<div class="lvup">🎉 レベルアップ! Lv.${newL}${newTitle?` 称号「${esc(titleOf(newL))}」を獲得!`:''}</div>`:''}
+    ${dexNames.length?`<div class="newdex">📖 命令図鑑に追加:<b>${esc(dexNames.join('、'))}</b></div>`:''}
+    ${talkHTML(pick(st.boss?LINES.boss:LINES.clear),'happy',true)}
+    <hr class="sep">
+    ${openplcHTML(st)}
+    <div class="acts">
+      <button class="btn" data-m="close">このステージに残る</button>
+      <button class="btn" data-m="map">マップへ</button>
+      ${next?`<button class="btn primary" data-m="next">次のステージへ</button>`:''}
+    </div>`;
+  openModal(html, t=>{
+    if(t.dataset.m==='map'){ closeModal(); saveDraft(); showMap(); }
+    if(t.dataset.m==='next'){ closeModal(); saveDraft(); openStage(next); }
+  });
+  confetti(st.boss||lvUp ? 180 : 110);
+  flash();
+  SFX.play(st.boss?'boss':'clear');
+  if(st.boss) quake();
+  fireworks(st.boss ? 7 : 4);
+  document.querySelectorAll('.bigstars .s').forEach((s,i)=>{
+    if(!s.classList.contains('on')) return;
+    setTimeout(()=>{ SFX.play('star'); burstAt(s, 16, {power:70, size:8, colors:['#ffc23d','#fff3a0','#ffffff']}); }, (350+i*250)+200);
+  });
+  if(lvUp) setTimeout(()=>levelSplash(oldL, newL), st.boss?2200:1700);
+  const xc=document.getElementById('xpcount');
+  if(xc){ const t0=performance.now(), dur=900;
+    const tick=()=>{ const k=Math.min(1,(performance.now()-t0)/dur); xc.textContent=Math.round(gain*k); if(k<1 && xc.isConnected) requestAnimationFrame(tick); };
+    xc.textContent=gain; requestAnimationFrame(()=>{ xc.textContent='0'; tick(); }); }
+  const head=document.querySelector('.stage-head .info'); if(head) head.innerHTML=starsHTML(rec.stars);
+  renderBottom();
+}
+function nextStage(st){
+  const i=STAGES.indexOf(st);
+  for(let j=i+1;j<STAGES.length;j++) if(stageUnlocked(STAGES[j])) return STAGES[j];
+  return null;
+}
+function openplcHTML(st){
+  const P=prep(st), op=st.openplc||{};
+  const usesT=P.answer.some(r=>r.out && (r.out.t==='TON'||r.out.t==='TOF'));
+  const usesC=P.answer.some(r=>r.out && (r.out.t==='CTU'||r.out.t==='CTD'));
+  return `<h2>OpenPLC Editorで同じ回路を組んでみよう</h2>
+    <div class="note">割付表(変数表に登録。Type は BOOL、Location にアドレスを入力)</div>
+    ${ioTableHTML(st)}
+    <ol class="steps">
+      <li>新規プロジェクトを作り、言語「LD」のプログラムを追加する</li>
+      <li>上の割付表どおりに変数を登録する(変数名は「名前」の列を使うと分かりやすい)</li>
+      <li>左パワーレール → 接点 → 出力 → 右パワーレール の順に置き、下の図と同じ形に線でつなぐ</li>
+      ${usesT?'<li>タイマは関数ブロックの TON / TOF を置き、PT に時間(例: T#2s)を入れる。接点では インスタンス名.Q を使う</li>':''}
+      ${usesC?'<li>カウンタは関数ブロックの CTU / CTD を置き、PV に設定値、R(CTDはLD)に信号をつなぐ</li>':''}
+      <li>シミュレーションを開始し、入力を強制ON/OFFして次を確認する</li>
+    </ol>
+    ${(op.check||[]).length?`<div class="note">確認ポイント</div><ul>${op.check.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`:''}
+    ${op.note?`<p class="note">${esc(op.note)}</p>`:''}
+    <div class="note">参考:模範解答の形</div>
+    ${P.answer.map((rg,i)=>`<div class="preview-svg">${rungSVGStatic(rg,i,st)}</div>`).join('')}`;
+}
+function rungSVGStatic(rg, i, st){
+  // 読み取り専用で描画(穴埋めの「?」表示を出さないため一時的に種類を無視)
+  const saved=G.stage; const fake=Object.assign({},st,{type:'build'});
+  G.stage=fake;
+  const s=rungSVG(rg, 'p'+i, st, {readonly:true});
+  G.stage=saved;
+  return s;
+}
+function showAnswer(){
+  const st=G.stage, P=prep(st), rec=stRec(st.id);
+  const view=()=>{
+    openModal(`<h2>模範解答</h2>${P.answer.map((rg,i)=>`<div class="preview-svg">${rungSVGStatic(rg,i,st)}</div>`).join('')}
+      <p class="note">接点数 ${countContacts(P.answer)}個。ほかの組み方でもテストに合格すればクリアです。</p>
+      <div class="acts"><button class="btn" data-m="close">閉じる</button>${st.type==='fill'?'':'<button class="btn primary" data-m="load">エディタに読み込む</button>'}</div>`, t=>{
+      if(t.dataset.m==='load'){
+        if(!confirm('今の回路を模範解答で置き換えますか?')) return;
+        G.prog=clone(P.answer); closeModal(); edited();
+      }
+    });
+  };
+  if(isCleared(st.id)) return view();
+  openModal(`<h2>模範解答を見る?</h2><p>クリア前に見ると、このステージの★3(ヒント未使用)は取れなくなります。</p>
+    <div class="acts"><button class="btn" data-m="close">やめる</button><button class="btn primary" data-m="yes">見る</button></div>`, t=>{
+    if(t.dataset.m==='yes'){ rec.peeked=true; persist(); view(); }
+  });
+}
+
+/* ---------- 命令図鑑 ---------- */
+function showDex(){
+  const got=G.save.dex;
+  let h=`<h2>命令図鑑 (${DEX.filter(d=>got.includes(d.id)).length}/${DEX.length})</h2>`;
+  for(const d of DEX){
+    if(got.includes(d.id)){
+      h+=`<div class="dex-item"><h4>${esc(d.name)}</h4><div class="op">${esc(d.op)}</div><p style="margin:4px 0">${esc(d.text)}</p><div class="note">ポイント:${esc(d.tip)}</div></div>`;
+    } else {
+      const ready=areaReady(d.area);
+      h+=`<div class="dex-item locked"><h4>???</h4><div class="note">エリア${d.area}「${esc(AREAS[d.area-1].name)}」で解放${ready?'':'(準備中)'}</div></div>`;
+    }
+  }
+  h+=`<div class="acts"><button class="btn primary" data-m="close">閉じる</button></div>`;
+  openModal(h);
+}
+
+/* ---------- データ(書き出し/読み込み) ---------- */
+function showData(){
+  const html=`<h2>データ</h2>
+    <p class="note">進捗はこのブラウザに自動保存されています。別の端末に移したり、後輩に渡したりするときはJSONファイルに書き出してください。</p>
+    <div class="opts">
+      <button class="btn primary" data-m="export">JSONに書き出す</button>
+      <button class="btn" data-m="import">JSONを読み込む</button>
+      <button class="btn stop" data-m="wipe">進捗をすべて消す</button>
+    </div>
+    <input type="file" id="impfile" accept=".json,application/json" class="hidden">
+    <div class="acts"><button class="btn" data-m="close">閉じる</button></div>`;
+  const bg=openModal(html, t=>{
+    const m=t.dataset.m;
+    if(m==='export') exportSave();
+    if(m==='import') bg.querySelector('#impfile').click();
+    if(m==='wipe'){
+      if(confirm('進捗・XP・下書きをすべて消します。元に戻せません。よろしいですか?')){
+        G.save=defaultSave(); persist(); closeModal(); showMap(); toast('進捗を消しました');
+      }
+    }
+  });
+  bg.querySelector('#impfile').addEventListener('change', e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const rd=new FileReader();
+    rd.onload=()=>{
+      try{
+        const s=JSON.parse(rd.result);
+        if(!validSave(s)) throw new Error('形式が違います');
+        if(!confirm('読み込んだデータで今の進捗を上書きします。よろしいですか?')) return;
+        G.save=Object.assign(defaultSave(), s); persist(); closeModal(); showMap(); toast('読み込みました');
+      }catch(err){ toast('読み込めませんでした:'+err.message); }
+    };
+    rd.readAsText(f);
+  });
+}
+function exportSave(){
+  const blob=new Blob([JSON.stringify(G.save,null,1)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='ladder_save_'+ymd(new Date()).replace(/-/g,'')+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  toast('書き出しました');
+}
+
+/* ---------- 起動 ---------- */
+function setupPWA(){
+  // https(または localhost)で配信されているときだけ、オフライン用のサービスワーカーを登録する
+  if(!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+  // 進捗がブラウザの容量整理で消されにくくなるよう依頼する(許可されなくても動作に影響なし)
+  try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+}
+function boot(){
+  setupPWA();
+  G.save=loadSave();
+  window.addEventListener('beforeunload', ()=>{ if(G.stage) saveDraft(); });
+  showMap();
+}
+if(typeof document!=='undefined') boot();
+</script>
+</body>
+</html>
