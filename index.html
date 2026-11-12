@@ -347,12 +347,27 @@ body.quake{animation:quake .5s}
 .bgdeco{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
 .bgdeco span{position:absolute;bottom:-60px;font-size:28px;opacity:.22;animation:floatup linear infinite}
 @keyframes floatup{to{transform:translateY(-120vh) rotate(360deg)}}
-.topbar h1{background:linear-gradient(90deg,#ff5d8f,#ff9f43,#ffc23d,#22c58b,#3d9bff,#8b5cf6,#ff5d8f);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;animation:rainbow 4s linear infinite;-webkit-text-stroke:1px var(--ink)}
-.area-icon{animation:hop 2.4s ease-in-out infinite}
-.area.locked .area-icon{animation:none}
-.stage-btn.next .num{animation:pulseR 1.2s ease-in-out infinite}
-@keyframes pulseR{0%,100%{box-shadow:0 0 0 0 rgba(255,93,143,.6)}50%{box-shadow:0 0 0 9px rgba(255,93,143,0)}}
-.btn.primary[data-act="judge"]{background:linear-gradient(90deg,#ffc23d,#ffe28a,#ffc23d);background-size:200% 100%;animation:rainbow 2s linear infinite}
+/* タイトル画面 */
+.title-screen{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 16px;text-align:center;cursor:pointer;animation:fade .5s}
+.title-screen .mascot{width:120px;height:120px}
+.title-screen h1{margin:0;font-size:clamp(30px,9vw,52px);font-weight:900;line-height:1.15;color:var(--pink);text-shadow:3px 3px 0 var(--accent);letter-spacing:1px}
+.title-screen .sub{font-size:14px;color:var(--sub);font-weight:700;margin-top:-6px}
+.title-screen .btn{font-size:18px;padding:10px 34px;margin-top:10px}
+.title-screen .cont{font-size:13px;color:var(--sub)}
+.topbar h1{cursor:pointer}
+/* 方針:常に動き続ける飾りは置かない。動きは「操作した瞬間」と「節目」だけ */
+.stage-btn .nxt{animation:none}
+.xpbar > i{animation:none}
+.ctrlbar .btn.go:not(:disabled){animation:none}
+.clear-title{animation:zoomin .5s cubic-bezier(.3,1.8,.5,1)}
+.bigstars .s.on{animation:starpop .45s cubic-bezier(.3,1.9,.5,1) both}
+.clear-wrap::before{content:none}
+.clear-wrap.boss::before{content:""}
+.lvup{animation:none;background:var(--purple)}
+.modal.ng{animation:mpop .3s cubic-bezier(.3,1.6,.5,1)}
+.judging h2 span{animation:none}
+.intro.boss .card{animation:slidein .45s cubic-bezier(.3,1.5,.5,1)}
+.intro .card .warn{animation:none}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
@@ -1319,7 +1334,7 @@ const SFX = {
       case 'tick': T(880,0,.04,'square',.05); break;
       case 'testOk': T(988,0,.06,'square',.08); T(1319,.06,.1,'square',.08); break;
       case 'drum': for(let i=0;i<10;i++) this.noise(i*.05,.04,.06); break;
-      case 'fail': T(180,0,.28,'sawtooth',.14); T(140,.3,.45,'sawtooth',.14); break;
+      case 'fail': T(523,0,.16,'triangle',.12); T(392,.16,.3,'triangle',.12); break;
       case 'clear': [523,659,784,1047].forEach((f,i)=>T(f,i*.09,.12,'square',.1)); T(784,.4,.1,'square',.1); T(1047,.5,.5,'square',.11); T(1319,.5,.5,'triangle',.07); break;
       case 'boss': [392,523,659,784,659,784].forEach((f,i)=>T(f,i*.11,.13,'square',.1)); T(1047,.7,.8,'square',.12); T(523,.7,.8,'triangle',.1); this.noise(.7,.4,.12); break;
       case 'star': T(1568,0,.08,'triangle',.09); T(2093,.06,.15,'triangle',.08); break;
@@ -1418,6 +1433,23 @@ function statusHTML(){
     <span class="streak" title="最高 ${s.best||0}日">🔥 連続 ${s.count||0}日</span>
   </div>`;
 }
+/* ---------- タイトル画面 ---------- */
+function showTitle(){
+  stopRun();
+  G.stage=null;
+  const played=STAGES.some(s=>isCleared(s.id));
+  const L=levelOf(G.save.xp);
+  const app=document.getElementById('app');
+  app.innerHTML=`<div class="title-screen" data-act="start">
+    <div class="mascot">${mascotSVG('normal')}</div>
+    <h1>ラダー工場の冒険</h1>
+    <div class="sub">OpenPLC ラダー修行</div>
+    <button class="btn primary" data-act="start">${played?'▶ つづきから':'▶ はじめる'}</button>
+    ${played?`<div class="cont">Lv.${L} ${esc(titleOf(L))}</div>`:''}
+  </div>`;
+  app.onclick=e=>{ if(e.target.closest('[data-act="start"]')){ SFX.play('place'); showMap(); } };
+  window.scrollTo(0,0);
+}
 function mapGreeting(){
   const cleared=STAGES.filter(s=>isCleared(s.id)).length;
   if(cleared===0) return 'ようこそ、ラダー工場へ!ぼくは<b>リレーくん</b>。いっしょに回路を組んで、機械を動かしていこう!';
@@ -1430,10 +1462,10 @@ function showMap(){
   stopRun();
   G.stage=null;
   document.querySelectorAll('.intro').forEach(e=>e.remove());
-  let h=`<div class="topbar"><h1>ラダー工場の冒険<small>⚡ OpenPLC ラダー修行</small></h1>${statusHTML()}
+  let h=`<div class="topbar"><h1 data-act="title" title="タイトルへ">ラダー工場の冒険<small>⚡ OpenPLC ラダー修行</small></h1>${statusHTML()}
     <button class="btn small" data-act="dex">📖 命令図鑑</button>
-    <button class="btn small" data-act="data">💾 データ</button>${soundBtnHTML()}</div>${bgDecoHTML()}<div class="map">`;
-  h+=talkHTML(mapGreeting(), 'normal', true);
+    <button class="btn small" data-act="data">💾 データ</button>${soundBtnHTML()}</div><div class="map">`;
+  h+=talkHTML(mapGreeting(), 'normal');
   const nextId=(STAGES.find(s=>stageUnlocked(s) && !isCleared(s.id))||{}).id;
   for(const ar of AREAS){
     const ready=areaReady(ar.no), un=areaUnlocked(ar.no);
@@ -1466,6 +1498,7 @@ function showMap(){
     if(t.dataset.act==='open') openStage(STAGES.find(s=>s.id===t.dataset.id));
     if(t.dataset.act==='dex') showDex();
     if(t.dataset.act==='data') showData();
+    if(t.dataset.act==='title') showTitle();
   };
   window.scrollTo(0,0);
 }
@@ -1710,18 +1743,18 @@ function cellPicker(ri,r,c){
   const rg=G.prog[ri], st=G.stage, P=prep(st);
   if(cellLocked(rg,r,c)){ toast('このマスは固定されています'); return; }
   const cur=rg.cells[r][c];
-  let type=cur? cur.t : 'E', addr=cur && cur.a ? cur.a : null;
   const pal=P.palette;
+  // 1タップで置ける一覧(種類+信号の組み合わせ)。押した瞬間に確定して閉じる
   const draw=()=>{
-    const types=[['E','空き'],['W','─ 横線']];
-    if(pal.includes('NO')) types.push(['NO','┤├ a接点']);
-    if(pal.includes('NC')) types.push(['NC','┤/├ b接点']);
+    const isSel=(t,a)=> cur ? (cur.t===t && (a==null || cur.a===a)) : t==='E';
     let h=`<h2>ラング${ri+1} / ${r+1}行目 / ${c+1}列目</h2>
-      <div class="opts">${types.map(([k,l])=>`<button class="opt ${type===k?'sel':''}" data-m="type" data-v="${k}">${l}</button>`).join('')}</div>`;
-    if(type==='NO'||type==='NC'){
-      h+=`<div class="note">割り付ける信号</div><div class="opts">`+
-        contactChoices(st).map(x=>`<button class="opt ${addr===x.a?'sel':''}" data-m="addr" data-v="${x.a}">${esc(x.label)}<small>${esc(x.sub)}</small></button>`).join('')+`</div>`;
-    }
+      <div class="opts"><button class="opt ${isSel('E')?'sel':''}" data-m="put" data-t="E">空き</button>
+      <button class="opt ${isSel('W')?'sel':''}" data-m="put" data-t="W">─ 横線</button></div>`;
+    const ch=contactChoices(st);
+    if(pal.includes('NO')) h+=`<div class="note">┤├ a接点(ONで通る)</div><div class="opts">`+
+      ch.map(x=>`<button class="opt ${isSel('NO',x.a)?'sel':''}" data-m="put" data-t="NO" data-v="${x.a}">┤├ ${esc(x.label)}<small>${esc(x.sub)}</small></button>`).join('')+`</div>`;
+    if(pal.includes('NC')) h+=`<div class="note">┤/├ b接点(OFFで通る)</div><div class="opts">`+
+      ch.map(x=>`<button class="opt ${isSel('NC',x.a)?'sel':''}" data-m="put" data-t="NC" data-v="${x.a}">┤/├ ${esc(x.label)}<small>${esc(x.sub)}</small></button>`).join('')+`</div>`;
     if(!isFill() && rg.cells.length>1){
       const vb=[];
       if(r<rg.cells.length-1){ vb.push([r,c,'左に縦線(下の行へ)'],[r,c+1,'右に縦線(下の行へ)']); }
@@ -1729,22 +1762,26 @@ function cellPicker(ri,r,c){
       const ok=vb.filter(([vr,b])=>b>=1);
       if(ok.length) h+=`<div class="note">縦線(並列)</div><div class="opts">`+ok.map(([vr,b,l])=>`<button class="opt ${rg.v[vr][b]?'sel':''}" data-m="v" data-r="${vr}" data-b="${b}">${l}</button>`).join('')+`</div>`;
     }
-    h+=`<div class="acts"><button class="btn" data-m="close">キャンセル</button><button class="btn primary" data-m="ok">決定</button></div>`;
+    h+=`<div class="acts"><button class="btn" data-m="close">閉じる</button></div>`;
     return h;
   };
   const bg=openModal(draw(), (t)=>{
     const m=t.dataset.m;
-    if(m==='type'){ type=t.dataset.v; }
-    else if(m==='addr'){ addr=t.dataset.v; }
-    else if(m==='v'){ const vr=+t.dataset.r, b=+t.dataset.b; rg.v[vr][b]=!rg.v[vr][b]; saveDraft(); }
-    else if(m==='ok'){
-      if((type==='NO'||type==='NC') && !addr){ toast('割り付ける信号を選んでください'); return; }
+    if(m==='v'){ const vr=+t.dataset.r, b=+t.dataset.b; rg.v[vr][b]=!rg.v[vr][b]; saveDraft(); bg.querySelector('.modal').innerHTML=draw(); renderEditor(); return; }
+    if(m==='put'){
+      const type=t.dataset.t, addr=t.dataset.v;
       rg.cells[r][c] = type==='E'?null : type==='W'?{t:'W'} : {t:type, a:addr};
-      if(type!=='E') G.pop=`c-${ri}-${r}-${c}`;
+      if(type==='E') SFX.play('remove'); else G.pop=`c-${ri}-${r}-${c}`;
+      if(r===0 && (type==='NO'||type==='NC')) autoWire(rg);
       closeModal(); edited(); return;
     }
-    bg.querySelector('.modal').innerHTML=draw();
   });
+}
+// 組む・最短挑戦では、1行目(出力につながる本線)の空きマスを自動で横線にする
+function autoWire(rg){
+  const ty=G.stage && G.stage.type;
+  if(ty!=='build' && ty!=='short') return;
+  rg.cells[0].forEach((cell,c)=>{ if(!cell) rg.cells[0][c]={t:'W'}; });
 }
 function outPicker(ri){
   const rg=G.prog[ri], st=G.stage, P=prep(st);
@@ -1756,14 +1793,13 @@ function outPicker(ri){
   let cn=o&&o.n?o.n:(P.counters[0]||'C0'), pv=o&&o.pv?o.pv:3, rs=o&&o.r?o.r:'';
   const pal=P.palette;
   const draw=()=>{
-    const types=[['E','なし']];
-    if(pal.includes('COIL')) types.push(['COIL','( ) コイル']);
-    ['TON','TOF','CTU','CTD'].forEach(k=>{ if(pal.includes(k)) types.push([k,k]); });
-    let h=`<h2>ラング${ri+1} の出力</h2><div class="opts">${types.map(([k,l])=>`<button class="opt ${type===k?'sel':''}" data-m="type" data-v="${k}">${l}</button>`).join('')}</div>`;
-    if(type==='COIL'){
+    let h=`<h2>ラング${ri+1} の出力</h2><div class="opts"><button class="opt ${type==='E'?'sel':''}" data-m="none">なし</button></div>`;
+    if(pal.includes('COIL')){
       const ch=P.io.filter(x=>kindOf(x.a)==='Q').concat(P.mem);
-      h+=`<div class="note">割り付ける出力</div><div class="opts">`+ch.map(x=>`<button class="opt ${addr===x.a?'sel':''}" data-m="addr" data-v="${x.a}">${esc(x.name)}<small>${x.a}</small></button>`).join('')+`</div>`;
+      h+=`<div class="note">( ) コイル(押すとすぐ置けます)</div><div class="opts">`+ch.map(x=>`<button class="opt ${type==='COIL'&&addr===x.a?'sel':''}" data-m="coil" data-v="${x.a}">( ) ${esc(x.name)}<small>${x.a}</small></button>`).join('')+`</div>`;
     }
+    const fb=['TON','TOF','CTU','CTD'].filter(k=>pal.includes(k));
+    if(fb.length) h+=`<div class="note">タイマ・カウンタ(設定してから「決定」)</div><div class="opts">${fb.map(k=>`<button class="opt ${type===k?'sel':''}" data-m="type" data-v="${k}">${k}</button>`).join('')}</div>`;
     if(type==='TON'||type==='TOF'){
       h+=`<div class="fieldrow">インスタンス名 <select data-f="tn">${(P.timers.length?P.timers:['T0']).map(n=>`<option ${n===tn?'selected':''}>${n}</option>`).join('')}</select>
           設定時間 PT <input data-f="pt" type="number" min="0.1" max="600" step="0.1" value="${pt/1000}" style="width:90px"> 秒</div>`;
@@ -1774,7 +1810,8 @@ function outPicker(ri){
           設定値 PV <input data-f="pv" type="number" min="1" max="999" step="1" value="${pv}" style="width:80px"></div>
           <div class="fieldrow">${type==='CTU'?'リセット入力 R':'プリセット入力 LD'} <select data-f="rs"><option value="">なし</option>${rch.map(x=>`<option value="${x.a}" ${x.a===rs?'selected':''}>${esc(x.label)} (${x.a})</option>`).join('')}</select></div>`;
     }
-    h+=`<div class="acts"><button class="btn" data-m="close">キャンセル</button><button class="btn primary" data-m="ok">決定</button></div>`;
+    const fbSel=['TON','TOF','CTU','CTD'].includes(type);
+    h+=`<div class="acts"><button class="btn" data-m="close">閉じる</button>${fbSel?'<button class="btn primary" data-m="ok">決定</button>':''}</div>`;
     return h;
   };
   const readFields=()=>{
@@ -1788,6 +1825,8 @@ function outPicker(ri){
   const bg=openModal(draw(), (t)=>{
     const m=t.dataset.m;
     readFields();
+    if(m==='none'){ rg.out=null; SFX.play('remove'); closeModal(); edited(); return; }
+    if(m==='coil'){ rg.out={t:'COIL', a:t.dataset.v}; G.pop=`o-${ri}`; closeModal(); edited(); return; }
     if(m==='type') type=t.dataset.v;
     else if(m==='addr') addr=t.dataset.v;
     else if(m==='ok'){
@@ -2053,8 +2092,7 @@ function judge(){
   const finish=()=>{
     G.judging=false;
     if(!r.ok){
-      SFX.play('fail'); quake();
-      if(!reduced()){ const x=document.createElement('div'); x.className='bigx'; x.textContent='✕'; document.body.appendChild(x); setTimeout(()=>x.remove(),800); }
+      SFX.play('fail');
       const bg=openModal(`${talkHTML(pick(LINES.fail),'sad')}${failHTML(st,r)}<div class="acts"><button class="btn primary" data-m="close">直してみる</button></div>`);
       bg.querySelector('.modal').classList.add('ng');
       return;
@@ -2069,17 +2107,21 @@ function judge(){
   ov.innerHTML=`<div class="jb"><h2><span>判</span><span>定</span><span>中</span><span>…</span><span>!</span></h2>
     ${P.tests.map((t,i)=>`<div class="jrow" id="jr${i}"><span class="mk"></span><span>テスト${i+1} ${esc(t.name||'')}</span></div>`).join('')}</div>`;
   document.body.appendChild(ov);
+  let done=false;
+  const end=()=>{ if(done) return; done=true; ov.remove(); finish(); };
+  ov.addEventListener('click', end);   // タップで演出を飛ばす
   SFX.play('drum');
   const step=Math.max(160, Math.min(380, 1500/P.tests.length));
   let i=0;
   const next=()=>{
+    if(done) return;
     if(i>0){
       const prev=ov.querySelector('#jr'+(i-1)), bad=!r.ok && i-1===r.idx;
       prev.classList.remove('run'); prev.classList.add(bad?'ng':'ok');
       prev.querySelector('.mk').textContent=bad?'✕':'✓';
       if(!bad){ SFX.play('testOk'); burstAt(prev.querySelector('.mk'), 8, {power:35, size:6, colors:['#22c58b','#7dffb8','#fff']}); }
     }
-    if(i>=upto){ setTimeout(()=>{ ov.remove(); finish(); }, r.ok?260:520); return; }
+    if(i>=upto){ setTimeout(end, r.ok?260:520); return; }
     const cur=ov.querySelector('#jr'+i); cur.classList.add('run'); SFX.play('tick');
     i++; setTimeout(next, step);
   };
@@ -2117,7 +2159,7 @@ function onClear(){
     <div class="xpgain">${gain>0?`+<span id="xpcount">0</span> XP`:'<span class="note">(獲得XPなし:すでに取得済み)</span>'}</div>
     ${lvUp?`<div class="lvup">🎉 レベルアップ! Lv.${newL}${newTitle?` 称号「${esc(titleOf(newL))}」を獲得!`:''}</div>`:''}
     ${dexNames.length?`<div class="newdex">📖 命令図鑑に追加:<b>${esc(dexNames.join('、'))}</b></div>`:''}
-    ${talkHTML(pick(st.boss?LINES.boss:LINES.clear),'happy',true)}
+    ${talkHTML(pick(st.boss?LINES.boss:LINES.clear),'happy')}
     <hr class="sep">
     ${openplcHTML(st)}
     <div class="acts">
@@ -2129,11 +2171,10 @@ function onClear(){
     if(t.dataset.m==='map'){ closeModal(); saveDraft(); showMap(); }
     if(t.dataset.m==='next'){ closeModal(); saveDraft(); openStage(next); }
   });
-  confetti(st.boss||lvUp ? 180 : 110);
-  flash();
+  // 普通のステージは星と小さめの紙ふぶきだけ。花火・フラッシュ・後光はボスのときだけ
   SFX.play(st.boss?'boss':'clear');
-  if(st.boss) quake();
-  fireworks(st.boss ? 7 : 4);
+  if(st.boss){ confetti(140); flash(); fireworks(5); }
+  else confetti(45);
   document.querySelectorAll('.bigstars .s').forEach((s,i)=>{
     if(!s.classList.contains('on')) return;
     setTimeout(()=>{ SFX.play('star'); burstAt(s, 16, {power:70, size:8, colors:['#ffc23d','#fff3a0','#ffffff']}); }, (350+i*250)+200);
@@ -2271,7 +2312,7 @@ function boot(){
   setupPWA();
   G.save=loadSave();
   window.addEventListener('beforeunload', ()=>{ if(G.stage) saveDraft(); });
-  showMap();
+  showTitle();
 }
 if(typeof document!=='undefined') boot();
 </script>
