@@ -1,6 +1,6 @@
 // ラダー工場の冒険 — オフライン用サービスワーカー
 // 方針: ネット優先(更新をすぐ反映)。つながらないときは前回保存した版を使う。
-const CACHE = 'ladder-quest-v2';
+const CACHE = 'ladder-quest-v5';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png',
   './img/island1.webp', './img/island2.webp', './img/island3.webp', './img/island4.webp', './img/island5.webp', './img/island6.webp', './img/island7.webp'];
 

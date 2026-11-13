@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ラダー工場の冒険</title>
 <!-- アプリ化(PWA)用。GitHub Pages などで公開したときだけ有効。ファイルを直接開いた場合は無視される -->
-<meta name="theme-color" content="#ff5d8f">
+<meta name="theme-color" content="#24305e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ラダー冒険">
@@ -23,7 +23,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;color:var(--text);
-  font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","BIZ UDPGothic","Yu Gothic UI","Meiryo",sans-serif;font-size:15px;line-height:1.6}
+  font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;font-size:15px;line-height:1.6}
 body{background:var(--bg);background-image:radial-gradient(#f3dfb6 1.4px,transparent 1.4px);background-size:22px 22px}
 button{font:inherit;color:inherit;cursor:pointer}
 .hidden{display:none!important}
@@ -493,6 +493,103 @@ body.on-map::before{content:"";position:fixed;inset:0;pointer-events:none;z-inde
 .area-sheet .area-body{padding:10px 2px 4px}
 .sheet-close{display:block;margin:6px auto 0}
 @media (min-width:861px){ .area-sheet{left:50%;right:auto;width:min(760px,96vw);transform:translateX(-50%);bottom:12px;border-radius:16px;animation:none} }
+/* ===================================================================
+   世界観をそろえる(空と島に合わせる):紺の枠、黒い太枠は押せる物だけ細めに、パネルは薄い影
+   =================================================================== */
+:root{--navy:#24305e;--ink2:#1f2433}
+body.on-stage{background:linear-gradient(180deg,#d9e3f0 0%,#eef1f6 40%,#f3f4f7 100%) fixed}
+/* 上下のバー */
+.stage-head,.on-map .topbar{background:var(--navy);color:#fff;border-bottom:0;box-shadow:0 2px 8px rgba(15,20,45,.25)}
+.stage-head{border-top:4px solid var(--area)}
+.stage-head .btn.small,.on-map .topbar .btn.small{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.45);box-shadow:none}
+.stage-head .badge{border-width:1.5px}
+.stage-head .stars .off,.on-map .topbar .stars .off{color:rgba(255,255,255,.25);-webkit-text-stroke:0}
+.on-map .topbar h1{color:#fff;text-shadow:none}
+.on-map .topbar h1 small{color:rgba(255,255,255,.7)}
+.on-map .topbar .xptext{color:rgba(255,255,255,.7)}
+.on-map .topbar .xpbar{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.15)}
+.on-map .topbar .lvbadge{border-color:#fff;box-shadow:none}
+.on-map .topbar .streak{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.35);color:#fff}
+.ctrlbar{background:var(--navy);border-top:0;box-shadow:0 -2px 10px rgba(15,20,45,.25)}
+.ctrlbar .btn{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);box-shadow:none}
+.ctrlbar .btn.primary{background:var(--act);color:var(--ink2);border-color:var(--act);box-shadow:0 3px 0 #b8860b}
+/* パネル類:枠なし・薄い影 */
+.on-stage .mission{border:0;border-left:5px solid var(--area);border-radius:10px;box-shadow:0 1px 2px rgba(20,24,40,.12),0 2px 8px rgba(20,24,40,.06);font-weight:700}
+.on-stage .mission .chip{background:var(--navy);border-radius:4px}
+.on-stage .pane{border:0;border-radius:10px;box-shadow:0 1px 2px rgba(20,24,40,.12),0 2px 8px rgba(20,24,40,.06)}
+.on-stage .rung{background:#f7f8fb;background-image:linear-gradient(#eef0f5 1px,transparent 1px),linear-gradient(90deg,#eef0f5 1px,transparent 1px);background-size:16px 16px;border:1px solid #e1e5ee;border-radius:8px}
+.on-stage .rung-head .n{color:var(--navy)}
+.on-stage .toolbar .cnt{border:1px solid #d5dae4;background:#f4f6fa}
+.on-stage .toolbar .cnt.good{background:#dcfaec;border-color:#a7e3c4}
+.on-stage .plant{border:0;border-radius:8px}
+.on-stage .opanel{border:0;border-radius:8px;box-shadow:inset 0 0 0 1.5px #c7ccd6}
+.on-stage .tabs button{border-width:1.5px;border-radius:8px}
+.on-stage .tabs button.act{background:var(--navy);border-color:var(--navy)}
+.on-stage .bubble,.map-greet .bubble,.modal .bubble{border:0;background:#eef4ff;box-shadow:none}
+.on-stage .bubble::before,.map-greet .bubble::before,.modal .bubble::before{display:none}
+.on-stage .bubble::after,.map-greet .bubble::after,.modal .bubble::after{border-right-color:#eef4ff}
+.map-greet .bubble{background:rgba(255,255,255,.92)}
+.map-greet .bubble::after{border-right-color:rgba(255,255,255,.92)}
+.on-stage .hint{border:0;border-left:4px solid var(--info)}
+table.io{border:1px solid #d5dae4}
+table.io th{background:var(--navy)}
+/* 押せる物:太枠をやめて細めに */
+.btn{border-width:1.5px;border-radius:8px;box-shadow:0 2px 0 var(--ink2)}
+.btn.small{border-width:1.5px}
+.btn:active:not(:disabled){box-shadow:none}
+.rung-head button{border-width:1.5px;border-radius:7px;box-shadow:none}
+.badge{border-width:1.5px}
+.pb{border-width:2px}.sw,.sens{border-width:2px}.lamp{border-width:2px}
+/* マップのステージ一覧・ポップアップ */
+.area-sheet .area-head{background:var(--navy);color:#fff;border-bottom:4px solid var(--area)}
+.area-sheet .area-icon{border:0;box-shadow:none}
+.area-sheet .area-prog{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff}
+.stage-btn{border:1.5px solid #d5dae4;box-shadow:0 1px 2px rgba(20,24,40,.1);background:#fff}
+.stage-btn:hover:not(:disabled){box-shadow:0 3px 8px rgba(20,24,40,.12)}
+.stage-btn.next{border-color:var(--ink2);box-shadow:0 0 0 3px #ffe08a}
+.stage-btn .num{border:0}
+.stage-btn:disabled{background:#f3f4f7;border-color:#e3e6ed;box-shadow:none;color:#9aa0ad}
+.stage-btn:disabled .num{background:#dfe3ea;color:#8e95a3}
+.stage-btn .clr,.stage-btn .nxt{border:0}
+.stage-btn.boss{background:linear-gradient(100deg,#fff 0%,#ffeef0 100%)}
+.prep{border:1.5px dashed #c9cfda}
+.modal{border:0;border-radius:14px;box-shadow:0 12px 40px rgba(10,15,40,.35)}
+.modal-bg{background:rgba(15,20,45,.55)}
+.opt{border-width:1.5px;box-shadow:none}
+.dex-item{border:0;background:#f7f8fb;box-shadow:none;border-left:4px solid var(--navy)}
+.dex-item.locked{border-left-color:#c9cfda;border-style:solid}
+.starlist li{border-width:1px}
+.newdex{border:0}
+.lvup{border:0;box-shadow:none}
+.timeline{border:1px solid #d5dae4}
+.judging .jb{border:0;box-shadow:0 12px 40px rgba(10,15,40,.35)}
+.jrow{border-width:1.5px}
+.intro .card{border:0;box-shadow:0 12px 40px rgba(10,15,40,.35)}
+.intro .card .s{-webkit-text-stroke:0;text-shadow:0 3px 0 rgba(0,0,0,.25)}
+.clear-title{-webkit-text-stroke:0;color:var(--act);text-shadow:0 3px 0 #b8860b}
+.clear-title.boss{color:var(--ng);text-shadow:0 3px 0 #8f1d2c}
+.bigstars .s{-webkit-text-stroke:0;text-shadow:0 2px 0 #c98a00}
+.bigstars .s.off{-webkit-text-stroke:0;text-shadow:none}
+.toast{border:0;box-shadow:0 6px 20px rgba(10,15,40,.3)}
+/* 部品の手札 */
+.hand{margin-top:4px;border-top:1px solid #e3e6ed;padding-top:6px}
+.hand-tip{font-size:12.5px;color:var(--sub);margin:0 2px 6px;line-height:1.45}
+.hand-tip b{color:var(--ink2)}
+.hand-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.hgrp{flex:none;background:#f4f6fa;border-radius:8px;padding:4px 6px 6px}
+.hgrp .gh{font-size:11px;font-weight:800;color:var(--ink2);white-space:nowrap;margin-bottom:4px}
+.hgrp .gh span{font-weight:600;color:var(--sub);font-family:Consolas,monospace;font-size:10px}
+.hgrp .gc{display:flex;gap:5px}
+.hcard{width:54px;height:54px;border:1.5px solid #c9cfda;border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:10.5px;font-weight:800;color:var(--ink2);touch-action:none;user-select:none;-webkit-user-select:none;padding:0;cursor:grab}
+.hcard svg{width:34px;height:22px}
+.hcard.t-NO svg{color:#1f9a5a}.hcard.t-NC svg{color:#d23a4c}.hcard.t-COIL svg{color:#2c63c2}.hcard.t-FB svg{color:#6f48d4}.hcard.t-E svg{color:#8e95a3}
+.hcard.sel{border-color:var(--ink2);background:#fff7d6;box-shadow:0 0 0 3px #ffe08a}
+.drag-ghost{position:fixed;z-index:60;pointer-events:none;transform:translate(-50%,-80%);background:#fff;border:1.5px solid var(--ink2);border-radius:8px;padding:6px 8px;box-shadow:0 8px 20px rgba(10,15,40,.3);color:var(--ink2)}
+.drag-ghost svg{width:40px;height:26px;display:block}
+/* 置けるマスを光らせる */
+.rung-svg .hit.tgt{fill:rgba(255,194,61,.14);stroke:#e8a200;stroke-width:1.6;stroke-dasharray:5 4}
+.rung-svg .hit.tgt1{fill:rgba(255,194,61,.32);stroke-width:2.4;stroke-dasharray:none}
+.rung-svg .hit.over{fill:rgba(255,194,61,.45);stroke:#c98a00;stroke-width:2.6;stroke-dasharray:none}
 /* スマホを横向きにしたときは「縦向きで」と案内(PC・タブレットの横長画面は対象外) */
 .rotate-tip{display:none}
 @media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
@@ -1684,7 +1781,7 @@ function showTitle(){
   stopRun();
   G.stage=null;
   closeAreaSheet();
-  document.body.classList.add('on-map');   // マップと同じ空の背景
+  document.body.classList.add('on-map'); document.body.classList.remove('on-stage');   // マップと同じ空の背景
   const played=STAGES.some(s=>isCleared(s.id));
   const L=levelOf(G.save.xp);
   const app=document.getElementById('app');
@@ -1770,7 +1867,7 @@ function showMap(){
   stopRun();
   G.stage=null;
   document.querySelectorAll('.intro').forEach(e=>e.remove());
-  document.body.classList.add('on-map');
+  document.body.classList.add('on-map'); document.body.classList.remove('on-stage');
   const h=`<div class="topbar"><h1 data-act="title" title="タイトルへ">ラダー工場の冒険<small>${ic('bolt')} OpenPLC ラダー修行</small></h1>${statusHTML()}
     <button class="btn small" data-act="dex">${ic('book')} 命令図鑑</button>
     <button class="btn small" data-act="data">${ic('save')} データ</button>${soundBtnHTML()}</div>
@@ -1860,8 +1957,9 @@ function openStage(st){
   if(!st) return;
   touchStreak();
   stopRun();
-  document.body.classList.remove('on-map'); closeAreaSheet();
-  G.stage=st; G.tab='task'; G.hold=false; G.mapArea=st.area;
+  document.body.classList.remove('on-map'); document.body.classList.add('on-stage'); closeAreaSheet();
+  G.stage=st; G.tab='task'; G.hold=false; G.mapArea=st.area; G.tool=null;
+  setupHandDrag();
   const P=prep(st);
   const d=G.save.drafts[st.id];
   G.prog = d ? clone(d) : initialProg(st);
@@ -1908,8 +2006,9 @@ function onStageClick(e){
     case 'map': saveDraft(); showMap(); break;
     case 'reset': resetRun(); startRun(); break;
     case 'judge': judge(); break;
-    case 'cell': cellPicker(ri, r, c); break;
-    case 'out': outPicker(ri); break;
+    case 'cell': if(G.dragged && Date.now()-G.dragged<400) break; if(G.tool) placeTool(ri, r, c, 'cell'); else cellPicker(ri, r, c); break;
+    case 'out': if(G.dragged && Date.now()-G.dragged<400) break; if(G.tool) placeTool(ri, 0, 0, 'out'); else outPicker(ri); break;
+    case 'tool': if(G.dragged && Date.now()-G.dragged<400) break; selectTool(t.dataset.k); break;
     case 'v': toggleV(ri, r, +t.dataset.b); break;
     case 'addRung': addRung(); break;
     case 'rowAdd': rowAdd(ri); break;
@@ -1984,8 +2083,10 @@ function rungSVG(rg, ri, st, opt){
   for(let r=0;r<R;r++){
     for(let c=0;c<C;c++){
       const cell=rg.cells[r][c], x=X0+c*CW, y=yc(r), lk=cellLocked(rg,r,c);
+      // 部品を選んでいるときは、置けるマスを光らせる(1行目の最初の空きは特に強く)
+      const tg = ed && !lk && toolFor('cell') ? (r===0 && c===firstEmpty(rg) ? 'tgt tgt1' : 'tgt') : '';
       s+=`<g class="cell" id="c-${ri}-${r}-${c}">`;
-      if(ed) s+=`<rect class="hit ${lk?'locked':''}" data-act="cell" data-ri="${ri}" data-r="${r}" data-c="${c}" x="${x+1}" y="${y-RH/2+1}" width="${CW-2}" height="${RH-2}" rx="6"/>`;
+      if(ed) s+=`<rect class="hit ${lk?'locked':''} ${tg}" data-act="cell" data-ri="${ri}" data-r="${r}" data-c="${c}" x="${x+1}" y="${y-RH/2+1}" width="${CW-2}" height="${RH-2}" rx="6"/>`;
       if(!cell){
         if(isFill() && !lk) s+=`<rect class="qbox" x="${x+8}" y="${y-22}" width="${CW-16}" height="44" rx="6"/><text class="q" x="${x+CW/2}" y="${y+8}" text-anchor="middle">?</text>`;
         else if(ed && !lk) s+=`<rect class="blank" x="${x+10}" y="${y-18}" width="${CW-20}" height="36" rx="5"/>`;
@@ -2013,7 +2114,8 @@ function rungSVG(rg, ri, st, opt){
   // 出力
   const olk=outLocked(rg);
   s+=`<g class="out" id="o-${ri}">`;
-  if(ed) s+=`<rect class="hit ${olk?'locked':''}" data-act="out" data-ri="${ri}" x="${xO+2}" y="${yc(0)-RH/2+1}" width="${OW-4}" height="${RH-2}" rx="6"/>`;
+  const otg = ed && !olk && toolFor('out') ? (rg.out ? 'tgt' : 'tgt tgt1') : '';
+  if(ed) s+=`<rect class="hit ${olk?'locked':''} ${otg}" data-act="out" data-ri="${ri}" x="${xO+2}" y="${yc(0)-RH/2+1}" width="${OW-4}" height="${RH-2}" rx="6"/>`;
   if(rg.out) s+=outSVG(rg.out, xO, xR, yc(0), st, ri);
   else if(isFill() && !olk) s+=`<rect class="qbox" x="${xO+30}" y="${yc(0)-22}" width="${OW-60}" height="44" rx="6"/><text class="q" x="${xO+OW/2}" y="${yc(0)+8}" text-anchor="middle">?</text>`;
   else if(ed) s+=`<rect class="blank" x="${xO+30}" y="${yc(0)-18}" width="${OW-60}" height="36" rx="5"/><text x="${xO+OW/2}" y="${yc(0)+4}" text-anchor="middle">出力</text>`;
@@ -2041,9 +2143,10 @@ function renderEditor(){
     }
     h+=`</div>${rungSVG(rg,ri,st)}<div class="rstat" id="rs-${ri}"></div></div>`;
   });
-  h+='</div>';
+  h+='</div>'+handHTML(st);
   const el=document.getElementById('editor');
   el.innerHTML=h;
+  el.classList.toggle('placing', !!G.tool);
   el.classList.toggle('running', G.running);
   if(G.pop){ const pe=document.getElementById(G.pop); if(pe){ pe.classList.add('pop'); burstAt(pe, 14, {power:50, size:7}); } SFX.play('place'); G.pop=null; }
   updateLadderVis();
@@ -2132,6 +2235,97 @@ function cellPicker(ri,r,c){
       closeModal(); edited(); return;
     }
   });
+}
+/* ---------- 部品の手札(選ぶ → 光ったマスをタップ。ドラッグでも置ける) ---------- */
+function handTools(st){
+  const P=prep(st), pal=P.palette, list=[], ch=contactChoices(st);
+  ch.forEach(x=>{
+    const g={a:x.a, label:x.label, sub:x.sub, items:[]};
+    if(pal.includes('NO')) g.items.push({k:'NO|'+x.a, t:'NO', a:x.a, name:'a接点'});
+    if(pal.includes('NC')) g.items.push({k:'NC|'+x.a, t:'NC', a:x.a, name:'b接点'});
+    if(pal.includes('COIL') && ['Q','M'].includes(kindOf(x.a))) g.items.push({k:'COIL|'+x.a, t:'COIL', a:x.a, name:'コイル'});
+    if(g.items.length) list.push(g);
+  });
+  const fb=['TON','TOF','CTU','CTD'].filter(k=>pal.includes(k));
+  const util={label:'その他', sub:'', items:[]};
+  fb.forEach(k=>util.items.push({k:'FB|'+k, t:'FB', a:k, name:k}));
+  if(!isFill()) util.items.push({k:'W|', t:'W', name:'横線'});
+  util.items.push({k:'E|', t:'E', name:'消す'});
+  list.push(util);
+  return list;
+}
+function toolObj(){ if(!G.tool) return null; const [t,a]=G.tool.split('|'); return {t, a:a||null}; }
+// 選んでいる部品が、マス(cell)/出力(out)に置けるか
+function toolFor(where){
+  const o=toolObj(); if(!o) return false;
+  if(where==='cell') return ['NO','NC','W','E'].includes(o.t);
+  return ['COIL','FB','E'].includes(o.t);
+}
+// 1行目にまだ接点がないとき、最初に置くとよいマス(空きか横線の最初)
+function firstEmpty(rg){ if(rg.cells[0].some(c=>c && (c.t==='NO'||c.t==='NC'))) return -1; return rg.cells[0].findIndex(c=>!c || c.t==='W'); }
+function toolIcon(t){
+  const L='stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"';
+  if(t==='NO') return `<svg viewBox="0 0 40 24"><path d="M2 12H14M14 3V21M26 3V21M26 12H38" ${L}/></svg>`;
+  if(t==='NC') return `<svg viewBox="0 0 40 24"><path d="M2 12H14M14 3V21M26 3V21M26 12H38M11 21 29 3" ${L}/></svg>`;
+  if(t==='COIL') return `<svg viewBox="0 0 40 24"><path d="M2 12H11M29 12H38M15 3Q9 12 15 21M25 3Q31 12 25 21" ${L}/></svg>`;
+  if(t==='FB') return `<svg viewBox="0 0 40 24"><rect x="9" y="3" width="22" height="18" rx="2" ${L}/><path d="M2 12H9M31 12H38" ${L}/></svg>`;
+  if(t==='W') return `<svg viewBox="0 0 40 24"><path d="M2 12H38" ${L}/></svg>`;
+  return `<svg viewBox="0 0 40 24"><path d="M13 5 27 19M27 5 13 19" ${L}/></svg>`;
+}
+function handHTML(st){
+  const groups=handTools(st), o=toolObj();
+  const tip = !o ? '<b>① 下の部品をタップ</b>(またはマスへドラッグ)して選ぼう'
+    : `<b>② 光っているマスをタップ</b>して置こう。${o.t==='COIL'||o.t==='FB'?'コイルは右端の「出力」に置きます。':''}もう一度部品をタップで選ぶのをやめる`;
+  return `<div class="hand"><div class="hand-tip">${tip}</div><div class="hand-row">${groups.map(g=>`
+    <div class="hgrp"><div class="gh">${esc(g.label)}${g.sub&&g.sub!==g.label?` <span>${esc(g.sub)}</span>`:''}</div><div class="gc">
+      ${g.items.map(it=>`<button class="hcard t-${it.t} ${G.tool===it.k?'sel':''}" data-act="tool" data-k="${esc(it.k)}" aria-pressed="${G.tool===it.k}">${toolIcon(it.t)}<span>${esc(it.name)}</span></button>`).join('')}
+    </div></div>`).join('')}</div></div>`;
+}
+// 選んだ部品を、マス/出力に置く。置けたら true
+function placeTool(ri, r, c, where){
+  const o=toolObj(), rg=G.prog[ri]; if(!o || !rg) return false;
+  if(where==='cell'){
+    if(!toolFor('cell')){ toast('その部品は右端の「出力」に置きます'); return true; }
+    if(cellLocked(rg,r,c)){ toast('このマスは固定されています'); return true; }
+    rg.cells[r][c] = o.t==='E' ? null : o.t==='W' ? {t:'W'} : {t:o.t, a:o.a};
+    if(o.t==='E') SFX.play('remove'); else G.pop=`c-${ri}-${r}-${c}`;
+    if(r===0 && (o.t==='NO'||o.t==='NC')) autoWire(rg);
+    edited(); return true;
+  }
+  if(!toolFor('out')){ toast('接点は「出力」より左のマスに置きます'); return true; }
+  if(outLocked(rg)){ toast('この出力は固定されています'); return true; }
+  if(o.t==='E'){ rg.out=null; SFX.play('remove'); edited(); return true; }
+  if(o.t==='COIL'){ rg.out={t:'COIL', a:o.a}; G.pop=`o-${ri}`; edited(); return true; }
+  if(o.t==='FB'){ if(!rg.out || rg.out.t!==o.a){ const P=prep(G.stage); rg.out = (o.a==='TON'||o.a==='TOF') ? {t:o.a, n:P.timers[0]||'T0', pt:1000} : {t:o.a, n:P.counters[0]||'C0', pv:3, r:null}; saveDraft(); renderEditor(); } outPicker(ri); return true; }
+  return false;
+}
+function selectTool(k){ G.tool = G.tool===k ? null : k; SFX.play('tick'); renderEditor(); }
+// ドラッグで置く(手札のカードを押したまま、マスの上で離す)
+function setupHandDrag(){
+  if(G.dragInit) return; G.dragInit=true;     // 1回だけ登録
+  let d=null;
+  document.addEventListener('pointerdown', e=>{
+    const b=e.target.closest && e.target.closest('#editor .hcard'); if(!b || e.button>0) return;
+    d={k:b.dataset.k, x:e.clientX, y:e.clientY, on:false, g:null, hl:null};
+  });
+  addEventListener('pointermove', e=>{
+    if(!d) return;
+    if(!d.on){ if(Math.hypot(e.clientX-d.x, e.clientY-d.y)<10) return;
+      d.on=true; G.tool=d.k; renderEditor();
+      const g=document.createElement('div'); g.className='drag-ghost'; const [t]=d.k.split('|'); g.innerHTML=toolIcon(t); document.body.appendChild(g); d.g=g; }
+    d.g.style.left=e.clientX+'px'; d.g.style.top=e.clientY+'px';
+    const el=document.elementFromPoint(e.clientX,e.clientY), t=el&&el.closest&&el.closest('.rung-svg [data-act="cell"], .rung-svg [data-act="out"]');
+    if(d.hl && d.hl!==t) d.hl.classList.remove('over'); if(t){ t.classList.add('over'); d.hl=t; }
+  }, {passive:true});
+  const end=e=>{
+    if(!d) return; const dd=d; d=null;
+    if(dd.g) dd.g.remove();
+    if(!dd.on) return;                       // ただのタップはクリックとして扱う
+    G.dragged=Date.now();
+    const el=document.elementFromPoint(e.clientX,e.clientY), t=el&&el.closest&&el.closest('.rung-svg [data-act="cell"], .rung-svg [data-act="out"]');
+    if(t) placeTool(+t.dataset.ri, +t.dataset.r, +t.dataset.c, t.dataset.act); else renderEditor();
+  };
+  addEventListener('pointerup', end); addEventListener('pointercancel', e=>{ if(d&&d.g) d.g.remove(); d=null; });
 }
 // 組む・最短挑戦では、1行目(出力につながる本線)の空きマスを自動で横線にする
 function autoWire(rg){
