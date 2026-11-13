@@ -586,6 +586,8 @@ table.io th{background:var(--navy)}
 .hcard.sel{border-color:var(--ink2);background:#fff7d6;box-shadow:0 0 0 3px #ffe08a}
 .drag-ghost{position:fixed;z-index:60;pointer-events:none;transform:translate(-50%,-80%);background:#fff;border:1.5px solid var(--ink2);border-radius:8px;padding:6px 8px;box-shadow:0 8px 20px rgba(10,15,40,.3);color:var(--ink2)}
 .drag-ghost svg{width:40px;height:26px;display:block}
+.rung-svg line.owire{stroke-dasharray:4 4;opacity:.7}
+.rung-svg .out.pl line.owire{stroke:var(--on);opacity:1}
 /* 置けるマスを光らせる */
 .rung-svg .hit.tgt{fill:rgba(255,194,61,.14);stroke:#e8a200;stroke-width:1.6;stroke-dasharray:5 4}
 .rung-svg .hit.tgt1{fill:rgba(255,194,61,.32);stroke-width:2.4;stroke-dasharray:none}
@@ -2116,6 +2118,8 @@ function rungSVG(rg, ri, st, opt){
   s+=`<g class="out" id="o-${ri}">`;
   const otg = ed && !olk && toolFor('out') ? (rg.out ? 'tgt' : 'tgt tgt1') : '';
   if(ed) s+=`<rect class="hit ${olk?'locked':''} ${otg}" data-act="out" data-ri="${ri}" x="${xO+2}" y="${yc(0)-RH/2+1}" width="${OW-4}" height="${RH-2}" rx="6"/>`;
+  // 出力がまだ無いときも、左の線と右の母線を「出力」の枠までつないで見せる(線が宙に浮かないように)
+  if(!rg.out && ed) s+=`<line class="owire" x1="${xO}" y1="${yc(0)}" x2="${xO+30}" y2="${yc(0)}"/><line class="owire" x1="${xO+OW-30}" y1="${yc(0)}" x2="${xR}" y2="${yc(0)}"/>`;
   if(rg.out) s+=outSVG(rg.out, xO, xR, yc(0), st, ri);
   else if(isFill() && !olk) s+=`<rect class="qbox" x="${xO+30}" y="${yc(0)-22}" width="${OW-60}" height="44" rx="6"/><text class="q" x="${xO+OW/2}" y="${yc(0)+8}" text-anchor="middle">?</text>`;
   else if(ed) s+=`<rect class="blank" x="${xO+30}" y="${yc(0)-18}" width="${OW-60}" height="36" rx="5"/><text x="${xO+OW/2}" y="${yc(0)+4}" text-anchor="middle">出力</text>`;
