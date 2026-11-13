@@ -413,6 +413,45 @@ body.quake{animation:quake .5s}
 .hint{border-left-color:var(--info);background:#eaf4ff}
 .clear-title.boss{color:var(--ng)}
 .jrow.run{border-color:var(--ink);background:#fff}
+/* ---------- リレーくん(平塗り+画面の表情) ---------- */
+.mascot{width:50px;height:70px}
+.mascot svg.relay2{width:100%;height:100%;display:block;overflow:visible}
+.relay2 .rface{fill:none;stroke:#7ff7ff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 1.5px #7ff7ff) drop-shadow(0 0 3px rgba(80,230,255,.7))}
+.relay2 .rface .fl{fill:#7ff7ff;stroke:none}
+.relay2.m-sad .rface{stroke:#9fd3ff;opacity:.85;filter:drop-shadow(0 0 1.5px rgba(120,180,255,.6))}
+.relay2.m-sad .rface .fl{fill:#9fd3ff}
+@media (max-width:860px){ .mascot{width:44px;height:62px} }
+/* 命令の仲間 */
+.pal-shelf,.pal-join{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0}
+.pal-card{width:96px;text-align:center;background:#f4f6fb;border-radius:10px;padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.pal-card svg{width:64px;height:74px}
+.pal-card b{font-size:12px;line-height:1.3}
+.pal-card small{font-size:10.5px;color:var(--sub);line-height:1.35}
+.pal-card.unk svg{filter:brightness(0) opacity(.22)}
+.pal-card.unk b{color:var(--sub)}
+.pal-join .pal-card{background:#fff7d6;width:110px}
+.pal-join .pal-card svg{animation:popin .45s .3s cubic-bezier(.3,1.8,.5,1) both}
+@media (max-width:480px){ .pal-shelf{gap:5px} .pal-shelf .pal-card{width:calc(25% - 4px);padding:4px 2px 6px} .pal-shelf .pal-card svg{width:50px;height:58px} .pal-shelf .pal-card small{display:none} .pal-card b{font-size:10.5px} }
+.dex-item.has-pal{display:flex;gap:10px;align-items:flex-start}
+.dex-item .dex-pal{flex:none;width:52px;height:60px}
+/* ---------- タイトル画面(マップと同じ空と島の世界観) ---------- */
+.title-screen.tt2{justify-content:space-between;gap:0;color:#fff;padding:calc(36px + var(--st)) 16px calc(30px + var(--sb));overflow:hidden}
+.tt2 .tt-head{text-align:center}
+.tt2 .tt-sub{font-size:13px;font-weight:700;letter-spacing:.35em;opacity:.85;margin-bottom:6px}
+.tt2 h1{margin:0;font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;font-size:clamp(32px,9.5vw,58px);font-weight:900;letter-spacing:.08em;line-height:1.2;color:#fff;text-shadow:0 3px 0 rgba(15,20,45,.55),0 0 24px rgba(255,216,77,.35)}
+.tt2 .tt-art{position:relative;width:min(84vw,520px);flex:1;min-height:240px;display:flex;align-items:center;justify-content:center}
+.tt2 .tt-main{position:relative;width:100%;height:auto;max-height:100%;object-fit:contain;filter:drop-shadow(0 26px 24px rgba(10,15,40,.45));z-index:1}
+.tt2 .tt-far{position:absolute;right:-4%;top:6%;width:26%;opacity:.55;filter:blur(1.2px) saturate(.8)}
+.tt2 .tt-lamp{position:absolute;z-index:2;left:22%;top:45%;width:34px;height:34px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#fff8c4 0%,rgba(255,216,77,.85) 30%,rgba(255,200,40,0) 70%)}
+.tt2 .tt-foot{display:flex;flex-direction:column;align-items:center;gap:8px}
+.tt2 .btn.primary{font-size:18px;padding:11px 40px;border-color:#1f2433;box-shadow:0 4px 0 #1f2433}
+.tt2 .cont{font-size:12.5px;color:#fff;opacity:.8}
+@media (orientation:landscape) and (min-width:700px){
+  .title-screen.tt2{flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;column-gap:40px}
+  .tt2 .tt-head{order:1;flex:0 0 100%}
+  .tt2 .tt-art{order:2;flex:0 0 auto;width:min(46vw,520px);height:min(56vh,460px)}
+  .tt2 .tt-foot{order:3;flex:0 0 100%;margin-top:6px}
+}
 /* ---------- ワールドマップ ---------- */
 body.on-map{background:linear-gradient(180deg,#1d2a52 0%,#3b5a8c 45%,#86a9c9 80%,#c9d7df 100%) fixed}
 body.on-map::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:
@@ -1404,27 +1443,73 @@ function starsHTML(arr){ return '<span class="stars">'+arr.map(b=>b?'★':'<span
 function areaColor(no){ const a=AREAS[no-1]; return (a && a.color) || '#ff9f43'; }
 
 /* ---------- 案内キャラ「リレーくん」(見た目だけの演出) ---------- */
-function mascotSVG(mood){
-  const lit = mood==='happy' ? '#7dffb8' : mood==='sad' ? '#9b94b0' : '#ffc23d';
-  const eyes = mood==='happy'
-    ? '<path d="M19 30 q4 -6 8 0 M37 30 q4 -6 8 0" stroke="#2b2340" stroke-width="3" fill="none" stroke-linecap="round"/>'
-    : mood==='sad'
-    ? '<circle cx="23" cy="31" r="3.5" fill="#2b2340"/><circle cx="41" cy="31" r="3.5" fill="#2b2340"/><path d="M17 25 l9 2 M47 25 l-9 2" stroke="#2b2340" stroke-width="2.5" stroke-linecap="round"/>'
-    : '<circle cx="23" cy="30" r="4" fill="#2b2340"/><circle cx="41" cy="30" r="4" fill="#2b2340"/><circle cx="24.5" cy="28.5" r="1.3" fill="#fff"/><circle cx="42.5" cy="28.5" r="1.3" fill="#fff"/>';
-  const mouth = mood==='happy'
-    ? '<path d="M24 39 q8 9 16 0 z" fill="#ff5d8f" stroke="#2b2340" stroke-width="2.5" stroke-linejoin="round"/>'
-    : mood==='sad'
-    ? '<path d="M25 44 q7 -6 14 0" stroke="#2b2340" stroke-width="3" fill="none" stroke-linecap="round"/>'
-    : '<path d="M25 40 q7 5 14 0" stroke="#2b2340" stroke-width="3" fill="none" stroke-linecap="round"/>';
-  return `<svg viewBox="0 0 64 64"><line x1="32" y1="12" x2="32" y2="5" stroke="#2b2340" stroke-width="3"/>
-    <circle cx="32" cy="5" r="4.5" fill="${lit}" stroke="#2b2340" stroke-width="2.5"/>
-    <rect x="5" y="22" width="6" height="16" rx="3" fill="#ff9f43" stroke="#2b2340" stroke-width="2.5"/>
-    <rect x="53" y="22" width="6" height="16" rx="3" fill="#ff9f43" stroke="#2b2340" stroke-width="2.5"/>
-    <rect x="9" y="12" width="46" height="40" rx="14" fill="#ffc23d" stroke="#2b2340" stroke-width="3"/>
-    <rect x="14" y="19" width="36" height="28" rx="9" fill="#fff8e6" stroke="#2b2340" stroke-width="2"/>
-    ${eyes}${mouth}
-    <circle cx="17" cy="40" r="3" fill="#ffb3c7"/><circle cx="47" cy="40" r="3" fill="#ffb3c7"/>
-    <rect x="22" y="52" width="20" height="8" rx="3" fill="#8b5cf6" stroke="#2b2340" stroke-width="2.5"/></svg>`;
+// リレーくん(平塗り・縁取りなし)。顔の画面に表情を光る線で描き、頭のランプも気分で光らせる
+// 表情は顔の画面(幅56×高さ40)の座標。増やすときはここに足す
+const RELAY_FACE = {
+  normal:'<rect x="15" y="11" width="7" height="12" rx="3.5" class="fl"/><rect x="34" y="11" width="7" height="12" rx="3.5" class="fl"/><path d="M22 29 Q28 33.5 34 29"/>',
+  happy:'<path d="M13 20 Q18.5 11 24 20 M32 20 Q37.5 11 43 20"/><path d="M20 26 Q28 38 36 26 Z" class="fl"/>',
+  sad:'<path d="M13 17 L23 13 M43 17 L33 13"/><rect x="16" y="20" width="6" height="4" rx="2" class="fl"/><rect x="34" y="20" width="6" height="4" rx="2" class="fl"/><path d="M22 33 Q28 28 34 33"/>',
+  think:'<rect x="15" y="15" width="7" height="5" rx="2.5" class="fl"/><rect x="34" y="11" width="7" height="12" rx="3.5" class="fl"/><path d="M23 30 H33"/><circle cx="47" cy="8" r="1.6" class="fl"/><circle cx="51" cy="4" r="1.1" class="fl"/>',
+};
+const RELAY_LAMP = {normal:'#ffd84d', happy:'#4ade80', sad:null, think:'#ffd84d'};
+function mascotSVG(mood, pose){
+  const m = RELAY_FACE[mood] ? mood : 'normal', lamp = RELAY_LAMP[m], up = pose==='banzai';
+  const arm = side=>{
+    const x = side<0 ? 16 : 74, rot = up ? side*-150 : side*8;
+    return `<g transform="rotate(${rot} ${x+5} 92)"><rect x="${x}" y="90" width="10" height="24" rx="5" fill="#ffc23d"/><rect x="${x+5}" y="90" width="5" height="24" rx="2.5" fill="#f4a21f"/><path d="M${x+1} 114 a4 4 0 1 0 8 0" fill="none" stroke="#454a59" stroke-width="3" stroke-linecap="round"/></g>`;
+  };
+  return `<svg class="relay2 m-${m}" viewBox="0 0 100 140" role="img" aria-label="リレーくん">
+    ${lamp?`<circle cx="50" cy="9" r="11" fill="${lamp}" opacity=".35"/>`:''}
+    <rect x="48.5" y="12" width="3" height="12" rx="1.5" fill="#8b91a0"/>
+    <circle cx="50" cy="9" r="5" fill="${lamp||'#d9dee7'}"/><circle cx="48.3" cy="7.3" r="1.5" fill="#fff" opacity=".8"/>
+    <rect x="6" y="44" width="10" height="21" rx="5" fill="#ff8a3d"/><rect x="84" y="44" width="10" height="21" rx="5" fill="#ff8a3d"/>
+    <rect x="11" y="46" width="5" height="17" rx="2.5" fill="#e56f25"/>
+    ${arm(-1)}${arm(1)}
+    <rect x="40" y="81" width="20" height="9" rx="3" fill="#7b5cd6"/>
+    <rect x="27" y="87" width="46" height="36" rx="6" fill="#b9bec8"/><rect x="58" y="87" width="15" height="36" rx="6" fill="#a2a8b4"/>
+    <rect x="33" y="92" width="30" height="26" rx="3" fill="#c9cdd6"/><rect x="54" y="95" width="7" height="4" rx="1" fill="#ffc23d"/>
+    <circle cx="36" cy="95" r="1.2" fill="#8e95a3"/><circle cx="36" cy="115" r="1.2" fill="#8e95a3"/>
+    <rect x="33" y="122" width="13" height="11" rx="4" fill="#f4a21f"/><rect x="54" y="122" width="13" height="11" rx="4" fill="#f4a21f"/>
+    <rect x="32" y="131" width="15" height="5" rx="2.5" fill="#3a3e4b"/><rect x="53" y="131" width="15" height="5" rx="2.5" fill="#3a3e4b"/>
+    <rect x="12" y="23" width="76" height="60" rx="19" fill="#f4a21f"/><rect x="12" y="23" width="76" height="52" rx="19" fill="#ffc23d"/>
+    <rect x="21" y="31" width="58" height="42" rx="10" fill="#1b1d29"/><path d="M27 35 h18 l-10 10 h-10 z" fill="#fff" opacity=".07"/>
+    <g class="rface" transform="translate(22 32)">${RELAY_FACE[m]}</g></svg>`;
+}
+/* ---------- 命令の仲間(図鑑の命令が、そのまま仲間になる) ----------
+   キーは DEX の id。体の形と色で命令を表す(平塗り・縁取りなし、顔はリレーくんと同じ画面) */
+const PALS = {
+  NO:{col:'#34c27a', sh:'#22a061', say:'ONになったら、通すよ!', body:(c,s)=>`
+    <rect x="28" y="48" width="44" height="54" rx="9" fill="${c}"/><rect x="55" y="48" width="17" height="54" rx="9" fill="${s}"/>
+    <rect x="37" y="58" width="6" height="34" rx="2" fill="#d8b25a"/><rect x="57" y="58" width="6" height="34" rx="2" fill="#d8b25a"/>
+    <rect x="37" y="66" width="26" height="5" rx="2.5" fill="#f3d27a" transform="rotate(-24 40 68)"/>`},
+  NC:{col:'#ef5160', sh:'#cf3a4a', say:'ONになったら、止めるよ!', body:(c,s)=>`
+    <rect x="28" y="48" width="44" height="54" rx="9" fill="${c}"/><rect x="55" y="48" width="17" height="54" rx="9" fill="${s}"/>
+    <rect x="37" y="58" width="6" height="34" rx="2" fill="#d8b25a"/><rect x="57" y="58" width="6" height="34" rx="2" fill="#d8b25a"/>
+    <rect x="37" y="72" width="26" height="5" rx="2.5" fill="#f3d27a"/>
+    <path d="M33 92 L67 60" stroke="#e9edf3" stroke-width="5" stroke-linecap="round"/>`},
+  COIL:{col:'#3f7fe6', sh:'#2c63c2', say:'電気が届いたら、動かすよ!', body:(c,s)=>`
+    <path d="M24 56 Q12 75 24 94" fill="none" stroke="${s}" stroke-width="7" stroke-linecap="round"/>
+    <path d="M76 56 Q88 75 76 94" fill="none" stroke="${s}" stroke-width="7" stroke-linecap="round"/>
+    <rect x="30" y="48" width="40" height="54" rx="14" fill="${c}"/><rect x="54" y="48" width="16" height="54" rx="14" fill="${s}"/>
+    ${[60,67,74,81,88].map(y=>`<rect x="31" y="${y}" width="38" height="4" rx="2" fill="#e08a4c"/>`).join('')}`},
+  TON:{col:'#8b63f0', sh:'#6f48d4', say:'時間が来たら、ONにするよ。', body:(c,s)=>`
+    <rect x="28" y="48" width="44" height="7" rx="3.5" fill="${c}"/><rect x="28" y="95" width="44" height="7" rx="3.5" fill="${s}"/>
+    <path d="M33 55 H67 L52 75 L67 95 H33 L48 75 Z" fill="#dfe9f5"/>
+    <path d="M37 59 H63 L52 72 H48 Z" fill="#f2c14e" opacity=".9"/><path d="M40 95 Q50 84 60 95 Z" fill="#f2c14e"/>
+    <rect x="49.3" y="73" width="1.4" height="20" fill="#f2c14e"/>
+    <rect x="29" y="55" width="4" height="40" rx="2" fill="${s}"/><rect x="67" y="55" width="4" height="40" rx="2" fill="${s}"/>`},
+};
+function palSVG(id, mood, cls){
+  const p=PALS[id]; if(!p) return '';
+  const m = RELAY_FACE[mood] ? mood : 'normal';
+  return `<svg class="relay2 pal m-${m} ${cls||''}" viewBox="0 0 100 116" role="img" aria-label="${esc((DEX.find(d=>d.id===id)||{}).name||id)}">
+    <rect x="20" y="60" width="9" height="20" rx="4.5" fill="${p.col}" transform="rotate(10 24 62)"/><rect x="71" y="60" width="9" height="20" rx="4.5" fill="${p.sh}" transform="rotate(-10 76 62)"/>
+    <rect x="36" y="100" width="11" height="10" rx="3.5" fill="${p.sh}"/><rect x="53" y="100" width="11" height="10" rx="3.5" fill="${p.sh}"/>
+    <rect x="35" y="108" width="13" height="5" rx="2.5" fill="#3a3e4b"/><rect x="52" y="108" width="13" height="5" rx="2.5" fill="#3a3e4b"/>
+    ${p.body(p.col,p.sh)}
+    <rect x="26" y="8" width="48" height="38" rx="13" fill="${p.sh}"/><rect x="26" y="8" width="48" height="33" rx="13" fill="${p.col}"/>
+    <rect x="32" y="14" width="36" height="25" rx="7" fill="#1b1d29"/>
+    <g class="rface" transform="translate(32 14) scale(.64)">${RELAY_FACE[m]}</g></svg>`;
 }
 function talkHTML(text, mood, bounce){
   return `<div class="talk"><div class="mascot ${bounce?'bounce':''}">${mascotSVG(mood||'normal')}</div>
@@ -1598,16 +1683,23 @@ function statusHTML(){
 function showTitle(){
   stopRun();
   G.stage=null;
-  document.body.classList.remove('on-map'); closeAreaSheet();
+  closeAreaSheet();
+  document.body.classList.add('on-map');   // マップと同じ空の背景
   const played=STAGES.some(s=>isCleared(s.id));
   const L=levelOf(G.save.xp);
   const app=document.getElementById('app');
-  app.innerHTML=`<div class="title-screen" data-act="start">
-    <div class="mascot">${mascotSVG('normal')}</div>
-    <h1>ラダー工場の冒険</h1>
-    <div class="sub">OpenPLC ラダー修行</div>
-    <button class="btn primary" data-act="start">${played?'▶ つづきから':'▶ はじめる'}</button>
-    ${played?`<div class="cont">Lv.${L} ${esc(titleOf(L))}</div>`:''}
+  app.innerHTML=`<div class="title-screen tt2" data-act="start">
+    <div class="tt-head"><div class="tt-sub">OpenPLC ラダー修行</div>
+      <h1>ラダー工場の冒険</h1></div>
+    <div class="tt-art">
+      <img class="tt-far" src="${IMG_BASE}island7.webp" alt="" draggable="false">
+      <img class="tt-main" src="${IMG_BASE}island1.webp" alt="" draggable="false">
+      <i class="tt-lamp"></i>
+    </div>
+    <div class="tt-foot">
+      <button class="btn primary" data-act="start">${ic('bolt')} ${played?'つづきから':'はじめる'}</button>
+      ${played?`<div class="cont">Lv.${L} ${esc(titleOf(L))}</div>`:'<div class="cont">画面をタップしてもはじまります</div>'}
+    </div>
   </div>`;
   app.onclick=e=>{ if(e.target.closest('[data-act="start"]')){ SFX.play('place'); showMap(); } };
   window.scrollTo(0,0);
@@ -2453,6 +2545,7 @@ function onClear(){
     </ul>
     <div class="xpgain">${gain>0?`+<span id="xpcount">0</span> XP`:'<span class="note">(獲得XPなし:すでに取得済み)</span>'}</div>
     ${lvUp?`<div class="lvup">${ic('sparkle')} レベルアップ! Lv.${newL}${newTitle?` 称号「${esc(titleOf(newL))}」を獲得!`:''}</div>`:''}
+    ${newDex.some(id=>PALS[id])?`<div class="pal-join">${newDex.filter(id=>PALS[id]).map(id=>`<div class="pal-card">${palSVG(id,'happy')}<b>${esc((DEX.find(x=>x.id===id)||{}).name||id)}</b><small>が仲間になった!</small></div>`).join('')}</div>`:''}
     ${dexNames.length?`<div class="newdex">${ic('book')} 命令図鑑に追加:<b>${esc(dexNames.join('、'))}</b></div>`:''}
     ${talkHTML(pick(st.boss?LINES.boss:LINES.clear),'happy')}
     <hr class="sep">
@@ -2538,9 +2631,15 @@ function showAnswer(){
 function showDex(){
   const got=G.save.dex;
   let h=`<h2>命令図鑑 (${DEX.filter(d=>got.includes(d.id)).length}/${DEX.length})</h2>`;
+  // 仲間の欄:覚えた命令のキャラが並ぶ。まだの仲間はシルエット
+  h+=`<div class="pal-shelf">${Object.keys(PALS).map(id=>{
+      const d=DEX.find(x=>x.id===id)||{}, have=got.includes(id);
+      return `<div class="pal-card ${have?'':'unk'}">${palSVG(id, have?'happy':'normal')}
+        <b>${have?esc(d.name||id):'???'}</b>${have?`<small>「${esc(PALS[id].say)}」</small>`:`<small>エリア${d.area||'?'}で仲間に</small>`}</div>`;
+    }).join('')}</div><p class="note" style="margin:2px 0 10px">命令を覚えると、その命令が仲間になります。</p>`;
   for(const d of DEX){
     if(got.includes(d.id)){
-      h+=`<div class="dex-item"><h4>${esc(d.name)}</h4><div class="op">${esc(d.op)}</div><p style="margin:4px 0">${esc(d.text)}</p><div class="note">ポイント:${esc(d.tip)}</div></div>`;
+      h+=`<div class="dex-item ${PALS[d.id]?'has-pal':''}">${PALS[d.id]?palSVG(d.id,'normal','dex-pal'):''}<div><h4>${esc(d.name)}</h4><div class="op">${esc(d.op)}</div><p style="margin:4px 0">${esc(d.text)}</p><div class="note">ポイント:${esc(d.tip)}</div></div></div>`;
     } else {
       const ready=areaReady(d.area);
       h+=`<div class="dex-item locked"><h4>???</h4><div class="note">エリア${d.area}「${esc(AREAS[d.area-1].name)}」で解放${ready?'':'(準備中)'}</div></div>`;
