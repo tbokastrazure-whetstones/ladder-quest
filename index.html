@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ラダー工場の冒険</title>
 <!-- アプリ化(PWA)用。GitHub Pages などで公開したときだけ有効。ファイルを直接開いた場合は無視される -->
 <meta name="theme-color" content="#ff5d8f">
@@ -212,7 +212,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tabs button.act{background:var(--ink);color:#fff}
 .story{color:var(--ink);font-size:14px;margin:0}
 .task{font-size:15.5px;margin:0 0 8px;background:var(--panel2);border:2.5px solid var(--ink);border-radius:12px;padding:8px 12px;font-weight:700}
-.task::before{content:"📋 おしごと";display:block;font-size:11px;color:#b07800}
+.task::before{content:"おしごと";display:block;font-size:11px;color:#b07800}
 .goal{font-size:13px;color:var(--sub)}
 table.io{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;border:2px solid var(--ink);border-radius:10px;overflow:hidden}
 table.io th,table.io td{border-bottom:1px solid var(--soft);border-right:1px solid var(--soft);padding:5px 8px;text-align:left}
@@ -384,8 +384,105 @@ body.quake{animation:quake .5s}
 .rung-svg .cell.blk .sym{stroke:var(--ng)}
 .rung-svg .cell.blk .blank{stroke:var(--ng);stroke-dasharray:none}
 .ctrlbar .btn.primary{flex:1.4 1 0}
+/* ---------- 見た目のルール ----------
+   ボタンは3種類だけ:
+     .btn.primary … 黄。「次に押すところ」。1つの画面に1つだけ
+     .btn         … 白。ふつうの操作(.small は大きさ違い)
+     .icon-btn    … 白の四角。アイコンだけ
+   色の役割:
+     黄(--act)  … 次に押すところ   緑(--on)  … 通電・ON・合格
+     赤(--ng)   … 止まる・エラー・ボス   青(--info) … ヒント・説明
+     紫(--purple)… 成長(Lv・XP・図鑑)   濃紺(--ink) … 選択中
+     エリアの色 … 飾りだけ(見出し・番号)   ピンク … タイトルの文字だけ */
+:root{--act:#ffc23d;--info:#3d9bff}
+.btn{border-radius:12px;border-width:2.5px}
+.btn.small{border-radius:10px}
+.btn.danger{background:#fff;color:var(--ng);border-color:var(--ng);box-shadow:0 3px 0 var(--ng)}
+.icon-btn{width:40px;min-width:40px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.btn.small.icon-btn{width:36px;min-width:36px}
+.rung-head button{border:2px solid var(--ink);border-radius:10px;color:var(--ink);box-shadow:0 2px 0 var(--ink);min-height:28px}
+.rung-head button:disabled{opacity:.35;box-shadow:none}
+.rung-head button:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+.tabs button{border-radius:10px}
+.opt{border:2px solid var(--ink);box-shadow:0 2px 0 var(--ink)}
+.opt.sel{background:var(--ink);color:#fff;box-shadow:0 2px 0 var(--ink)}
+.opt.sel small{color:#ddd6ee}
+.stage-btn.next{border-color:var(--ink);box-shadow:0 3px 0 var(--ink),0 0 0 4px #ffe08a}
+.stage-btn .nxt{background:var(--act);color:var(--ink)}
+.pb.held{outline:3px dashed var(--ink)}
+.hint{border-left-color:var(--info);background:#eaf4ff}
+.clear-title.boss{color:var(--ng)}
+.jrow.run{border-color:var(--ink);background:#fff}
+/* ---------- ワールドマップ ---------- */
+body.on-map{background:linear-gradient(180deg,#1d2a52 0%,#3b5a8c 45%,#86a9c9 80%,#c9d7df 100%) fixed}
+body.on-map::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:
+  radial-gradient(60% 18% at 15% 85%,rgba(255,255,255,.28),transparent 70%),
+  radial-gradient(50% 14% at 85% 70%,rgba(255,255,255,.22),transparent 70%),
+  radial-gradient(40% 10% at 60% 30%,rgba(255,255,255,.12),transparent 70%)}
+.map-greet{max-width:620px;margin:10px auto 0;padding:0 12px}
+.map-greet .talk{margin:0}
+.world-wrap{position:relative;padding-bottom:calc(20px + var(--sb))}
+.world-wrap.land{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.world{position:relative;margin:0 auto}
+.world .cables{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
+.cable{fill:none;stroke-linecap:round}
+.cable.off{stroke:#1a2140;stroke-width:3;opacity:.55}
+.cable.on{stroke:#ffd84d;stroke-width:3.5;filter:drop-shadow(0 0 4px #ffd84d) drop-shadow(0 0 10px rgba(255,200,40,.7))}
+.cable.flow{stroke-dasharray:1;stroke-dashoffset:1;animation:cflow 1.4s .3s ease-out forwards}
+@keyframes cflow{to{stroke-dashoffset:0}}
+.isl{position:absolute;transform:translate(-50%,-50%);background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.isl img{display:block;width:100%;height:auto;filter:drop-shadow(0 18px 18px rgba(10,15,40,.35));transition:transform .15s;user-select:none;-webkit-user-select:none}
+.isl:active img{transform:scale(.97)}
+.isl.lock img{filter:grayscale(1) brightness(.55) drop-shadow(0 18px 18px rgba(10,15,40,.35))}
+.isl .plate{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);white-space:nowrap;background:rgba(20,28,58,.9);color:#fff;border-radius:8px;padding:4px 12px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:3;display:flex;flex-direction:column;line-height:1.35;border-bottom:3px solid var(--area)}
+.isl .plate .n{font-size:10.5px;opacity:.8;letter-spacing:.06em}
+.isl .plate .t{font-size:14px;font-weight:800}
+.isl .plate .s{font-size:11px;color:var(--act)}
+.isl.lock .plate{border-bottom-color:#6b7280}
+.isl.lock .plate .t,.isl.lock .plate .s{opacity:.65;color:#fff}
+.isl-next{position:absolute;left:50%;top:4%;transform:translateX(-50%);background:var(--act);color:#1f2433;font-weight:900;font-size:12px;border-radius:6px;padding:2px 10px;box-shadow:0 3px 0 #b8860b;z-index:3}
+.isl .glow{position:absolute;width:26px;height:26px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#fff8c4 0%,rgba(255,216,77,.85) 30%,rgba(255,200,40,0) 70%);pointer-events:none;opacity:0}
+.isl.lit .glow{opacity:1}
+/* エリアのステージ一覧(下から出るシート) */
+.sheet-wrap{position:fixed;inset:0;z-index:15}
+.sheet-bg{position:absolute;inset:0;background:rgba(15,20,45,.45);animation:fade .15s}
+.area-sheet{position:absolute;left:0;right:0;bottom:0;max-height:78vh;overflow:auto;background:#fff;border-radius:16px 16px 0 0;padding:10px max(10px,var(--sl)) calc(14px + var(--sb)) max(10px,var(--sr));box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:sheetup .25s cubic-bezier(.2,.9,.3,1)}
+.sheet-wrap.quiet .sheet-bg,.sheet-wrap.quiet .area-sheet{animation:none}
+@keyframes sheetup{from{transform:translateY(100%)}}
+.area-sheet .area{margin:0;box-shadow:none;border-width:0;border-radius:12px}
+.area-sheet .area-head{border-radius:12px;border-bottom:0}
+.area-sheet .area-body{padding:10px 2px 4px}
+.sheet-close{display:block;margin:6px auto 0}
+@media (min-width:861px){ .area-sheet{left:50%;right:auto;width:min(760px,96vw);transform:translateX(-50%);bottom:12px;border-radius:16px;animation:none} }
+/* スマホを横向きにしたときは「縦向きで」と案内(PC・タブレットの横長画面は対象外) */
+.rotate-tip{display:none}
+@media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
+  .rotate-tip{display:flex;position:fixed;inset:0;z-index:100;background:#24305e;color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-weight:800;font-size:16px;padding:20px}
+  .rotate-tip .ic{width:56px;height:56px;stroke-width:1.8}
+}
+/* アイコン(絵文字の代わり) */
+.ic{width:1.15em;height:1.15em;vertical-align:-.2em;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;display:inline-block}
+.ic .f{fill:currentColor;stroke:none}
+.btn .ic{margin-right:2px}
+.icon-btn .ic{width:20px;height:20px;margin:0;vertical-align:-4px}
+.area-icon{color:var(--area)}
+.area-icon .ic{width:32px;height:32px;stroke-width:2}
+.ic.area-c{color:var(--area)}
+.streak .ic{color:#f2711c}
+.stage-btn .num .ic{width:24px;height:24px;stroke-width:2.4}
+.buzz .ic{width:36px;height:36px;fill:#ffc23d;stroke:var(--ink);stroke-width:1.8}
+.rstat .ic{vertical-align:-.22em}
+.intro .warn .ic{vertical-align:-.15em}
+/* 画面の角の丸み・ノッチ・ホームバーを避ける(viewport-fit=cover と組み合わせ) */
+:root{--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
+.topbar,.stage-head{padding-top:calc(8px + var(--st));padding-left:max(12px,calc(8px + var(--sl)));padding-right:max(12px,calc(8px + var(--sr)))}
+.ctrlbar{padding:10px max(18px,calc(10px + var(--sr))) max(16px,calc(6px + var(--sb))) max(18px,calc(10px + var(--sl)))}
+.stage,.map-wrap{padding-left:max(8px,var(--sl));padding-right:max(8px,var(--sr))}
+.title-screen{padding-top:calc(24px + var(--st));padding-bottom:calc(24px + var(--sb))}
+.modal-bg,.judging{padding:max(12px,var(--st)) max(12px,var(--sr)) max(12px,var(--sb)) max(12px,var(--sl))}
+.toast{top:calc(70px + var(--st))}
 @media (max-width: 860px){
-  .stage{grid-template-areas:"mission" "editor" "machine" "bottom";gap:8px;padding:6px 6px 80px}
+  .stage{grid-template-areas:"mission" "editor" "machine" "bottom";gap:8px;padding:6px max(6px,var(--sr)) calc(88px + var(--sb)) max(6px,var(--sl))}
   .mission{font-size:14.5px;padding:6px 10px}
   .stage-head{padding:6px 8px;gap:6px;flex-wrap:nowrap}
   .stage-head .t{font-size:14px;min-width:0;flex:1 1 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -413,6 +510,7 @@ body.quake{animation:quake .5s}
 <body>
 <div id="app"></div>
 <div id="modal-root"></div>
+<div class="rotate-tip" role="alert"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/><path d="M3 9a8 8 0 0 1 3-5M3 4v5h4"/></svg>スマホを縦向きにして遊んでください<small style="font-weight:600;opacity:.8">(画面の自動回転をオフにすると、横にならなくなります)</small></div>
 
 <!-- =====================================================================
      ステージデータ
@@ -433,13 +531,13 @@ body.quake{animation:quake .5s}
  forbid: [{all:['Q0.0','Q0.1'], msg:'…'}] … どの時点でも同時ONなら不合格
 */
 const AREAS = [
-  {no:1, name:'はじまりの村', icon:'🏡', color:'#ff9f43', learn:'a接点・b接点、コイル、直列(AND)・並列(OR)'},
-  {no:2, name:'自己保持の森', icon:'🌲', color:'#22b573', learn:'自己保持、停止優先/起動優先、インターロック'},
-  {no:3, name:'タイマの塔',   icon:'🗼', color:'#8b5cf6', learn:'TON/TOF、点滅回路、遅延動作'},
-  {no:4, name:'カウンタの洞窟', icon:'💎', color:'#3d9bff', learn:'CTU/CTD、リセット、設定値到達'},
-  {no:5, name:'シーケンスの城', icon:'🏰', color:'#ff5d8f', learn:'内部リレー(M)、ステップ制御、順序動作'},
-  {no:6, name:'工場の迷宮',   icon:'🏭', color:'#5b6b8c', learn:'コンベア・パレット、複数機構、非常停止、手動/自動切替'},
-  {no:7, name:'検定の頂',     icon:'⛰️', color:'#e0a100', learn:'1級風の複合課題、接点数制限、制限時間'},
+  {no:1, name:'はじまりの村', icon:'house', color:'#ff9f43', learn:'a接点・b接点、コイル、直列(AND)・並列(OR)'},
+  {no:2, name:'自己保持の森', icon:'tree', color:'#22b573', learn:'自己保持、停止優先/起動優先、インターロック'},
+  {no:3, name:'タイマの塔',   icon:'tower', color:'#8b5cf6', learn:'TON/TOF、点滅回路、遅延動作'},
+  {no:4, name:'カウンタの洞窟', icon:'gem', color:'#3d9bff', learn:'CTU/CTD、リセット、設定値到達'},
+  {no:5, name:'シーケンスの城', icon:'castle', color:'#ff5d8f', learn:'内部リレー(M)、ステップ制御、順序動作'},
+  {no:6, name:'工場の迷宮',   icon:'factory', color:'#5b6b8c', learn:'コンベア・パレット、複数機構、非常停止、手動/自動切替'},
+  {no:7, name:'検定の頂',     icon:'mountain', color:'#e0a100', learn:'1級風の複合課題、接点数制限、制限時間'},
 ];
 
 const STAGES = [
@@ -1268,6 +1366,36 @@ function touchStreak(){
   persist();
 }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+/* ---------- アイコン(絵文字の代わり。線の太さ・色をそろえた自作SVG) ---------- */
+const ICONS = {
+  house:'<path d="M4 11 12 4l8 7M6 9.5V20h12V9.5M10 20v-5h4v5"/>',
+  tree:'<path d="M12 3 5.5 12H9l-3.5 6h13L15 12h3.5z"/><path d="M12 18v3"/>',
+  tower:'<path d="M6 9 12 3l6 6M7 9h10v12H7z"/><circle cx="12" cy="14" r="2.6"/><path d="M12 12.6V14h1.1"/>',
+  gem:'<path d="M7 4h10l4 5-9 11L3 9z"/><path d="M3 9h18M9.5 4 8 9l4 11 4-11-1.5-5"/>',
+  castle:'<path d="M4 21V8h3v2.5h3V8h4v2.5h3V8h3v13z"/><path d="M10 21v-4a2 2 0 0 1 4 0v4"/>',
+  factory:'<path d="M3 21V11l6 3.5V11l6 3.5V5h4v16z"/><path d="M7 17.5h2M12 17.5h2"/>',
+  mountain:'<path d="M2 20 9 8l4 6.5L16 10l6 10z"/><path d="M7.3 11 9 8l1.7 3"/>',
+  sound:'<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9.5a3.5 3.5 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/>',
+  mute:'<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m15.5 9.5 5 5m0-5-5 5"/>',
+  book:'<path d="M3.5 5.5h5A3 3 0 0 1 12 8.5v11a2.5 2.5 0 0 0-2.5-2.5h-6zM20.5 5.5h-5A3 3 0 0 0 12 8.5v11a2.5 2.5 0 0 1 2.5-2.5h6z"/>',
+  save:'<path d="M5 4h11l4 4v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+  hint:'<path d="M9.5 17.5h5M10.5 21h3M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.3v.4h5v-.4c0-.9.4-1.7 1.1-2.3A6 6 0 0 0 12 3z"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  medal:'<circle cx="12" cy="15" r="5.5"/><path d="M8 3l2.3 7M16 3l-2.3 7M12 12.5l.8 1.6 1.7.2-1.3 1.2.4 1.7-1.6-.9-1.6.9.4-1.7-1.3-1.2 1.7-.2z"/>',
+  warn:'<path d="M12 3.5 21.5 20h-19z"/><path d="M12 9.5v5M12 17.3v.1"/>',
+  flame:'<path d="M12 3c.6 3.6 6 5.8 6 11a6 6 0 0 1-12 0c0-2.8 1.6-4.3 2.8-5.8.2 1.8 1 2.9 2.2 3.3-.4-3.2 0-5.9 1-8.5z"/>',
+  cone:'<path d="M10 4h4l4.5 16h-13zM7.8 12h8.4M6.6 16h10.8M3 20h18"/>',
+  boss:'<path d="M5.5 19V11a6.5 6.5 0 0 1 13 0v8l-2.2-1.6-2.1 1.6-2.2-1.6-2.2 1.6-2.1-1.6zM7 6.5 4.5 3l4.5 1.8M17 6.5 19.5 3 15 4.8"/><circle class="f" cx="9.6" cy="11.5" r="1.3"/><circle class="f" cx="14.4" cy="11.5" r="1.3"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="m7.8 12.4 2.9 2.9 5.5-6"/>',
+  ok:'<path d="m5 12.5 4.8 4.8L19 7.5"/>',
+  hourglass:'<path d="M6 3h12M6 21h12M7.5 3c0 5.5 4.5 6.5 4.5 9s-4.5 3.5-4.5 9M16.5 3c0 5.5-4.5 6.5-4.5 9s4.5 3.5 4.5 9"/>',
+  bolt:'<path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12z"/>',
+  bell:'<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l2 2H4z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+  sparkle:'<path d="M12 3l1.8 7.2L21 12l-7.2 1.8L12 21l-1.8-7.2L3 12l7.2-1.8z"/>',
+  reset:'<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4.5H9"/>',
+  map:'<path d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+};
+function ic(name, cls){ return `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||''}</svg>`; }
 function toast(msg){
   const d=document.createElement('div'); d.className='toast'; d.textContent=msg;
   document.body.appendChild(d); setTimeout(()=>d.remove(), 2600);
@@ -1357,7 +1485,7 @@ const SFX = {
     f.type='bandpass'; f.frequency.value=1800; s.buffer=b; g.gain.value=vol||0.15;
     s.connect(f); f.connect(g); g.connect(c.destination); s.start(t);
   },
-  play(name){
+  play(name, k){
     const T=(...a)=>this.tone(...a);
     switch(name){
       case 'click': T(660,0,.05,'square',.06); break;
@@ -1368,7 +1496,8 @@ const SFX = {
       case 'run': T(392,0,.07,'square',.08); T(523,.07,.07,'square',.08); T(784,.14,.12,'square',.08); break;
       case 'stop': T(523,0,.08,'square',.07); T(330,.08,.14,'square',.07); break;
       case 'tick': T(880,0,.04,'square',.05); break;
-      case 'testOk': T(988,0,.06,'square',.08); T(1319,.06,.1,'square',.08); break;
+      case 'testOk': { const m=Math.pow(2,Math.min(k||0,12)*2/12);   // 合格が続くたびに1音ずつ高くなる
+        T(523*m,0,.06,'square',.08); T(784*m,.06,.1,'square',.08); break; }
       case 'drum': for(let i=0;i<10;i++) this.noise(i*.05,.04,.06); break;
       case 'fail': T(523,0,.16,'triangle',.12); T(392,.16,.3,'triangle',.12); break;
       case 'clear': [523,659,784,1047].forEach((f,i)=>T(f,i*.09,.12,'square',.1)); T(784,.4,.1,'square',.1); T(1047,.5,.5,'square',.11); T(1319,.5,.5,'triangle',.07); break;
@@ -1381,10 +1510,10 @@ const SFX = {
     }
   }
 };
-function soundBtnHTML(){ return `<button class="btn small" data-snd="1" title="効果音のON/OFF">${SFX.on()?'🔊':'🔇'}</button>`; }
+function soundBtnHTML(){ return `<button class="btn small icon-btn" data-snd="1" title="効果音のON/OFF" aria-label="効果音">${ic(SFX.on()?'sound':'mute')}</button>`; }
 document.addEventListener('click', e=>{
   const b=e.target.closest('[data-snd]');
-  if(b){ SFX.set(!SFX.on()); document.querySelectorAll('[data-snd]').forEach(x=>x.textContent=SFX.on()?'🔊':'🔇'); if(SFX.on()) SFX.play('place'); return; }
+  if(b){ SFX.set(!SFX.on()); document.querySelectorAll('[data-snd]').forEach(x=>x.innerHTML=ic(SFX.on()?'sound':'mute')); if(SFX.on()) SFX.play('place'); return; }
   const btn=e.target.closest('.btn,.opt,.tabs button,.rung-head button');
   if(btn && !btn.disabled && !btn.matches('[data-act="run"],[data-act="stop"],[data-act="judge"],[data-act="hint"],[data-m="ok"]')) SFX.play('click');
 }, true);
@@ -1422,15 +1551,11 @@ function fireworks(k){
 }
 function flash(){ if(reduced()) return; const f=document.createElement('div'); f.className='flash'; document.body.appendChild(f); setTimeout(()=>f.remove(),500); }
 function quake(){ if(reduced()) return; document.body.classList.remove('quake'); void document.body.offsetWidth; document.body.classList.add('quake'); setTimeout(()=>document.body.classList.remove('quake'),550); }
-function bgDecoHTML(){
-  const items=['⚙️','⚡','💡','🔩','⚙️','✨','⚡','🔧'];
-  return '<div class="bgdeco">'+items.map((s,i)=>`<span style="left:${(i*13+4)%96}%;animation-duration:${14+i*3}s;animation-delay:-${i*2.3}s;font-size:${22+(i%3)*10}px">${s}</span>`).join('')+'</div>';
-}
 function levelSplash(oldL, newL){
   const d=document.createElement('div'); d.className='lvsplash';
   const nt=titleOf(newL)!==titleOf(oldL);
   d.innerHTML=`<div class="big">LEVEL UP!</div><div class="lv">Lv.${oldL} → <b>${newL}</b></div>
-    ${nt?`<div class="ttl">🏅 新しい称号「${esc(titleOf(newL))}」</div>`:`<div class="ttl">${esc(titleOf(newL))}</div>`}
+    ${nt?`<div class="ttl">${ic('medal')} 新しい称号「${esc(titleOf(newL))}」</div>`:`<div class="ttl">${esc(titleOf(newL))}</div>`}
     <div class="tap">タップで閉じる</div>`;
   const close=()=>d.remove();
   d.addEventListener('click', close);
@@ -1447,8 +1572,8 @@ function stageIntro(st){
   const d=document.createElement('div');
   d.className='intro'+(st.boss?' boss':'');
   d.style.setProperty('--area', areaColor(st.area));
-  d.innerHTML=`<div class="card">${st.boss?'<div class="warn">⚠ BOSS BATTLE ⚠</div>':''}
-    <div class="a">${esc(ar.icon||'')} エリア${st.area} ${esc(ar.name)}</div>
+  d.innerHTML=`<div class="card">${st.boss?`<div class="warn">${ic('warn')} BOSS BATTLE ${ic('warn')}</div>`:''}
+    <div class="a">${ic(ar.icon)} エリア${st.area} ${esc(ar.name)}</div>
     <div class="s">STAGE ${esc(st.id)}</div><div class="n">${esc(st.title)}</div></div>`;
   const close=()=>{ d.remove(); };
   d.addEventListener('click', close);
@@ -1466,13 +1591,14 @@ function statusHTML(){
     <span class="xpwrap"><span>${esc(titleOf(L))}</span>
       <span class="xpbar" title="${xp} XP"><i style="width:${pct}%"></i></span>
       <span class="xptext">${xp} / ${b} XP</span></span>
-    <span class="streak" title="最高 ${s.best||0}日">🔥 連続 ${s.count||0}日</span>
+    <span class="streak" title="最高 ${s.best||0}日">${ic('flame')} 連続${s.count||0}日</span>
   </div>`;
 }
 /* ---------- タイトル画面 ---------- */
 function showTitle(){
   stopRun();
   G.stage=null;
+  document.body.classList.remove('on-map'); closeAreaSheet();
   const played=STAGES.some(s=>isCleared(s.id));
   const L=levelOf(G.save.xp);
   const app=document.getElementById('app');
@@ -1494,57 +1620,156 @@ function mapGreeting(){
   const allStars=STAGES.every(s=>{ const r=G.save.stages[s.id]; return r && r.stars.every(Boolean); });
   return allStars ? '全ステージ星3つ!完ぺきだね。新しいエリアは準備中だよ。' : '公開中のステージはぜんぶクリア!星が足りないステージに再挑戦してみよう。';
 }
+/* ---------- ワールドマップ(島を電線でつなぐ) ---------- */
+// 島の絵。lamp=電線をつなぐ場所(制御盤など。画像に対する割合)、s=表示の大きさの倍率
+const IMG_BASE = /ladder_game\.html$/i.test(location.pathname) ? 'ladder-app/img/' : 'img/';
+const ISLES = {
+  1:{img:'island1.webp', ar:640/570, lamp:[.215,.47]},
+  2:{img:'island2.webp', ar:640/610, lamp:[.215,.60]},
+  3:{img:'island3.webp', ar:467/640, lamp:[.52,.43], s:.82},
+  4:{img:'island4.webp', ar:515/471, lamp:[.53,.67], s:.88},
+  5:{img:'island5.webp', ar:632/640, lamp:[.74,.42]},
+  6:{img:'island6.webp', ar:601/640, lamp:[.74,.58]},
+  7:{img:'island7.webp', ar:445/640, lamp:[.49,.19], s:.8},
+};
+function areaStats(no){
+  const list=areaStages(no);
+  return { list, nClr:list.filter(s=>isCleared(s.id)).length,
+    nStar:list.reduce((t,s)=>{ const r=G.save.stages[s.id]; return t+(r?r.stars.filter(Boolean).length:0); },0) };
+}
+function areaHTML(ar){
+  const ready=areaReady(ar.no), un=areaUnlocked(ar.no), {list,nClr,nStar}=areaStats(ar.no);
+  const nextId=(STAGES.find(s=>stageUnlocked(s) && !isCleared(s.id))||{}).id;
+  let h=`<section class="area ${un?'':'locked'}" style="--area:${ar.color||'#ff9f43'}">
+      <div class="area-head"><span class="area-icon">${ic(un?ar.icon:'lock')}</span>
+        <h2><small>エリア${ar.no}</small>${esc(ar.name)}</h2>
+        ${ready?`<span class="area-prog">★${nStar}/${list.length*3}・${nClr}/${list.length}クリア</span>`:'<span class="area-prog">準備中</span>'}</div>
+      <div class="area-body"><div class="learn">学ぶこと:${esc(ar.learn)}</div>`;
+  if(!ready) return h+`<div class="prep">${ic('cone')} 準備中 — このエリアはこれから追加されます</div></div></section>`;
+  if(!un) h+=`<div class="prep">${ic('lock')} エリア${ar.no-1}のボスを倒すと行けるようになります</div>`;
+  h+='<div class="stage-list">';
+  for(const st of list){
+    const ok=stageUnlocked(st), rec=G.save.stages[st.id], clr=isCleared(st.id), nx=st.id===nextId;
+    h+=`<button class="stage-btn ${st.boss?'boss':''} ${nx?'next':''}" data-act="open" data-id="${st.id}" ${ok?'':'disabled'}>
+        ${clr?'<span class="clr">CLEAR</span>':''}${nx?'<span class="nxt">NEXT!</span>':''}
+        <span class="num">${!ok?ic('lock'):st.boss?ic('boss'):esc(st.id)}</span>
+        <span class="bd"><span class="ttl">${st.boss?esc(st.id)+' ':''}${esc(st.title)}</span>
+        <span class="row"><span>${st.boss?'<span class="badge boss">ボス</span> ':''}<span class="badge ${st.type}">${TYPE_NAME[st.type]}</span></span>
+        ${starsHTML(rec?rec.stars:[false,false,false])}</span></span></button>`;
+  }
+  return h+'</div></div></section>';
+}
+function openAreaSheet(no, quiet){
+  closeAreaSheet();
+  const ar=AREAS[no-1]; if(!ar) return;
+  G.mapArea=no;
+  const d=document.createElement('div');
+  d.className='sheet-wrap'+(quiet?' quiet':'');
+  d.innerHTML=`<div class="sheet-bg" data-act="close-sheet"></div>
+    <div class="area-sheet" role="dialog" aria-label="エリア${no}">${areaHTML(ar)}
+      <button class="btn small sheet-close" data-act="close-sheet">閉じる</button></div>`;
+  document.getElementById('app').appendChild(d);
+  const nx=d.querySelector('.stage-btn.next'); if(nx) nx.scrollIntoView({block:'nearest'});
+}
+function closeAreaSheet(){ document.querySelectorAll('.sheet-wrap').forEach(e=>e.remove()); }
+function unlockedCount(){ return AREAS.filter(a=>areaUnlocked(a.no)).length; }
+
 function showMap(){
   stopRun();
   G.stage=null;
   document.querySelectorAll('.intro').forEach(e=>e.remove());
-  let h=`<div class="topbar"><h1 data-act="title" title="タイトルへ">ラダー工場の冒険<small>⚡ OpenPLC ラダー修行</small></h1>${statusHTML()}
-    <button class="btn small" data-act="dex">📖 命令図鑑</button>
-    <button class="btn small" data-act="data">💾 データ</button>${soundBtnHTML()}</div><div class="map">`;
-  h+=talkHTML(mapGreeting(), 'normal');
-  const nextId=(STAGES.find(s=>stageUnlocked(s) && !isCleared(s.id))||{}).id;
-  for(const ar of AREAS){
-    const ready=areaReady(ar.no), un=areaUnlocked(ar.no);
-    const list=areaStages(ar.no);
-    const nClr=list.filter(s=>isCleared(s.id)).length;
-    const nStar=list.reduce((t,s)=>{ const r=G.save.stages[s.id]; return t+(r?r.stars.filter(Boolean).length:0); },0);
-    h+=`<section class="area ${un?'':'locked'}" style="--area:${ar.color||'#ff9f43'}">
-        <div class="area-head"><span class="area-icon">${un?esc(ar.icon||''):'🔒'}</span>
-          <h2><small>エリア${ar.no}</small>${esc(ar.name)}</h2>
-          ${ready?`<span class="area-prog">★${nStar}/${list.length*3}・${nClr}/${list.length}クリア</span>`:'<span class="area-prog">準備中</span>'}</div>
-        <div class="area-body"><div class="learn">学ぶこと:${esc(ar.learn)}</div>`;
-    if(!ready){ h+=`<div class="prep">🚧 準備中 — このエリアはこれから追加されます</div></div></section>`; continue; }
-    h+='<div class="stage-list">';
-    for(const st of list){
-      const ok=stageUnlocked(st), rec=G.save.stages[st.id], clr=isCleared(st.id), nx=st.id===nextId;
-      h+=`<button class="stage-btn ${st.boss?'boss':''} ${nx?'next':''}" data-act="open" data-id="${st.id}" ${ok?'':'disabled'}>
-          ${clr?'<span class="clr">CLEAR</span>':''}${nx?'<span class="nxt">NEXT!</span>':''}
-          <span class="num">${!ok?'🔒':st.boss?'👾':esc(st.id)}</span>
-          <span class="bd"><span class="ttl">${st.boss?esc(st.id)+' ':''}${esc(st.title)}</span>
-          <span class="row"><span>${st.boss?'<span class="badge boss">ボス</span> ':''}<span class="badge ${st.type}">${TYPE_NAME[st.type]}</span></span>
-          ${starsHTML(rec?rec.stars:[false,false,false])}</span></span></button>`;
-    }
-    h+='</div></div></section>';
-  }
-  h+='</div>';
+  document.body.classList.add('on-map');
+  const h=`<div class="topbar"><h1 data-act="title" title="タイトルへ">ラダー工場の冒険<small>${ic('bolt')} OpenPLC ラダー修行</small></h1>${statusHTML()}
+    <button class="btn small" data-act="dex">${ic('book')} 命令図鑑</button>
+    <button class="btn small" data-act="data">${ic('save')} データ</button>${soundBtnHTML()}</div>
+    <div class="map-greet">${talkHTML(mapGreeting(), 'normal')}</div>
+    <div class="world-wrap" id="world-wrap"><div class="world" id="world"></div></div>`;
   const app=document.getElementById('app');
   app.innerHTML=h;
   app.onclick=e=>{
     const t=e.target.closest('[data-act]'); if(!t) return;
-    if(t.dataset.act==='open') openStage(STAGES.find(s=>s.id===t.dataset.id));
-    if(t.dataset.act==='dex') showDex();
-    if(t.dataset.act==='data') showData();
-    if(t.dataset.act==='title') showTitle();
+    const a=t.dataset.act;
+    if(a==='open'){ closeAreaSheet(); openStage(STAGES.find(s=>s.id===t.dataset.id)); }
+    if(a==='isl'){ SFX.play('place'); openAreaSheet(+t.dataset.no); }
+    if(a==='close-sheet') closeAreaSheet();
+    if(a==='dex') showDex();
+    if(a==='data') showData();
+    if(a==='title') showTitle();
   };
-  window.scrollTo(0,0);
+  // 新しく行けるようになったエリアがあれば、その区間の電線に電気が流れる演出
+  const n=unlockedCount();
+  G.flowTo = (G.seenUnlocked && n>G.seenUnlocked) ? n : 0;
+  G.seenUnlocked=n;
+  const flowing=!!G.flowTo;
+  layoutWorld(true);
+  // ステージから戻ったときは、そのエリアの一覧を開いたままにする(タップを減らす)。
+  // 新しいエリアが開いたときは、電線の演出を見せるため開かない
+  if(G.mapArea && !flowing) openAreaSheet(G.mapArea, true);
 }
+function layoutWorld(scroll){
+  const W=document.getElementById('world'), wrap=document.getElementById('world-wrap'); if(!W) return;
+  G.mapKey=innerWidth+'x'+(innerWidth>innerHeight);
+  const land = innerWidth>innerHeight && innerWidth>=700;
+  const N=AREAS.length, pts=[];
+  let ww, wh, size;
+  if(land){
+    const vh=Math.max(320, innerHeight - wrap.getBoundingClientRect().top - 10);
+    size=Math.min(vh*0.62, 300);
+    ww=Math.max(wrap.clientWidth, size*(N*0.95+0.6)); wh=vh;
+    for(let i=0;i<N;i++) pts.push([size*0.75+i*size*0.95, wh*(i%2? .42:.58)]);
+  } else {
+    const vw=wrap.clientWidth;
+    size=Math.min(vw*0.66, 420);
+    ww=vw; wh=size*(N*0.9+0.55);
+    for(let i=0;i<N;i++) pts.push([ww*(i%2? .64:.36), wh-size*0.55-i*size*0.9]);   // 下から上へ
+  }
+  W.style.width=ww+'px'; W.style.height=wh+'px';
+  wrap.classList.toggle('land', land);
+  const cur=AREAS.findIndex(a=>areaUnlocked(a.no) && areaStats(a.no).nClr<areaStats(a.no).list.length);
+  let html='', lamps=[];
+  AREAS.forEach((ar,i)=>{
+    const I=ISLES[ar.no]||ISLES[1], w=size*(I.s||1), hgt=w/I.ar, [x,y]=pts[i];
+    const ready=areaReady(ar.no), un=areaUnlocked(ar.no), {list,nStar}=areaStats(ar.no);
+    const lx=I.lamp[0]*w, ly=I.lamp[1]*hgt;
+    lamps.push([x-w/2+lx, y-hgt/2+ly]);
+    html+=`<button class="isl ${un?'lit':'lock'}" data-act="isl" data-no="${ar.no}" style="left:${x}px;top:${y}px;width:${w}px;--area:${ar.color}" aria-label="エリア${ar.no} ${esc(ar.name)}">
+      <img src="${IMG_BASE}${I.img}" alt="" draggable="false"><i class="glow" style="left:${lx}px;top:${ly}px"></i>
+      ${i===cur?'<span class="isl-next">NEXT</span>':''}
+      <span class="plate"><span class="n">エリア${ar.no}</span><span class="t">${esc(ar.name)}</span>
+      <span class="s">${!ready?'準備中':!un?ic('lock'):'★ '+nStar+' / '+list.length*3}</span></span></button>`;
+  });
+  let svg='';
+  for(let i=0;i<N-1;i++){
+    const [x1,y1]=lamps[i],[x2,y2]=lamps[i+1];
+    const d=`M${x1} ${y1} Q${(x1+x2)/2} ${Math.max(y1,y2)+size*0.10} ${x2} ${y2}`;
+    const on=areaUnlocked(AREAS[i+1].no);
+    svg+=`<path class="cable off" d="${d}"/>`;
+    if(on) svg+=`<path class="cable on ${G.flowTo===i+2&&!reduced()?'flow':''}" pathLength="1" d="${d}"/>`;
+  }
+  W.innerHTML=html+`<svg class="cables" viewBox="0 0 ${ww} ${wh}">${svg}</svg>`;
+  if(G.flowTo){ const k=G.flowTo; setTimeout(()=>{ if(G.flowTo===k){ SFX.play('outOn'); } }, 900); G.flowTo=0; }
+  if(scroll){
+    const p=pts[Math.max(0,cur)];
+    setTimeout(()=>{
+      if(land) wrap.scrollLeft=Math.max(0,p[0]-wrap.clientWidth/2);
+      else { const top=W.getBoundingClientRect().top+scrollY; window.scrollTo(0, Math.max(0, top+p[1]-innerHeight*0.45)); }
+    }, 30);
+  }
+}
+// 幅や向きが変わったときだけ並べ直す(スマホのアドレスバーの出入りでは並べ直さない)
+addEventListener('resize', ()=>{
+  if(!document.body.classList.contains('on-map') || !document.getElementById('world')) return;
+  const key=innerWidth+'x'+(innerWidth>innerHeight);
+  if(key!==G.mapKey){ G.mapKey=key; layoutWorld(false); }
+});
 
 /* ---------- ステージ画面 ---------- */
 function openStage(st){
   if(!st) return;
   touchStreak();
   stopRun();
-  G.stage=st; G.tab='task'; G.hold=false;
+  document.body.classList.remove('on-map'); closeAreaSheet();
+  G.stage=st; G.tab='task'; G.hold=false; G.mapArea=st.area;
   const P=prep(st);
   const d=G.save.drafts[st.id];
   G.prog = d ? clone(d) : initialProg(st);
@@ -1564,8 +1789,8 @@ function renderStage(){
   app.style.setProperty('--area', areaColor(st.area));
   app.innerHTML=`
   <div class="stage-head">
-    <button class="btn small" data-act="map">← マップ</button>
-    <span class="t">${esc(AREAS[st.area-1].icon||'')} ${st.id} ${esc(st.title)} ${st.boss?'<span class="badge boss">ボス</span>':''} <span class="badge ${st.type}">${TYPE_NAME[st.type]}</span></span>
+    <button class="btn small" data-act="map">${ic('map')} マップ</button>
+    <span class="t">${ic(AREAS[st.area-1].icon,'area-c')} ${st.id} ${esc(st.title)} ${st.boss?'<span class="badge boss">ボス</span>':''} <span class="badge ${st.type}">${TYPE_NAME[st.type]}</span></span>
     <span class="info">${starsHTML(rec.stars)}</span>${soundBtnHTML()}
   </div>
   <div class="stage">
@@ -1575,9 +1800,9 @@ function renderStage(){
     <section class="pane bottom" id="bottom"></section>
   </div>
   <div class="ctrlbar">
-    <button class="btn" data-act="reset" title="機械を最初の状態に戻す">↺ 機械リセット</button>
-    <button class="btn" data-act="tab" data-tab="hint" data-go="1">💡 ヒント</button>
-    <button class="btn primary" data-act="judge">✔ 判定</button>
+    <button class="btn" data-act="reset" title="機械を最初の状態に戻す">${ic('reset')} リセット</button>
+    <button class="btn" data-act="tab" data-tab="hint" data-go="1">${ic('hint')} ヒント</button>
+    <button class="btn primary" data-act="judge">${ic('ok')} 判定</button>
   </div>`;
   app.onclick=onStageClick;
   renderEditor(); renderMachine(); renderBottom(); updateRunUI();
@@ -1894,11 +2119,11 @@ function rungStatusHTML(rg, res, blk){
   const st=G.stage, nm=a=>{ const n=nameOf(st,a); return n?`${esc(n)}(${esc(dispAddr(a))})`:esc(dispAddr(a)); };
   const o=rg.out;
   if(res.power){
-    if(!o) return '⚡ 電気は右まで届いています。右端に出力を置こう';
-    if(o.t==='COIL') return `✅ 通電中 → ${nm(o.a)} ON`;
-    if(o.t==='TON') return G.plc.get(o.n) ? `✅ 通電中 → ${esc(o.n)} タイムアップ(${esc(o.n)}.Q ON)` : `⏳ 通電中 → ${esc(o.n)} が時間を計っています`;
-    if(o.t==='TOF') return `✅ 通電中 → ${esc(o.n)} ON(切れてから時間を計る)`;
-    return `✅ 通電中 → ${esc(o.n)} に1回数える信号`;
+    if(!o) return `${ic('bolt')} 電気は右まで届いています。右端に出力を置こう`;
+    if(o.t==='COIL') return `${ic('check')} 通電中 → ${nm(o.a)} ON`;
+    if(o.t==='TON') return G.plc.get(o.n) ? `${ic('check')} 通電中 → ${esc(o.n)} タイムアップ(${esc(o.n)}.Q ON)` : `${ic('hourglass')} 通電中 → ${esc(o.n)} が時間を計っています`;
+    if(o.t==='TOF') return `${ic('check')} 通電中 → ${esc(o.n)} ON(切れてから時間を計る)`;
+    return `${ic('check')} 通電中 → ${esc(o.n)} に1回数える信号`;
   }
   if(!blk) return '✕ どこかで線がつながっていません(縦線の位置を確認)';
   const c=blk.cell;
@@ -1963,7 +2188,7 @@ function renderMachine(){
       case 'sw': ip+=`<div class="dev"><button class="sw" data-in="${a}" data-kind="sw" aria-label="${lab}"></button><span class="lbl">${lab}</span>${ad}</div>`; break;
       case 'sensor': ip+=`<div class="dev"><button class="sens ${d.auto?'auto':''}" data-in="${a}" data-kind="${d.auto?'auto':'sw'}" aria-label="${lab}">センサ</button><span class="lbl">${lab}</span>${ad}</div>`; break;
       case 'lamp': pl+=`<div class="dev"><div class="lamp ${d.color||'yellow'}" data-out="${a}"></div><span class="lbl">${lab}</span>${ad}</div>`; break;
-      case 'buzzer': pl+=`<div class="dev"><div class="buzz" data-out="${a}">🔔</div><span class="lbl">${lab}</span>${ad}</div>`; break;
+      case 'buzzer': pl+=`<div class="dev"><div class="buzz" data-out="${a}">${ic('bell')}</div><span class="lbl">${lab}</span>${ad}</div>`; break;
       case 'motor': pl+=`<div class="dev"><div class="motor" data-out="${a}" ${d.rev?`data-rev="${A(d.rev)}"`:''}><svg viewBox="0 0 58 58"><circle cx="29" cy="29" r="26" fill="#2a3542" stroke="#56687b" stroke-width="3"/><g class="fan"><path d="M29 29 L29 6 A10 10 0 0 1 39 16Z M29 29 L52 29 A10 10 0 0 1 42 39Z M29 29 L29 52 A10 10 0 0 1 19 42Z M29 29 L6 29 A10 10 0 0 1 16 19Z" fill="#9fb0c0"/></g><circle cx="29" cy="29" r="4" fill="#cfd8e2"/></svg></div><span class="lbl">${lab}</span><span class="ad">${a}${d.rev?' / 逆 '+A(d.rev):''}</span></div>`; break;
       case 'conveyor': pl+=`<div class="dev"><div class="conv" data-out="${a}" ${d.rev?`data-rev="${A(d.rev)}"`:''}><div class="box"></div><div class="belt"></div></div><span class="lbl">${lab}</span><span class="ad">${a}${d.rev?' / 逆 '+A(d.rev):''}</span></div>`; break;
       case 'cylinder': pl+=`<div class="dev"><div class="cyl" data-cyl="${i}"><div class="body"></div><div class="rod"></div><div class="head"></div></div><span class="lbl">${lab}</span>${ad}</div>`; break;
@@ -2189,7 +2414,7 @@ function judge(){
       const prev=ov.querySelector('#jr'+(i-1)), bad=!r.ok && i-1===r.idx;
       prev.classList.remove('run'); prev.classList.add(bad?'ng':'ok');
       prev.querySelector('.mk').textContent=bad?'✕':'✓';
-      if(!bad){ SFX.play('testOk'); burstAt(prev.querySelector('.mk'), 8, {power:35, size:6, colors:['#22c58b','#7dffb8','#fff']}); }
+      if(!bad){ SFX.play('testOk', i-1); burstAt(prev.querySelector('.mk'), 6+Math.min(i,8)*2, {power:30+Math.min(i,8)*5, size:6, colors:['#22c58b','#7dffb8','#fff']}); }
     }
     if(i>=upto){ setTimeout(end, r.ok?260:520); return; }
     const cur=ov.querySelector('#jr'+i); cur.classList.add('run'); SFX.play('tick');
@@ -2227,8 +2452,8 @@ function onClear(){
       <li class="${stars[2]?'got':''}">${stars[2]?'★':'☆'} ヒント未使用</li>
     </ul>
     <div class="xpgain">${gain>0?`+<span id="xpcount">0</span> XP`:'<span class="note">(獲得XPなし:すでに取得済み)</span>'}</div>
-    ${lvUp?`<div class="lvup">🎉 レベルアップ! Lv.${newL}${newTitle?` 称号「${esc(titleOf(newL))}」を獲得!`:''}</div>`:''}
-    ${dexNames.length?`<div class="newdex">📖 命令図鑑に追加:<b>${esc(dexNames.join('、'))}</b></div>`:''}
+    ${lvUp?`<div class="lvup">${ic('sparkle')} レベルアップ! Lv.${newL}${newTitle?` 称号「${esc(titleOf(newL))}」を獲得!`:''}</div>`:''}
+    ${dexNames.length?`<div class="newdex">${ic('book')} 命令図鑑に追加:<b>${esc(dexNames.join('、'))}</b></div>`:''}
     ${talkHTML(pick(st.boss?LINES.boss:LINES.clear),'happy')}
     <hr class="sep">
     ${openplcHTML(st)}
@@ -2332,7 +2557,7 @@ function showData(){
     <div class="opts">
       <button class="btn primary" data-m="export">JSONに書き出す</button>
       <button class="btn" data-m="import">JSONを読み込む</button>
-      <button class="btn stop" data-m="wipe">進捗をすべて消す</button>
+      <button class="btn danger" data-m="wipe">進捗をすべて消す</button>
     </div>
     <input type="file" id="impfile" accept=".json,application/json" class="hidden">
     <div class="acts"><button class="btn" data-m="close">閉じる</button></div>`;
