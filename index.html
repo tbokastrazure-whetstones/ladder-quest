@@ -691,6 +691,12 @@ body.on-stage:has(.coach) .stage{padding-bottom:calc(240px + var(--sb))}
 .drag-ghost svg{width:40px;height:26px;display:block}
 .rung-svg line.owire{stroke-dasharray:4 4;opacity:.7}
 .rung-svg .out.pl line.owire{stroke:var(--on);opacity:1}
+/* ガイド枠 */
+.rung-svg .blank.slot{stroke:#e8a200;stroke-dasharray:5 4;stroke-width:2;fill:rgba(255,194,61,.10)}
+.rung-svg line.slotw{stroke-dasharray:3 3;opacity:.6}
+.rung-svg text.slot-plus{fill:#d99a00;font-size:20px;font-weight:900}
+.guide-note{font-size:12.5px;color:var(--sub);background:#fff7d6;border-radius:8px;padding:5px 9px;margin:0 0 6px;line-height:1.5}
+.guide-note b{color:#c98a00}
 /* 置けるマスを光らせる */
 .rung-svg .hit.tgt{fill:rgba(255,194,61,.14);stroke:#e8a200;stroke-width:1.6;stroke-dasharray:5 4}
 .rung-svg .hit.tgt1{fill:rgba(255,194,61,.32);stroke-width:2.4;stroke-dasharray:none}
@@ -1542,7 +1548,7 @@ function nameOf(st, a){
 }
 /* ---------- 表示の設定(部品の名前・アドレス) ---------- */
 const SET_KEY='ladderQuest_settings';
-const SET_DEFAULT={names:'easy', addr:false};   // 最初は「やさしい名前・アドレスなし」
+const SET_DEFAULT={names:'easy', addr:false, guide:true};   // 最初は「やさしい名前・アドレスなし・ガイド枠あり」
 function loadSettings(){ try{ return Object.assign({}, SET_DEFAULT, JSON.parse(localStorage.getItem(SET_KEY)||'{}')); }catch(e){ return Object.assign({}, SET_DEFAULT); } }
 function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(G.set)); }catch(e){} }
 function applySettings(){ if(typeof document!=='undefined') document.body.classList.toggle('hide-addr', !G.set.addr); }
@@ -2182,7 +2188,8 @@ function openStage(st){
   G.stage=st; G.tab='task'; G.hold=false; G.mapArea=st.area; G.tool=null;
   setupHandDrag();
   const P=prep(st);
-  const d=st.tutorial ? null : G.save.drafts[st.id];      // チュートリアルは毎回まっさらから
+  let d=st.tutorial ? null : G.save.drafts[st.id];      // チュートリアルは毎回まっさらから
+  if(d && guideOn(st) !== !!(d[0] && d[0].guide)) d=null;  // ガイド枠の有無が変わったら、作りかけは使わない
   G.prog = d ? clone(d) : initialProg(st);
   G.plc=new PLC(); G.running=false; resetPhys();
   renderStage();
@@ -2191,7 +2198,19 @@ function openStage(st){
 }
 function initialProg(st){
   const P=prep(st);
+  if(guideOn(st)) return guideProg(P);
   return P.start ? clone(P.start) : [newRung(P.cols)];
+}
+/* ---------- ガイド枠(エリア1〜2の「組む」ステージ) ----------
+   模範解答の形から、接点を置く場所だけを点線の枠にして残す。横線・縦線(並列の分かれ道)は最初から描いておき、動かせない */
+function guideOn(st){ return (G.set||SET_DEFAULT).guide!==false && !!st && st.type==='build' && st.area<=2; }
+function guideProg(P){
+  return P.answer.map(src=>{
+    const g=clone(src); g.guide=true; g.olock=false; g.out=null;
+    g.lock=g.cells.map(row=>row.map(()=>true));
+    g.cells.forEach((row,r)=>row.forEach((c,ci)=>{ if(c && (c.t==='NO'||c.t==='NC')){ row[ci]=null; g.lock[r][ci]=false; } }));
+    return g;
+  });
 }
 function saveDraft(){ if(G.stage){ G.save.drafts[G.stage.id]=G.prog; persist(); } }
 
@@ -2251,8 +2270,8 @@ function onStageClick(e){
 /* ---------- エディタ ---------- */
 const GEO={X0:24, CW:78, OW:150, TOP:36, RH:66};
 function isFill(){ return G.stage && G.stage.type==='fill'; }
-function cellLocked(rg,r,c){ return isFill() && rg.lock && rg.lock[r] ? rg.lock[r][c]!==false : false; }
-function outLocked(rg){ return isFill() && rg.olock!==false; }
+function cellLocked(rg,r,c){ return (isFill()||rg.guide) && rg.lock && rg.lock[r] ? rg.lock[r][c]!==false : false; }
+function outLocked(rg){ return (isFill()||rg.guide) && rg.olock!==false; }
 
 function contactSVG(cell, x, y, st){
   const cx=x+GEO.CW/2;
@@ -2313,6 +2332,7 @@ function rungSVG(rg, ri, st, opt){
       if(ed) s+=`<rect class="hit ${lk?'locked':''} ${tg}" data-act="cell" data-ri="${ri}" data-r="${r}" data-c="${c}" x="${x+1}" y="${y-RH/2+1}" width="${CW-2}" height="${RH-2}" rx="6"/>`;
       if(!cell){
         if(isFill() && !lk) s+=`<rect class="qbox" x="${x+8}" y="${y-22}" width="${CW-16}" height="44" rx="6"/><text class="q" x="${x+CW/2}" y="${y+8}" text-anchor="middle">?</text>`;
+        else if(ed && !lk && rg.guide) s+=`<line class="slotw" x1="${x}" y1="${y}" x2="${x+10}" y2="${y}"/><line class="slotw" x1="${x+CW-10}" y1="${y}" x2="${x+CW}" y2="${y}"/><rect class="blank slot" x="${x+10}" y="${y-20}" width="${CW-20}" height="40" rx="6"/><text class="slot-plus" x="${x+CW/2}" y="${y+6}" text-anchor="middle">+</text>`;
         else if(ed && !lk) s+=`<rect class="blank" x="${x+10}" y="${y-18}" width="${CW-20}" height="36" rx="5"/>`;
       } else if(cell.t==='W'){
         s+=`<line class="ls" x1="${x}" y1="${y}" x2="${x+CW}" y2="${y}"/>`;
@@ -2329,7 +2349,7 @@ function rungSVG(rg, ri, st, opt){
     for(let b=1;b<=C;b++){
       const x=X0+b*CW, y1=yc(r), y2=yc(r+1);
       if(rg.v[r][b]) s+=`<line class="vl" id="v-${ri}-${r}-${b}" x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/>`;
-      if(ed && !isFill()){
+      if(ed && !isFill() && !rg.guide){
         s+=`<rect class="vhit" data-act="v" data-ri="${ri}" data-r="${r}" data-b="${b}" x="${x-15}" y="${y1+12}" width="30" height="${y2-y1-24}"/>`;
         if(!rg.v[r][b]) s+=`<circle class="vdot" cx="${x}" cy="${(y1+y2)/2}" r="5"/>`;
       }
@@ -2349,9 +2369,10 @@ function rungSVG(rg, ri, st, opt){
   return s;
 }
 function renderEditor(){
-  const st=G.stage, P=prep(st), fill=isFill();
+  const st=G.stage, P=prep(st), guided=G.prog.some(r=>r.guide), fill=isFill()||guided;   // ガイド枠のときも形は固定
   const n=countContacts(G.prog);
   let h=`<h3>ラダーエディタ <span class="note">マスをタップして部品を置く/●をタップで縦線</span></h3>
+    ${guided?`<div class="guide-note">${ic('hint')} 点線の<b>+</b>の枠に部品を置こう。線のつなぎ方は、最初から用意してあるよ(設定で枠なしにもできます)</div>`:''}
     <div class="toolbar">
       ${fill?'':`<button class="btn small" data-act="addRung" ${G.prog.length>=P.maxRungs?'disabled':''}>+ ラング追加</button>`}
       <button class="btn small" data-act="clearAll">最初に戻す</button>
@@ -2395,7 +2416,7 @@ function rungDel(ri){
   edited();
 }
 function moveRung(ri,d){ const j=ri+d; if(j<0||j>=G.prog.length) return; [G.prog[ri],G.prog[j]]=[G.prog[j],G.prog[ri]]; edited(); }
-function toggleV(ri,r,b){ if(isFill()) return; const rg=G.prog[ri]; rg.v[r][b]=!rg.v[r][b]; edited(); }
+function toggleV(ri,r,b){ if(isFill() || (G.prog[ri]&&G.prog[ri].guide)) return; const rg=G.prog[ri]; rg.v[r][b]=!rg.v[r][b]; edited(); }
 function clearAll(){
   if(!confirm('回路を最初の状態に戻しますか?')) return;
   G.prog=initialProg(G.stage); edited();
@@ -2440,7 +2461,7 @@ function cellPicker(ri,r,c){
       ch.map(x=>`<button class="opt ${isSel('NO',x.a)?'sel':''}" data-m="put" data-t="NO" data-v="${x.a}">┤├ ${esc(x.label)}<small>${esc(x.sub)}</small></button>`).join('')+`</div>`;
     if(pal.includes('NC')) h+=`<div class="note">┤/├ b接点(OFFで通る)</div><div class="opts">`+
       ch.map(x=>`<button class="opt ${isSel('NC',x.a)?'sel':''}" data-m="put" data-t="NC" data-v="${x.a}">┤/├ ${esc(x.label)}<small>${esc(x.sub)}</small></button>`).join('')+`</div>`;
-    if(!isFill() && rg.cells.length>1){
+    if(!isFill() && !rg.guide && rg.cells.length>1){
       const vb=[];
       if(r<rg.cells.length-1){ vb.push([r,c,'左に縦線(下の行へ)'],[r,c+1,'右に縦線(下の行へ)']); }
       if(r>0){ vb.push([r-1,c,'左に縦線(上の行へ)'],[r-1,c+1,'右に縦線(上の行へ)']); }
@@ -2475,7 +2496,7 @@ function handTools(st){
   const fb=['TON','TOF','CTU','CTD'].filter(k=>pal.includes(k));
   const util={label:'その他', sub:'', items:[]};
   fb.forEach(k=>util.items.push({k:'FB|'+k, t:'FB', a:k, name:k}));
-  if(!isFill()) util.items.push({k:'W|', t:'W', name:'横線'});
+  if(!isFill() && !(G.prog||[]).some(r=>r.guide)) util.items.push({k:'W|', t:'W', name:'横線'});
   util.items.push({k:'E|', t:'E', name:'消す'});
   list.push(util);
   return list;
@@ -2557,6 +2578,7 @@ function setupHandDrag(){
 function autoWire(rg){
   const ty=G.stage && G.stage.type;
   if(ty!=='build' && ty!=='short') return;
+  if(rg.guide) return;                       // ガイド枠のときは線が用意済み(枠を横線で埋めない)
   rg.cells[0].forEach((cell,c)=>{ if(!cell) rg.cells[0][c]={t:'W'}; });
 }
 function outPicker(ri){
@@ -2639,7 +2661,7 @@ function rungStatusHTML(rg, res, blk){
   }
   if(!blk) return '✕ どこかで線がつながっていません(縦線の位置を確認)';
   const c=blk.cell;
-  if(!c) return '✕ ここで止まる:空きマスで線が切れています';
+  if(!c) return rg.guide ? '✕ ここで止まる:まだ部品を置いていない枠があります' : '✕ ここで止まる:空きマスで線が切れています';
   if(c.t==='NO') return `✕ ここで止まる:a接点 ${nm(c.a)} がOFFなので閉じない`;
   if(c.t==='NC') return `✕ ここで止まる:b接点 ${nm(c.a)} がONなので開いている`;
   return '✕ ここで止まる';
@@ -3276,6 +3298,8 @@ function openSettings(){
       <div class="note">アドレス(%IX0.0 などの番地)</div>
       <div class="opts">${o('addr',false,'表示しない','はじめての人向け')}${o('addr',true,'表示する','本物のPLCと同じ')}</div>
       <div class="set-ex">表示の例:<b>${esc(ex)}</b></div>
+      <div class="note">ガイド枠(エリア1〜2の「組む」ステージ)</div>
+      <div class="opts">${o('guide',true,'使う','置く場所が点線の枠で出る')}${o('guide',false,'使わない','自由にマスへ置く')}</div>
       <div class="note">効果音</div>
       <div class="opts"><button class="opt ${SFX.on()?'sel':''}" data-m="snd" data-v="1">ON</button><button class="opt ${SFX.on()?'':'sel'}" data-m="snd" data-v="0">OFF</button></div>
       <div class="note">そのほか</div>
@@ -3284,8 +3308,11 @@ function openSettings(){
   };
   const bg=openModal(draw(), t=>{
     const m=t.dataset.m;
-    if(m==='set'){ const k=t.dataset.k, v=t.dataset.v; G.set[k] = k==='addr' ? v==='true' : v; saveSettings(); applySettings();
-      bg.querySelector('.modal').innerHTML=draw(); if(G.stage){ renderEditor(); renderMachine(); renderBottom(); } return; }
+    if(m==='set'){ const k=t.dataset.k, v=t.dataset.v; G.set[k] = (k==='addr'||k==='guide') ? v==='true' : v; saveSettings(); applySettings();
+      bg.querySelector('.modal').innerHTML=draw();
+      // ガイド枠を切り替えたら、今のステージを組み直しの状態から始め直す
+      if(k==='guide' && G.stage && !G.stage.tutorial && G.stage.type==='build' && G.stage.area<=2){ G.prog=initialProg(G.stage); saveDraft(); }
+      if(G.stage){ renderEditor(); renderMachine(); renderBottom(); } return; }
     if(m==='snd'){ SFX.set(t.dataset.v==='1'); document.querySelectorAll('[data-snd]').forEach(x=>x.innerHTML=ic(SFX.on()?'sound':'mute')); bg.querySelector('.modal').innerHTML=draw(); return; }
     if(m==='tut'){ closeModal(); openStage(tutStage()); return; }
     if(m==='data'){ closeModal(); showData(); return; }
