@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ラダー工場の冒険</title>
+<title>CIRCUIT ISLES</title>
 <!-- アプリ化(PWA)用。GitHub Pages などで公開したときだけ有効。ファイルを直接開いた場合は無視される -->
 <meta name="theme-color" content="#24305e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ラダー冒険">
+<meta name="apple-mobile-web-app-title" content="CIRCUIT ISLES">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -437,8 +437,11 @@ body.quake{animation:quake .5s}
 /* ---------- タイトル画面(マップと同じ空と島の世界観) ---------- */
 .title-screen.tt2{justify-content:space-between;gap:0;color:#fff;padding:calc(36px + var(--st)) 16px calc(30px + var(--sb));overflow:hidden}
 .tt2 .tt-head{text-align:center}
-.tt2 .tt-sub{font-size:13px;font-weight:700;letter-spacing:.35em;opacity:.85;margin-bottom:6px}
-.tt2 h1{margin:0;font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;font-size:clamp(32px,9.5vw,58px);font-weight:900;letter-spacing:.08em;line-height:1.2;color:#fff;text-shadow:0 3px 0 rgba(15,20,45,.55),0 0 24px rgba(255,216,77,.35)}
+.tt2 .tt-sub{font-size:13px;font-weight:700;letter-spacing:.12em;opacity:.88;margin-top:10px;line-height:1.7}
+.tt2 h1{margin:0;font-family:"Segoe UI","Helvetica Neue","Arial",sans-serif;font-size:clamp(30px,9vw,64px);font-weight:800;letter-spacing:.12em;line-height:1.1;color:#fff;text-shadow:0 3px 0 rgba(15,20,45,.5),0 0 24px rgba(255,216,77,.3);white-space:nowrap}
+/* タイトルの下の「電線」:両端に端子の点 */
+.tt2 h1::after{content:"";display:block;height:2px;margin:12px auto 0;width:72%;background:linear-gradient(90deg,transparent,#ffd84d 15%,#ffd84d 85%,transparent);box-shadow:0 0 10px rgba(255,216,77,.7)}
+.topbar h1{font-family:"Segoe UI","Helvetica Neue","Arial",sans-serif;letter-spacing:.1em}
 .tt2 .tt-art{position:relative;width:min(84vw,520px);flex:1;min-height:240px;display:flex;align-items:center;justify-content:center}
 .tt2 .tt-main{position:relative;width:100%;height:auto;max-height:100%;object-fit:contain;filter:drop-shadow(0 26px 24px rgba(10,15,40,.45));z-index:1}
 .tt2 .tt-far{position:absolute;right:-4%;top:6%;width:26%;opacity:.55;filter:blur(1.2px) saturate(.8)}
@@ -571,6 +574,71 @@ table.io th{background:var(--navy)}
 .bigstars .s{-webkit-text-stroke:0;text-shadow:0 2px 0 #c98a00}
 .bigstars .s.off{-webkit-text-stroke:0;text-shadow:none}
 .toast{border:0;box-shadow:0 6px 20px rgba(10,15,40,.3)}
+/* 実習機パネル(PLC-TRAINER-S01 風) */
+.trainer{position:relative;background:linear-gradient(160deg,#1f5f9e,#174b80);border-radius:12px;padding:26px 10px 10px;color:#e8f1ff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12),0 2px 8px rgba(10,20,50,.25);display:flex;flex-direction:column;gap:10px}
+.trainer b{font-size:10.5px;letter-spacing:.04em;color:#e8f1ff}
+.trainer .ad{font-size:9.5px;color:#b9d3f3;font-family:Consolas,monospace}
+.tr-name{position:absolute;right:12px;top:6px;font-size:10px;font-weight:800;letter-spacing:.12em;color:rgba(255,255,255,.75)}
+.tr-top{display:flex;align-items:center;gap:8px}
+.tr-ls,.tr-cell{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:44px}
+.tbelt{flex:1;height:30px;border-radius:6px;background:#0f2b4a;position:relative;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.tbelt i{position:absolute;inset:6px 4px;border-radius:4px;background:repeating-linear-gradient(90deg,#2d3e55 0 8px,#24344a 8px 16px)}
+.tbelt span{position:absolute;right:6px;bottom:-1px;font-size:9px;color:rgba(255,255,255,.55);font-weight:700}
+.tbelt.on i{animation:belt .5s linear infinite;background:repeating-linear-gradient(90deg,#3d5577 0 8px,#2e4363 8px 16px)}
+.tr-mid{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.tr-ss{display:flex;gap:6px}
+.tr-pbs{display:flex;gap:6px}
+.tr-bot{display:flex;align-items:center;gap:10px}
+.tr-oled{margin-left:auto;background:#05070c;color:#7ff7ff;font-family:Consolas,monospace;font-size:12px;border-radius:4px;padding:6px 10px;min-width:96px;text-align:center;box-shadow:inset 0 0 0 2px #2c3442}
+/* 部品 */
+.trainer button{border:0;padding:0;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}
+.trainer button.unused,.trainer .tr-led.unused,.tbelt.unused{opacity:.35;cursor:default}
+.tr-pb{width:40px;height:40px;border-radius:6px;background:#1c1f26;box-shadow:0 4px 0 #0b0d12;transition:transform .05s,box-shadow .05s}
+.tr-pb i{display:block;margin:6px;height:28px;border-radius:4px;background:#2a2e38}
+.tr-pb.on{transform:translateY(3px);box-shadow:0 1px 0 #0b0d12}
+.tr-pbr{width:40px;height:40px;border-radius:50%;background:#e23b3b;box-shadow:0 4px 0 #8f1d1d}
+.tr-pbr.on{transform:translateY(3px);box-shadow:0 1px 0 #8f1d1d}
+.tr-tact{width:24px;height:24px;border-radius:4px;background:#2a2e38;box-shadow:0 2px 0 #0b0d12}
+.tr-tact i{display:block;width:12px;height:12px;margin:6px;border-radius:50%;background:#14171d}
+.tr-tact.on{transform:translateY(2px);box-shadow:none}
+.tr-slide{width:40px;height:20px;border-radius:4px;background:#14171d;position:relative}
+.tr-slide i{position:absolute;left:3px;top:3px;width:16px;height:14px;border-radius:3px;background:#c9cfd8;transition:left .12s}
+.tr-slide.on i{left:21px;background:#ffd84d}
+.tr-sens{width:34px;height:26px;border-radius:5px;background:#e9edf3;position:relative}
+.tr-sens i{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;border-radius:50%;background:#7e8796}
+.tr-sens.on i{background:#4ade80;box-shadow:0 0 8px #4ade80}
+.trainer .led-ad{color:#ffe08a;white-space:nowrap;font-size:9.5px;font-family:Consolas,monospace}
+.set-ex{font-size:13px;background:#f4f6fa;border-radius:8px;padding:6px 10px;margin:2px 0 10px;color:var(--sub)}
+.set-ex b{color:var(--ink2);font-family:inherit}
+/* アドレスを表示しない設定 */
+body.hide-addr .dev .ad, body.hide-addr .trainer .ad, body.hide-addr .hgrp .gh span{display:none}
+.tr-led{display:block;width:12px;height:12px;border-radius:50%;background:#3a3f4b;margin-bottom:3px}
+.tr-led.on.green{background:#4ade80;box-shadow:0 0 10px 3px rgba(74,222,128,.8)}
+.tr-led.on.yellow{background:#ffd84d;box-shadow:0 0 10px 3px rgba(255,216,77,.8)}
+.tr-led.on.red{background:#ff5a6e;box-shadow:0 0 10px 3px rgba(255,90,110,.8)}
+.tr-led.on.white{background:#fffef2;box-shadow:0 0 10px 3px rgba(255,250,220,.9)}
+.on-stage .machine .trainer + .mach-ctrl{margin-top:2px}
+/* 機械の絵:形ごとに大きさと回る速さを変える */
+.motor[class*="look-"] svg{width:76px;height:76px}
+.motor.look-waterwheel.on .fan{animation-duration:2.4s}
+.motor.look-windmill.on .fan{animation-duration:1.8s}
+.motor.look-mill.on .fan{animation-duration:2s}
+.motor.look-fan.on .fan{animation-duration:.35s}
+.motor.look-saw.on .fan{animation-duration:.25s}
+.motor.look-pump.on .fan{animation-duration:.6s}
+.motor.on svg{filter:drop-shadow(0 0 6px rgba(255,216,77,.55))}
+/* チュートリアルの案内 */
+.coach{position:fixed;left:0;right:0;bottom:calc(76px + var(--sb));z-index:12;padding:0 max(8px,var(--sl)) 0 max(8px,var(--sr));pointer-events:none}
+.coach-in{max-width:620px;margin:0 auto;background:#fff;border-radius:12px;padding:8px 10px;box-shadow:0 8px 28px rgba(10,15,40,.35);pointer-events:auto;border-top:4px solid var(--act)}
+.coach .talk{margin:0}
+.coach .bubble{background:#fff;box-shadow:none;font-size:14px}
+.coach .bubble::after{border-right-color:#fff}
+.coach-acts{display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-top:4px}
+.coach-n{margin-right:auto;font-size:11px;color:var(--sub);font-weight:700}
+.coach-hi{position:relative;z-index:3;outline:3px solid var(--act);outline-offset:3px;border-radius:8px;box-shadow:0 0 0 6px rgba(255,194,61,.35)}
+.rung-svg .coach-hi{outline:none;box-shadow:none;stroke:#e8a200!important;stroke-width:3.5!important;stroke-dasharray:none!important;fill:rgba(255,194,61,.35)!important}
+body.on-stage:has(.coach) .stage{padding-bottom:calc(240px + var(--sb))}
+.tut-again{display:block;margin:0 auto 10px}
 /* 部品の手札 */
 .hand{margin-top:4px;border-top:1px solid #e3e6ed;padding-top:6px}
 .hand-tip{font-size:12.5px;color:var(--sub);margin:0 2px 6px;line-height:1.45}
@@ -683,10 +751,10 @@ const STAGES = [
   {
     id:'1-1', area:1, title:'灯りをともせ', type:'build',
     story:'はじまりの村にやってきた。村の入口の灯りがつかない…。制御盤を開けると、ラダー図はまっさらだ。',
-    task:'押しボタン PB1 を押している間だけ、ランプ L1 が点灯する回路を組もう。',
+    task:'押しボタン PB1 を押している間だけ、ランプ PL1 が点灯する回路を組もう。',
     io:[
       {a:'I0.0', name:'PB1', desc:'押しボタン(押している間ON)'},
-      {a:'Q0.0', name:'L1',  desc:'入口ランプ'},
+      {a:'Q0.0', name:'PL1',  desc:'入口ランプ'},
     ],
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
     machine:[
@@ -706,7 +774,7 @@ const STAGES = [
       '1行目のいちばん左のマスを「a接点 %IX0.0」に、右端の出力を「コイル %QX0.0」にします(残りのマスは横線のまま)。',
     ],
     unlock:['SCAN','NO','COIL'],
-    openplc:{check:['PB1 を TRUE にすると L1 が TRUE になる','PB1 を FALSE に戻すと L1 も FALSE になる']},
+    openplc:{check:['PB1 を TRUE にすると PL1 が TRUE になる','PB1 を FALSE に戻すと PL1 も FALSE になる']},
   },
   {
     id:'1-2', area:1, title:'井戸ポンプの点検', type:'build',
@@ -717,7 +785,7 @@ const STAGES = [
       {a:'Q0.0', name:'P1',  desc:'井戸ポンプ'},
     ],
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
-    machine:[ {type:'pb', a:'I0.0', color:'yellow'}, {type:'motor', a:'Q0.0'} ],
+    machine:[ {type:'pb', a:'I0.0', color:'yellow'}, {type:'motor', a:'Q0.0', look:'pump'} ],
     answer:[ {r:['b:I0.0 - - -'], o:'Q0.0'} ],
     wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.0'} ], [ {r:['- - - -'], o:'Q0.0'} ] ],
     tests:[
@@ -762,11 +830,11 @@ const STAGES = [
   {
     id:'1-4', area:1, title:'廊下の灯りが片側しか…', type:'bug',
     story:'村長の家の長い廊下。両端どちらのボタンでも灯りがつくはずが、奥のボタンでは反応しない。',
-    task:'手前ボタン PB1 と奥ボタン PB2 のどちらを押しても、押している間ランプ L1 が点灯するように、ラダーの不具合を直そう。',
+    task:'手前ボタン PB1 と奥ボタン PB2 のどちらを押しても、押している間ランプ PL1 が点灯するように、ラダーの不具合を直そう。',
     io:[
       {a:'I0.0', name:'PB1', desc:'手前のボタン'},
       {a:'I0.1', name:'PB2', desc:'奥のボタン'},
-      {a:'Q0.0', name:'L1',  desc:'廊下ランプ'},
+      {a:'Q0.0', name:'PL1',  desc:'廊下ランプ'},
     ],
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
     machine:[ {type:'pb', a:'I0.0', color:'blue'}, {type:'pb', a:'I0.1', color:'blue'}, {type:'lamp', a:'Q0.0', color:'white'} ],
@@ -784,24 +852,24 @@ const STAGES = [
       'PB2の接点のすぐ右(1列目と2列目の間)の●をタップして縦線を引きます。',
     ],
     unlock:['OR'],
-    openplc:{check:['PB1 だけ TRUE で L1 が TRUE','PB2 だけ TRUE で L1 が TRUE'], note:'OpenPLC Editorでも、分岐の行は左右両方をつながないと並列になりません。'},
+    openplc:{check:['PB1 だけ TRUE で PL1 が TRUE','PB2 だけ TRUE で PL1 が TRUE'], note:'OpenPLC Editorでも、分岐の行は左右両方をつながないと並列になりません。'},
   },
   {
     id:'1-5', area:1, title:'ボス:村の水車小屋', type:'build', boss:true,
     story:'村いちばんの大仕事、水車小屋の制御だ。条件が多いぞ。',
-    task:'水車モータ M1 は「運転許可スイッチ SW1 がON」かつ「起動ボタン PB1 または点検ボタン PB2 を押している」かつ「扉センサ S1 がOFF(扉が閉じている)」のときだけ回る。さらに、扉が開いている(S1がON)間は警告灯 L1 を点灯させよう。',
+    task:'水車モータ M1 は「運転許可スイッチ SW1 がON」かつ「起動ボタン PB1 または点検ボタン PB2 を押している」かつ「扉センサ S1 がOFF(扉が閉じている)」のときだけ回る。さらに、扉が開いている(S1がON)間は警告灯 PL1 を点灯させよう。',
     io:[
       {a:'I0.0', name:'SW1', desc:'運転許可スイッチ(切替)'},
       {a:'I0.1', name:'PB1', desc:'起動ボタン'},
       {a:'I0.2', name:'PB2', desc:'点検ボタン'},
       {a:'I0.3', name:'S1',  desc:'扉センサ(扉が開くとON)'},
       {a:'Q0.0', name:'M1',  desc:'水車モータ'},
-      {a:'Q0.1', name:'L1',  desc:'扉開き警告灯'},
+      {a:'Q0.1', name:'PL1',  desc:'扉開き警告灯'},
     ],
     palette:['NO','NC','COIL'], cols:4, maxRows:3, maxRungs:3,
     machine:[
       {type:'sw', a:'I0.0'}, {type:'pb', a:'I0.1', color:'green'}, {type:'pb', a:'I0.2', color:'yellow'}, {type:'sensor', a:'I0.3'},
-      {type:'motor', a:'Q0.0'}, {type:'lamp', a:'Q0.1', color:'red'},
+      {type:'motor', a:'Q0.0', look:'waterwheel'}, {type:'lamp', a:'Q0.1', color:'red'},
     ],
     answer:[
       {r:['a:I0.0 + a:I0.1 + b:I0.3 -','. a:I0.2'], o:'Q0.0'},
@@ -820,10 +888,10 @@ const STAGES = [
     hints:[
       'ラングを2本に分けます。1本目が水車モータ、2本目が警告灯です。',
       '1本目は「SW1」→「PB1とPB2の並列」→「S1のb接点」を直列につなぎます。',
-      '1行目:a接点SW1、a接点PB1、b接点S1、横線。2行目の2列目にa接点PB2を置き、その左右(1列目と2列目の境目、2列目と3列目の境目)に縦線。2本目のラングは a接点S1 → コイルL1。',
+      '1行目:a接点SW1、a接点PB1、b接点S1、横線。2行目の2列目にa接点PB2を置き、その左右(1列目と2列目の境目、2列目と3列目の境目)に縦線。2本目のラングは a接点S1 → コイルPL1。',
     ],
     unlock:[],
-    openplc:{check:['SW1 FALSE のときは PB1 を押しても M1 は FALSE','SW1 TRUE で PB1 か PB2 を TRUE にすると M1 が TRUE','S1 を TRUE にすると M1 が FALSE、L1 が TRUE'], note:'並列部分を直列の途中に入れるときは、分岐の始まりと終わりの両方に縦線が必要です。'},
+    openplc:{check:['SW1 FALSE のときは PB1 を押しても M1 は FALSE','SW1 TRUE で PB1 か PB2 を TRUE にすると M1 が TRUE','S1 を TRUE にすると M1 が FALSE、PL1 が TRUE'], note:'並列部分を直列の途中に入れるときは、分岐の始まりと終わりの両方に縦線が必要です。'},
   },
 
   // ---------------- エリア2 自己保持の森 ----------------
@@ -837,7 +905,7 @@ const STAGES = [
       {a:'Q0.0', name:'M1',  desc:'粉ひきモータ'},
     ],
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
-    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'motor', a:'Q0.0'} ],
+    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'motor', a:'Q0.0', look:'mill'} ],
     answer:[ {r:['a:I0.0 + b:I0.1 - -','a:Q0.0'], o:'Q0.0'} ],
     wrong:[ [ {r:['a:I0.0 b:I0.1 - -'], o:'Q0.0'} ], [ {r:['a:I0.0 + - - -','a:Q0.0'], o:'Q0.0'} ] ],
     tests:[
@@ -891,7 +959,7 @@ const STAGES = [
       {a:'Q0.0', name:'M1',  desc:'丸太ころがしモータ'},
     ],
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
-    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'motor', a:'Q0.0'} ],
+    machine:[ {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'motor', a:'Q0.0', look:'mill'} ],
     start:[ {r:['a:I0.0 - + - -','a:Q0.0 b:I0.1'], o:'Q0.0'} ],
     answer:[ {r:['a:I0.0 + b:I0.1 - -','a:Q0.0'], o:'Q0.0'} ],
     wrong:[ [ {r:['a:I0.0 + - - -','a:Q0.0'], o:'Q0.0'} ] ],
@@ -948,19 +1016,19 @@ const STAGES = [
   {
     id:'2-5', area:2, title:'ボス:森の製材所', type:'build', boss:true,
     story:'森の奥の製材所。丸のこが回っていないのに木材を送ると大事故になる。',
-    task:'起動 PB1 で丸のこモータ SAW が自己保持で回り、停止 PB2 で止まる。送りボタン PB3 で送りコンベア FEED が自己保持で動くが、丸のこが回っているときしか動かず、丸のこが止まると送りも止まる。丸のこ運転中は運転表示灯 L1 を点灯。',
+    task:'起動 PB1 で丸のこモータ SAW が自己保持で回り、停止 PB2 で止まる。送りボタン PB3 で送りコンベア FEED が自己保持で動くが、丸のこが回っているときしか動かず、丸のこが止まると送りも止まる。丸のこ運転中は運転表示灯 PL1 を点灯。',
     io:[
       {a:'I0.0', name:'PB1',  desc:'丸のこ起動'},
       {a:'I0.1', name:'PB2',  desc:'停止'},
       {a:'I0.2', name:'PB3',  desc:'送り起動'},
       {a:'Q0.0', name:'SAW',  desc:'丸のこモータ'},
       {a:'Q0.1', name:'FEED', desc:'送りコンベア'},
-      {a:'Q0.2', name:'L1',   desc:'運転表示灯'},
+      {a:'Q0.2', name:'PL1',   desc:'運転表示灯'},
     ],
     palette:['NO','NC','COIL'], cols:5, maxRows:2, maxRungs:4,
     machine:[
       {type:'pb', a:'I0.0', color:'green'}, {type:'pb', a:'I0.1', color:'red'}, {type:'pb', a:'I0.2', color:'blue'},
-      {type:'motor', a:'Q0.0'}, {type:'conveyor', a:'Q0.1'}, {type:'lamp', a:'Q0.2', color:'green'},
+      {type:'motor', a:'Q0.0', look:'saw'}, {type:'conveyor', a:'Q0.1'}, {type:'lamp', a:'Q0.2', color:'green'},
     ],
     answer:[
       {r:['a:I0.0 + b:I0.1 - - -','a:Q0.0'], o:'Q0.0'},
@@ -979,10 +1047,10 @@ const STAGES = [
     hints:[
       'ラングは3本。丸のこ、送り、表示灯の順に作ると考えやすいです。',
       '送りのラングは、送りボタンの自己保持回路に「丸のこ SAW のa接点」を直列に入れます。丸のこが止まれば送りも切れます。',
-      'ラング2:a接点PB3、a接点SAW(%QX0.0)…2行目にa接点FEED(%QX0.1)、縦線は1列目と2列目の境目。ラング3:a接点SAW → コイルL1。',
+      'ラング2:a接点PB3、a接点SAW(%QX0.0)…2行目にa接点FEED(%QX0.1)、縦線は1列目と2列目の境目。ラング3:a接点SAW → コイルPL1。',
     ],
     unlock:[],
-    openplc:{check:['SAW が FALSE のとき PB3 を TRUE にしても FEED は FALSE','運転中に PB2 で SAW・FEED・L1 がすべて FALSE']},
+    openplc:{check:['SAW が FALSE のとき PB3 を TRUE にしても FEED は FALSE','運転中に PB2 で SAW・FEED・PL1 がすべて FALSE']},
   },
 
   // ---------------- エリア3 タイマの塔 ----------------
@@ -1014,15 +1082,15 @@ const STAGES = [
   {
     id:'3-2', area:3, title:'消したあとも回る換気扇', type:'fill',
     story:'塔の2階の作業部屋。照明を消したあとも、しばらく換気扇を回しておきたい。',
-    task:'照明スイッチ SW1 がONの間は照明 L1 と換気扇 FAN がON。SW1 をOFFにすると照明はすぐ消え、換気扇は5秒後に止まる。「?」を埋めよう(タイマの種類と時間も選ぶ)。',
+    task:'照明スイッチ SW1 がONの間は照明 PL1 と換気扇 FAN がON。SW1 をOFFにすると照明はすぐ消え、換気扇は5秒後に止まる。「?」を埋めよう(タイマの種類と時間も選ぶ)。',
     io:[
       {a:'I0.0', name:'SW1', desc:'照明スイッチ(切替)'},
-      {a:'Q0.0', name:'L1',  desc:'照明'},
+      {a:'Q0.0', name:'PL1',  desc:'照明'},
       {a:'Q0.1', name:'FAN', desc:'換気扇'},
     ],
     timers:['T0'],
     palette:['NO','NC','COIL','TON','TOF'], cols:4, maxRows:2, maxRungs:3,
-    machine:[ {type:'sw', a:'I0.0'}, {type:'lamp', a:'Q0.0', color:'white'}, {type:'motor', a:'Q0.1'} ],
+    machine:[ {type:'sw', a:'I0.0'}, {type:'lamp', a:'Q0.0', color:'white'}, {type:'motor', a:'Q0.1', look:'fan'} ],
     start:[ {r:['a:I0.0 - - -'], o:'Q0.0'}, {r:['a:I0.0 - - -'], o:'?'}, {r:['? - - -'], o:'Q0.1'} ],
     answer:[ {r:['a:I0.0 - - -'], o:'Q0.0'}, {r:['a:I0.0 - - -'], o:'TOF T0 5000'}, {r:['a:T0 - - -'], o:'Q0.1'} ],
     wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.0'}, {r:['a:I0.0 - - -'], o:'TON T0 5000'}, {r:['a:T0 - - -'], o:'Q0.1'} ] ],
@@ -1036,15 +1104,15 @@ const STAGES = [
       'ラング2の出力 = TOF(T0、PT 5.0秒)、ラング3の「?」= a接点 T0.Q。',
     ],
     unlock:['TOF'],
-    openplc:{check:['SW1 TRUE で L1・FAN が TRUE','SW1 FALSE で L1 はすぐ FALSE、FAN は約5秒後に FALSE'], note:'PT は T#5s と入力します。'},
+    openplc:{check:['SW1 TRUE で PL1・FAN が TRUE','SW1 FALSE で PL1 はすぐ FALSE、FAN は約5秒後に FALSE'], note:'PT は T#5s と入力します。'},
   },
   {
     id:'3-3', area:3, title:'点滅する警告灯', type:'build',
     story:'塔の階段は暗くて危ない。点滅する警告灯をつけよう。',
-    task:'スイッチ SW1 がONの間、警告灯 L1 を「0.5秒消灯 → 0.5秒点灯」のくり返しで点滅させよう(ONにした直後は消灯から始まる)。SW1 をOFFにしたら消灯。',
+    task:'スイッチ SW1 がONの間、警告灯 PL1 を「0.5秒消灯 → 0.5秒点灯」のくり返しで点滅させよう(ONにした直後は消灯から始まる)。SW1 をOFFにしたら消灯。',
     io:[
       {a:'I0.0', name:'SW1', desc:'点滅スイッチ(切替)'},
-      {a:'Q0.0', name:'L1',  desc:'警告灯'},
+      {a:'Q0.0', name:'PL1',  desc:'警告灯'},
     ],
     timers:['T0','T1'],
     palette:['NO','NC','COIL','TON','TOF'], cols:4, maxRows:2, maxRungs:4,
@@ -1066,18 +1134,18 @@ const STAGES = [
     hints:[
       'タイマを2個使います。T0 は「消灯の0.5秒」、T1 は「点灯の0.5秒」を数えます。',
       'T0 が終わったら T1 をスタート。T1 が終わったら T0 をリセットする(T0 の入力に T1.Q のb接点を入れる)と、くり返しになります。',
-      'ラング1:a接点SW1、b接点T1.Q → TON T0 0.5秒。ラング2:a接点T0.Q → TON T1 0.5秒。ラング3:a接点T0.Q → コイルL1。',
+      'ラング1:a接点SW1、b接点T1.Q → TON T0 0.5秒。ラング2:a接点T0.Q → TON T1 0.5秒。ラング3:a接点T0.Q → コイルPL1。',
     ],
     unlock:['FLICK'],
-    openplc:{check:['SW1 TRUE で L1 が約0.5秒ごとに TRUE/FALSE をくり返す','SW1 FALSE で L1 が FALSE'], note:'OpenPLC のシミュレーションでも、タイマどうしでリセットし合う形は同じように動きます。'},
+    openplc:{check:['SW1 TRUE で PL1 が約0.5秒ごとに TRUE/FALSE をくり返す','SW1 FALSE で PL1 が FALSE'], note:'OpenPLC のシミュレーションでも、タイマどうしでリセットし合う形は同じように動きます。'},
   },
   {
     id:'3-4', area:3, title:'階段のあかり(最短挑戦)', type:'short',
     story:'塔の階段のあかり。ボタンを押すとしばらく点いて、自動で消えるようにしたい。',
-    task:'ボタン PB1 を押して離すと、階段灯 L1 が点灯し、離してから5秒後に自動で消える。できるだけ少ない接点数で作ろう(★目標 2個)。',
+    task:'ボタン PB1 を押して離すと、階段灯 PL1 が点灯し、離してから5秒後に自動で消える。できるだけ少ない接点数で作ろう(★目標 2個)。',
     io:[
       {a:'I0.0', name:'PB1', desc:'階段灯ボタン'},
-      {a:'Q0.0', name:'L1',  desc:'階段灯'},
+      {a:'Q0.0', name:'PL1',  desc:'階段灯'},
     ],
     timers:['T0'],
     palette:['NO','NC','COIL','TON','TOF'], cols:4, maxRows:2, maxRungs:3,
@@ -1092,10 +1160,10 @@ const STAGES = [
     hints:[
       '自己保持+TONでも作れますが、接点が増えます。タイマの種類を見直そう。',
       'TOF は「入力がOFFになってから設定時間だけ出力をONに保つ」タイマです。',
-      'ラング1:a接点PB1 → TOF T0 5.0秒。ラング2:a接点T0.Q → コイルL1。接点2個です。',
+      'ラング1:a接点PB1 → TOF T0 5.0秒。ラング2:a接点T0.Q → コイルPL1。接点2個です。',
     ],
     unlock:[],
-    openplc:{check:['PB1 を TRUE→FALSE にすると L1 が TRUE になり、約5秒後に FALSE']},
+    openplc:{check:['PB1 を TRUE→FALSE にすると PL1 が TRUE になり、約5秒後に FALSE']},
   },
   {
     id:'3-5', area:3, title:'ボス:塔の信号機', type:'build', boss:true,
@@ -1437,6 +1505,53 @@ function nameOf(st, a){
   if(k==='T'||k==='C') return a+'.Q';
   return '';
 }
+/* ---------- 表示の設定(部品の名前・アドレス) ---------- */
+const SET_KEY='ladderQuest_settings';
+const SET_DEFAULT={names:'easy', addr:false};   // 最初は「やさしい名前・アドレスなし」
+function loadSettings(){ try{ return Object.assign({}, SET_DEFAULT, JSON.parse(localStorage.getItem(SET_KEY)||'{}')); }catch(e){ return Object.assign({}, SET_DEFAULT); } }
+function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(G.set)); }catch(e){} }
+function applySettings(){ if(typeof document!=='undefined') document.body.classList.toggle('hide-addr', !G.set.addr); }
+// やさしい名前:機械の種類+番号(PB1→ボタン1、L1→ランプ1)
+const EASY_TYPE={pb:'ボタン', sw:'スイッチ', sensor:'センサ', lamp:'ランプ', buzzer:'ブザー', motor:'モーター', conveyor:'コンベア', cylinder:'シリンダ', tank:'タンク'};
+const TR_EASY={PB:'ボタン', PL:'ランプ', SS:'スイッチ', LS:'センサ', T:'小ボタン', BELT:'ベルト'};
+const SUB_EASY={ext:'前進センサ', ret:'後退センサ', lo:'下限センサ', hi:'上限センサ', drain:'排水'};
+function easyName(st, a){
+  const sym=nameOf(st,a), num=(sym.match(/\d+$/)||[''])[0];
+  for(const d of (st.machine||[])){
+    if(d.type==='trainer'){
+      for(const k in (d.map||{})) if(A(d.map[k])===a){ const m=k.match(/^([A-Z]+)(\d*)$/); return m ? (TR_EASY[m[1]]||k)+(m[2]||'') : k; }
+      continue;
+    }
+    if(d.a && A(d.a)===a) return d.label || ((EASY_TYPE[d.type]||sym)+num);
+    if(d.rev && A(d.rev)===a) return (EASY_TYPE[d.type]||sym)+num+'(逆)';
+    for(const key in SUB_EASY) if(d[key] && A(d[key])===a) return SUB_EASY[key]+num;
+  }
+  return sym;
+}
+// 画面に出す名前(設定に合わせる)。判定や内部では nameOf(記号)を使う
+function showName(st, a){
+  const s=nameOf(st,a); if(!s) return s;
+  const mode=(G.set||SET_DEFAULT).names;
+  if(mode==='symbol') return s;
+  const e=easyName(st,a);
+  if(mode==='both' && e!==s) return e+' '+s;
+  return e;
+}
+const addrOn=()=>!!(G.set||SET_DEFAULT).addr;
+// 課題文やヒントの中の記号(PB1 など)を、設定に合わせた書き方にする
+//   やさしい名前:「押しボタン PB1」→「押しボタン(ボタン1)」
+function nameText(st, text){
+  if(!text || (G.set||SET_DEFAULT).names==='symbol') return text;
+  const P=prep(st);
+  let s=String(text);
+  P.io.slice().sort((a,b)=>b.name.length-a.name.length).forEach(x=>{
+    const re=new RegExp('\\s?(?<![A-Za-z0-9])'+x.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![0-9A-Za-z])','g');
+    const nm=showName(st,x.a);
+    // すでに「(S1がON)」のようにカッコの中なら、カッコを重ねない
+    s=s.replace(re, (m, off, str)=> str[off-1]==='(' ? nm : '('+nm+')');
+  });
+  return s;
+}
 function areaStages(no){ return STAGES.filter(s=>s.area===no); }
 
 /* ---------- 自己点検(コンソールから selfTest() で実行可) ---------- */
@@ -1532,6 +1647,7 @@ const ICONS = {
   sparkle:'<path d="M12 3l1.8 7.2L21 12l-7.2 1.8L12 21l-1.8-7.2L3 12l7.2-1.8z"/>',
   reset:'<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4.5H9"/>',
   map:'<path d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="7"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
 };
 function ic(name, cls){ return `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||''}</svg>`; }
 function toast(msg){
@@ -1780,7 +1896,7 @@ function statusHTML(){
 }
 /* ---------- タイトル画面 ---------- */
 function showTitle(){
-  stopRun();
+  stopRun(); stopCoach();
   G.stage=null;
   closeAreaSheet();
   document.body.classList.add('on-map'); document.body.classList.remove('on-stage');   // マップと同じ空の背景
@@ -1788,8 +1904,8 @@ function showTitle(){
   const L=levelOf(G.save.xp);
   const app=document.getElementById('app');
   app.innerHTML=`<div class="title-screen tt2" data-act="start">
-    <div class="tt-head"><div class="tt-sub">OpenPLC ラダー修行</div>
-      <h1>ラダー工場の冒険</h1></div>
+    <div class="tt-head"><h1>CIRCUIT ISLES</h1>
+      <div class="tt-sub">回路を組み、島に電気を通す。<br>PLC制御の入門パズル</div></div>
     <div class="tt-art">
       <img class="tt-far" src="${IMG_BASE}island7.webp" alt="" draggable="false">
       <img class="tt-main" src="${IMG_BASE}island1.webp" alt="" draggable="false">
@@ -1800,12 +1916,14 @@ function showTitle(){
       ${played?`<div class="cont">Lv.${L} ${esc(titleOf(L))}</div>`:'<div class="cont">画面をタップしてもはじまります</div>'}
     </div>
   </div>`;
-  app.onclick=e=>{ if(e.target.closest('[data-act="start"]')){ SFX.play('place'); showMap(); } };
+  app.onclick=e=>{ if(e.target.closest('[data-act="start"]')){ SFX.play('place');
+    // はじめて遊ぶ人は、まずチュートリアルから
+    if(!G.save.tut && !STAGES.some(s=>isCleared(s.id))) openStage(tutStage()); else showMap(); } };
   window.scrollTo(0,0);
 }
 function mapGreeting(){
   const cleared=STAGES.filter(s=>isCleared(s.id)).length;
-  if(cleared===0) return 'ようこそ、ラダー工場へ!ぼくは<b>リレーくん</b>。いっしょに回路を組んで、機械を動かしていこう!';
+  if(cleared===0) return 'ようこそ、回路の島々へ!ぼくは<b>リレーくん</b>。いっしょに回路を組んで、島の機械を動かしていこう!';
   const nx=STAGES.find(s=>stageUnlocked(s) && !isCleared(s.id));
   if(nx) return `${pick(['おかえり!','今日もがんばろう!','いい調子だね!'])} つぎは <b>${esc(nx.id)}「${esc(nx.title)}」</b> だよ。${nx.boss?'ボス戦だ、気合いを入れて!':''}`;
   const allStars=STAGES.every(s=>{ const r=G.save.stages[s.id]; return r && r.stars.every(Boolean); });
@@ -1838,6 +1956,7 @@ function areaHTML(ar){
       <div class="area-body"><div class="learn">学ぶこと:${esc(ar.learn)}</div>`;
   if(!ready) return h+`<div class="prep">${ic('cone')} 準備中 — このエリアはこれから追加されます</div></div></section>`;
   if(!un) h+=`<div class="prep">${ic('lock')} エリア${ar.no-1}のボスを倒すと行けるようになります</div>`;
+  if(ar.no===1) h+=`<button class="btn small tut-again" data-act="tut">${ic('hint')} 使い方(チュートリアル)をもう一度</button>`;
   h+='<div class="stage-list">';
   for(const st of list){
     const ok=stageUnlocked(st), rec=G.save.stages[st.id], clr=isCleared(st.id), nx=st.id===nextId;
@@ -1866,13 +1985,14 @@ function closeAreaSheet(){ document.querySelectorAll('.sheet-wrap').forEach(e=>e
 function unlockedCount(){ return AREAS.filter(a=>areaUnlocked(a.no)).length; }
 
 function showMap(){
-  stopRun();
+  stopRun(); stopCoach();
   G.stage=null;
   document.querySelectorAll('.intro').forEach(e=>e.remove());
   document.body.classList.add('on-map'); document.body.classList.remove('on-stage');
-  const h=`<div class="topbar"><h1 data-act="title" title="タイトルへ">ラダー工場の冒険<small>${ic('bolt')} OpenPLC ラダー修行</small></h1>${statusHTML()}
+  const h=`<div class="topbar"><h1 data-act="title" title="タイトルへ">CIRCUIT ISLES<small>PLC制御の入門パズル</small></h1>${statusHTML()}
     <button class="btn small" data-act="dex">${ic('book')} 命令図鑑</button>
-    <button class="btn small" data-act="data">${ic('save')} データ</button>${soundBtnHTML()}</div>
+    <button class="btn small" data-act="data">${ic('save')} データ</button>${soundBtnHTML()}
+    <button class="btn small icon-btn" data-act="settings" title="設定" aria-label="設定">${ic('gear')}</button></div>
     <div class="map-greet">${talkHTML(mapGreeting(), 'normal')}</div>
     <div class="world-wrap" id="world-wrap"><div class="world" id="world"></div></div>`;
   const app=document.getElementById('app');
@@ -1886,6 +2006,8 @@ function showMap(){
     if(a==='dex') showDex();
     if(a==='data') showData();
     if(a==='title') showTitle();
+    if(a==='tut'){ closeAreaSheet(); openStage(tutStage()); }
+    if(a==='settings') openSettings();
   };
   // 新しく行けるようになったエリアがあれば、その区間の電線に電気が流れる演出
   const n=unlockedCount();
@@ -1958,16 +2080,17 @@ addEventListener('resize', ()=>{
 function openStage(st){
   if(!st) return;
   touchStreak();
-  stopRun();
+  stopRun(); stopCoach();
   document.body.classList.remove('on-map'); document.body.classList.add('on-stage'); closeAreaSheet();
   G.stage=st; G.tab='task'; G.hold=false; G.mapArea=st.area; G.tool=null;
   setupHandDrag();
   const P=prep(st);
-  const d=G.save.drafts[st.id];
+  const d=st.tutorial ? null : G.save.drafts[st.id];      // チュートリアルは毎回まっさらから
   G.prog = d ? clone(d) : initialProg(st);
   G.plc=new PLC(); G.running=false; resetPhys();
   renderStage();
   stageIntro(st);
+  if(st.tutorial) setTimeout(()=>{ if(G.stage===st) startCoach(); }, reduced()?100:1600);
 }
 function initialProg(st){
   const P=prep(st);
@@ -1983,10 +2106,10 @@ function renderStage(){
   <div class="stage-head">
     <button class="btn small" data-act="map">${ic('map')} マップ</button>
     <span class="t">${ic(AREAS[st.area-1].icon,'area-c')} ${st.id} ${esc(st.title)} ${st.boss?'<span class="badge boss">ボス</span>':''} <span class="badge ${st.type}">${TYPE_NAME[st.type]}</span></span>
-    <span class="info">${starsHTML(rec.stars)}</span>${soundBtnHTML()}
+    <span class="info">${starsHTML(rec.stars)}</span><button class="btn small icon-btn" data-act="settings" title="設定(効果音・表示)" aria-label="設定">${ic('gear')}</button>
   </div>
   <div class="stage">
-    <div class="mission"><span class="chip">おしごと</span>${esc(st.task)}</div>
+    <div class="mission"><span class="chip">おしごと</span>${esc(nameText(st, st.task))}</div>
     <section class="pane editor" id="editor"></section>
     <section class="pane machine" id="machine"></section>
     <section class="pane bottom" id="bottom"></section>
@@ -2024,6 +2147,7 @@ function onStageClick(e){
       if(t.dataset.go){ const b=document.getElementById('bottom'); if(b) b.scrollIntoView({behavior:reduced()?'auto':'smooth', block:'start'}); }
       break;
     case 'hint': openHint(); break;
+    case 'settings': openSettings(); break;
   }
 }
 
@@ -2040,8 +2164,9 @@ function contactSVG(cell, x, y, st){
   s+=`<line class="sym" x1="${cx-9}" y1="${y-15}" x2="${cx-9}" y2="${y+15}"/><line class="sym" x1="${cx+9}" y1="${y-15}" x2="${cx+9}" y2="${y+15}"/>`;
   if(cell.t==='NC') s+=`<line class="sym" x1="${cx-14}" y1="${y+13}" x2="${cx+14}" y2="${y-13}"/>`;
   s+=`<line class="rs" x1="${cx+9}" y1="${y}" x2="${x+GEO.CW}" y2="${y}"/>`;
-  s+=`<text class="lab" x="${cx}" y="${y-20}" text-anchor="middle">${esc(dispAddr(cell.a))}</text>`;
-  s+=`<text class="nm" x="${cx}" y="${y+28}" text-anchor="middle">${esc(nameOf(st,cell.a))}</text>`;
+  // アドレス表示ありなら「上:アドレス/下:名前」、なしなら「上:名前」だけ
+  s+=`<text class="lab" x="${cx}" y="${y-20}" text-anchor="middle">${esc(addrOn()?dispAddr(cell.a):(showName(st,cell.a)||dispAddr(cell.a)))}</text>`;
+  if(addrOn()) s+=`<text class="nm" x="${cx}" y="${y+28}" text-anchor="middle">${esc(showName(st,cell.a))}</text>`;
   return s;
 }
 function outSVG(o, x0, xR, y, st, ri){
@@ -2055,8 +2180,8 @@ function outSVG(o, x0, xR, y, st, ri){
     s+=`<circle class="ofill" cx="${cx}" cy="${y}" r="13"/>`;
     s+=`<path d="M${cx-8} ${y-15} A 17 17 0 0 0 ${cx-8} ${y+15}"/><path d="M${cx+8} ${y-15} A 17 17 0 0 1 ${cx+8} ${y+15}"/>`;
     s+=`<line x1="${cx+14}" y1="${y}" x2="${xR}" y2="${y}"/>`;
-    s+=`<text class="lab" x="${cx}" y="${y-21}" text-anchor="middle">${esc(o.a)}</text>`;
-    s+=`<text class="nm" x="${cx}" y="${y+29}" text-anchor="middle">${esc(nameOf(st,o.a))}</text>`;
+    s+=`<text class="lab" x="${cx}" y="${y-21}" text-anchor="middle">${esc(addrOn()?o.a:(showName(st,o.a)||o.a))}</text>`;
+    if(addrOn()) s+=`<text class="nm" x="${cx}" y="${y+29}" text-anchor="middle">${esc(showName(st,o.a))}</text>`;
     return s;
   }
   const bw=104, bh=50, bx=cx-bw/2, by=y-20;
@@ -2196,8 +2321,8 @@ function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
 
 function contactChoices(st){
   const P=prep(st), list=[];
-  P.io.forEach(x=>list.push({a:x.a, label:x.name, sub:x.a}));
-  P.mem.forEach(x=>list.push({a:x.a, label:x.name, sub:x.a}));
+  P.io.forEach(x=>list.push({a:x.a, label:showName(st,x.a)||x.name, sub:x.a}));
+  P.mem.forEach(x=>list.push({a:x.a, label:showName(st,x.a)||x.name, sub:x.a}));
   P.timers.forEach(n=>list.push({a:n, label:n+'.Q', sub:'タイマ出力'}));
   P.counters.forEach(n=>list.push({a:n, label:n+'.Q', sub:'カウンタ出力'}));
   return list;
@@ -2350,7 +2475,7 @@ function outPicker(ri){
     let h=`<h2>ラング${ri+1} の出力</h2><div class="opts"><button class="opt ${type==='E'?'sel':''}" data-m="none">なし</button></div>`;
     if(pal.includes('COIL')){
       const ch=P.io.filter(x=>kindOf(x.a)==='Q').concat(P.mem);
-      h+=`<div class="note">( ) コイル(押すとすぐ置けます)</div><div class="opts">`+ch.map(x=>`<button class="opt ${type==='COIL'&&addr===x.a?'sel':''}" data-m="coil" data-v="${x.a}">( ) ${esc(x.name)}<small>${x.a}</small></button>`).join('')+`</div>`;
+      h+=`<div class="note">( ) コイル(押すとすぐ置けます)</div><div class="opts">`+ch.map(x=>`<button class="opt ${type==='COIL'&&addr===x.a?'sel':''}" data-m="coil" data-v="${x.a}">( ) ${esc(showName(st,x.a)||x.name)}${addrOn()?`<small>${x.a}</small>`:''}</button>`).join('')+`</div>`;
     }
     const fb=['TON','TOF','CTU','CTD'].filter(k=>pal.includes(k));
     if(fb.length) h+=`<div class="note">タイマ・カウンタ(設定してから「決定」)</div><div class="opts">${fb.map(k=>`<button class="opt ${type===k?'sel':''}" data-m="type" data-v="${k}">${k}</button>`).join('')}</div>`;
@@ -2406,7 +2531,7 @@ function blockOf(rg, res){
   return null;
 }
 function rungStatusHTML(rg, res, blk){
-  const st=G.stage, nm=a=>{ const n=nameOf(st,a); return n?`${esc(n)}(${esc(dispAddr(a))})`:esc(dispAddr(a)); };
+  const st=G.stage, nm=a=>{ const n=showName(st,a); return n?(addrOn()?`${esc(n)}(${esc(dispAddr(a))})`:esc(n)):esc(dispAddr(a)); };
   const o=rg.out;
   if(res.power){
     if(!o) return `${ic('bolt')} 電気は右まで届いています。右端に出力を置こう`;
@@ -2464,9 +2589,76 @@ function updateLadderVis(){
   });
 }
 
+/* ---------- 機械の絵(平塗り)。出力がONの間、.fan の部分が回る(中心は 29,29) ---------- */
+function motorArt(look){
+  const fanDefault=`<circle cx="29" cy="29" r="26" fill="#3a4658"/><circle cx="29" cy="29" r="22" fill="#2c3646"/><g class="fan"><path d="M29 29 L29 8 A10 10 0 0 1 39 17Z M29 29 L50 29 A10 10 0 0 1 41 39Z M29 29 L29 50 A10 10 0 0 1 19 41Z M29 29 L8 29 A10 10 0 0 1 17 19Z" fill="#a9b6c4"/></g><circle cx="29" cy="29" r="4" fill="#dfe5ec"/>`;
+  const A={
+    // 水車:木の輪と羽根、下に水
+    waterwheel:`<rect x="0" y="44" width="58" height="14" rx="3" fill="#5aa9e6"/><rect x="0" y="50" width="58" height="8" fill="#3f8fd0"/>
+      <g class="fan"><circle cx="29" cy="29" r="21" fill="none" stroke="#a8743f" stroke-width="4"/><circle cx="29" cy="29" r="14" fill="none" stroke="#8a5a2c" stroke-width="2"/>
+      ${[0,45,90,135].map(r=>`<rect x="27.5" y="7" width="3" height="44" fill="#8a5a2c" transform="rotate(${r} 29 29)"/>`).join('')}
+      ${[0,45,90,135,180,225,270,315].map(r=>`<rect x="24" y="3" width="10" height="7" rx="1.5" fill="#c58b4e" transform="rotate(${r} 29 29)"/>`).join('')}</g>
+      <circle cx="29" cy="29" r="4.5" fill="#5b3b1c"/>`,
+    // 風車:塔と4枚の羽根
+    windmill:`<path d="M24 31 L34 31 L39 58 L19 58 Z" fill="#e9e2d0"/><path d="M29 31 L34 31 L39 58 L29 58 Z" fill="#d4ccb8"/><rect x="26" y="46" width="6" height="12" rx="3" fill="#8a5a2c"/>
+      <g class="fan">${[0,90,180,270].map(r=>`<g transform="rotate(${r} 29 29)"><rect x="27.5" y="4" width="3" height="25" fill="#7a5a3a"/><rect x="30.5" y="5" width="8" height="20" rx="1" fill="#f3efe4"/><rect x="34.5" y="5" width="4" height="20" fill="#ddd6c6"/></g>`).join('')}</g>
+      <circle cx="29" cy="29" r="4" fill="#5b3b1c"/>`,
+    // 換気扇:四角い枠と3枚羽根
+    fan:`<rect x="3" y="3" width="52" height="52" rx="8" fill="#cfd6de"/><rect x="3" y="3" width="52" height="52" rx="8" fill="none" stroke="#b3bcc7" stroke-width="2"/><circle cx="29" cy="29" r="22" fill="#2f3a4a"/>
+      <g class="fan">${[0,120,240].map(r=>`<path d="M29 29 C26 18 30 10 38 9 C40 17 36 25 29 29Z" fill="#e8edf2" transform="rotate(${r} 29 29)"/>`).join('')}</g>
+      <circle cx="29" cy="29" r="4.5" fill="#9aa6b3"/>`,
+    // ポンプ:本体ののぞき窓の中で羽根車が回る
+    pump:`<rect x="2" y="40" width="54" height="14" rx="3" fill="#3f5d8f"/><rect x="40" y="22" width="16" height="6" fill="#9aa6b3"/><rect x="2" y="22" width="12" height="6" fill="#9aa6b3"/>
+      <circle cx="29" cy="29" r="20" fill="#4a6fa8"/><circle cx="29" cy="29" r="14" fill="#cfe6f7"/>
+      <g class="fan">${[0,60,120,180,240,300].map(r=>`<path d="M29 29 Q33 22 31 16" stroke="#2b4f87" stroke-width="3" fill="none" stroke-linecap="round" transform="rotate(${r} 29 29)"/>`).join('')}</g>
+      <circle cx="29" cy="29" r="3.5" fill="#2b4f87"/>`,
+    // 丸のこ:歯のある円盤と丸太
+    saw:`<rect x="2" y="42" width="54" height="12" rx="6" fill="#b07a45"/><rect x="2" y="42" width="54" height="5" rx="2.5" fill="#c99359"/><circle cx="10" cy="48" r="4" fill="#e3c08f"/>
+      <g class="fan"><path d="${Array.from({length:24},(_,i)=>{const a=i*Math.PI/12, r=i%2?18:22; return (i?'L':'M')+(29+r*Math.cos(a)).toFixed(1)+' '+(29+r*Math.sin(a)).toFixed(1);}).join(' ')}Z" fill="#d7dde4"/><circle cx="29" cy="29" r="12" fill="#bfc7d0"/>
+      <rect x="27.5" y="19" width="3" height="20" rx="1.5" fill="#9aa4b0"/></g><circle cx="29" cy="29" r="4" fill="#5f6b78"/>`,
+    // 石臼(粉ひき):上から見た石臼と溝
+    mill:`<circle cx="29" cy="29" r="26" fill="#9a8f80"/><g class="fan"><circle cx="29" cy="29" r="22" fill="#b8ad9c"/>
+      ${[0,30,60,90,120,150].map(r=>`<rect x="28" y="9" width="2" height="40" fill="#988c7a" transform="rotate(${r} 29 29)"/>`).join('')}<rect x="27" y="6" width="4" height="10" rx="2" fill="#6b4a2a"/></g>
+      <circle cx="29" cy="29" r="5" fill="#7d7264"/>`,
+  };
+  return `<svg viewBox="0 0 58 58">${A[look]||fanDefault}</svg>`;
+}
+
+/* ---------- 実習機 PLC TRAINER-S01 そっくりのパネル ----------
+   ステージの machine に {type:'trainer', map:{SS1:'I0.0', PB1:'I0.2', L1:'Q0.0', BELT:'Q0.4', LS1:'I0.6', ...}} を書く。
+   map に無い部品は、使わない部品として薄く表示する。
+   ※ 実機の入出力の割り付けが分かったら、ここの部品名と並びを実機に合わせる */
+const TRAINER_LED = {PL1:'green', PL2:'yellow', PL3:'red', PL4:'white'};   // PL=パイロットランプ
+function trainerHTML(st, d){
+  const m=d.map||{}, A_=k=>m[k]?A(m[k]):null;
+  const tag=k=>m[k]?`<span class="ad">${A(m[k])}</span>`:'';
+  const btn=(k,cls,kind)=>{ const a=A_(k);
+    return a?`<button class="${cls}" data-in="${a}" data-kind="${kind}" aria-label="${k}"><i></i></button>`
+            :`<button class="${cls} unused" disabled aria-label="${k}(使わない)"><i></i></button>`; };
+  const led=k=>{ const a=A_(k); return `<i class="tr-led ${TRAINER_LED[k]} ${a?'':'unused'}" ${a?`data-out="${a}"`:''}></i>`; };
+  const belt=A_('BELT');
+  return `<div class="trainer">
+    <div class="tr-name">PLC-TRAINER-S01</div>
+    <div class="tr-top">
+      <div class="tr-ls">${btn('LS1','tr-sens','sw')}<b>LS1</b>${tag('LS1')}</div>
+      <div class="tbelt ${belt?'':'unused'}" ${belt?`data-out="${belt}"`:''}><i></i><span>Conv.Belt</span></div>
+      <div class="tr-ls">${btn('LS2','tr-sens','sw')}<b>LS2</b>${tag('LS2')}</div>
+    </div>
+    <div class="tr-mid">
+      <div class="tr-ss">${['SS1','SS2'].map(k=>`<div class="tr-cell">${btn(k,'tr-slide','sw')}<b>${k}</b>${tag(k)}</div>`).join('')}</div>
+      <div class="tr-pbs">${[1,2,3,4].map(i=>`<div class="tr-cell">${m['PL'+i]?`<span class="led-ad">PL${i}<span class="ad"> ${A(m['PL'+i])}</span></span>`:'<span class="led-ad">&nbsp;</span>'}${led('PL'+i)}${btn('PB'+i,'tr-pb','pb')}<b>PB${i}</b>${tag('PB'+i)}</div>`).join('')}</div>
+      <div class="tr-cell">${btn('PB5','tr-pbr','pb')}<b>PB5</b>${tag('PB5')}</div>
+    </div>
+    <div class="tr-bot">
+      ${['T1','T2'].map(k=>`<div class="tr-cell sm">${btn(k,'tr-tact','pb')}<b>${k}</b></div>`).join('')}
+      <div class="tr-oled" id="tr-oled">READY</div>
+    </div>
+  </div>`;
+}
+
 /* ---------- 機械 ---------- */
 const IN_TYPES=['pb','sw','sensor'];
-function devLabel(st, d){ return d.label || nameOf(st, A(d.a)) || ''; }
+function devLabel(st, d){ return showName(st, A(d.a)) || d.label || ''; }
 function renderMachine(){
   const st=G.stage;
   const devs=st.machine||[];
@@ -2479,17 +2671,18 @@ function renderMachine(){
       case 'sensor': ip+=`<div class="dev"><button class="sens ${d.auto?'auto':''}" data-in="${a}" data-kind="${d.auto?'auto':'sw'}" aria-label="${lab}">センサ</button><span class="lbl">${lab}</span>${ad}</div>`; break;
       case 'lamp': pl+=`<div class="dev"><div class="lamp ${d.color||'yellow'}" data-out="${a}"></div><span class="lbl">${lab}</span>${ad}</div>`; break;
       case 'buzzer': pl+=`<div class="dev"><div class="buzz" data-out="${a}">${ic('bell')}</div><span class="lbl">${lab}</span>${ad}</div>`; break;
-      case 'motor': pl+=`<div class="dev"><div class="motor" data-out="${a}" ${d.rev?`data-rev="${A(d.rev)}"`:''}><svg viewBox="0 0 58 58"><circle cx="29" cy="29" r="26" fill="#2a3542" stroke="#56687b" stroke-width="3"/><g class="fan"><path d="M29 29 L29 6 A10 10 0 0 1 39 16Z M29 29 L52 29 A10 10 0 0 1 42 39Z M29 29 L29 52 A10 10 0 0 1 19 42Z M29 29 L6 29 A10 10 0 0 1 16 19Z" fill="#9fb0c0"/></g><circle cx="29" cy="29" r="4" fill="#cfd8e2"/></svg></div><span class="lbl">${lab}</span><span class="ad">${a}${d.rev?' / 逆 '+A(d.rev):''}</span></div>`; break;
+      case 'motor': pl+=`<div class="dev"><div class="motor ${d.look?'look-'+d.look:''}" data-out="${a}" ${d.rev?`data-rev="${A(d.rev)}"`:''}>${motorArt(d.look)}</div><span class="lbl">${lab}</span><span class="ad">${a}${d.rev?' / 逆 '+A(d.rev):''}</span></div>`; break;
       case 'conveyor': pl+=`<div class="dev"><div class="conv" data-out="${a}" ${d.rev?`data-rev="${A(d.rev)}"`:''}><div class="box"></div><div class="belt"></div></div><span class="lbl">${lab}</span><span class="ad">${a}${d.rev?' / 逆 '+A(d.rev):''}</span></div>`; break;
       case 'cylinder': pl+=`<div class="dev"><div class="cyl" data-cyl="${i}"><div class="body"></div><div class="rod"></div><div class="head"></div></div><span class="lbl">${lab}</span>${ad}</div>`; break;
       case 'tank': pl+=`<div class="dev"><div class="tank" data-tank="${i}"><div class="lv"></div></div><span class="lbl">${lab}</span><span class="ad">給水 ${A(d.a)}${d.drain?' / 排水 '+A(d.drain):''}</span></div>`; break;
     }
   });
-  const hasPB=devs.some(d=>d.type==='pb');
+  const hasPB=devs.some(d=>d.type==='pb' || d.type==='trainer');
   const el=document.getElementById('machine');
+  const tr=devs.find(d=>d.type==='trainer');
   el.innerHTML=`<h3>機械</h3><div class="mach-wrap">
-      <div class="plant">${pl||'<span class="note">出力機器なし</span>'}</div>
-      <div class="opanel">${ip||'<span class="note">操作盤なし</span>'}</div>
+      ${tr ? trainerHTML(st, tr) : `<div class="plant">${pl||'<span class="note">出力機器なし</span>'}</div>
+      <div class="opanel">${ip||'<span class="note">操作盤なし</span>'}</div>`}
       <div class="mach-ctrl">
         ${hasPB?`<label><input type="checkbox" id="holdchk" ${G.hold?'checked':''}> 押しっぱなし(タップでON/OFF。2つ同時押し用)</label>`:''}
         <span class="clock" id="clock">停止中 0.0s</span>
@@ -2576,6 +2769,9 @@ function updateMachineVis(){
     const p=G.phys[d.dataset.tank]||{lv:0};
     d.querySelector('.lv').style.height=(p.lv*100)+'%';
   });
+  const ol=document.getElementById('tr-oled');
+  if(ol){ const t=Object.values(G.plc.tm||{})[0], c=Object.values(G.plc.ct||{})[0];
+    ol.textContent = c ? 'CNT '+c.cv : t ? 'T '+((t.et||0)/1000).toFixed(1)+'s' : (G.running?'RUN ':'STOP ')+(G.plc.time/1000).toFixed(1)+'s'; }
   const ck=document.getElementById('clock');
   if(ck) ck.textContent=(G.running?'実行中 ':'停止中 ')+(G.plc.time/1000).toFixed(1)+'s';
 }
@@ -2641,7 +2837,7 @@ function renderBottom(){
   } else if(G.tab==='io'){
     h+=ioTableHTML(st);
   } else {
-    for(let i=0;i<rec.hints;i++) h+=`<div class="hint"><b>ヒント${i+1}</b> ${esc(st.hints[i])}</div>`;
+    for(let i=0;i<rec.hints;i++) h+=`<div class="hint"><b>ヒント${i+1}</b> ${esc(nameText(st, st.hints[i]))}</div>`;
     if(rec.hints<st.hints.length) h+=`<button class="btn" data-act="hint">ヒント${rec.hints+1}を見る(★3が消えます)</button>`;
     else h+='<div class="note">ヒントはここまで。「模範解答」ボタンで答えも見られます。</div>';
   }
@@ -2655,7 +2851,7 @@ function openHint(){
 
 /* ---------- 判定・クリア ---------- */
 function failHTML(st, r){
-  const name=a=>{ const n=nameOf(st,a); return n? `${n}(${dispAddr(a)})` : dispAddr(a); };
+  const name=a=>{ const n=showName(st,a); return n? (addrOn()?`${n}(${dispAddr(a)})`:n) : dispAddr(a); };
   const sec=t=>(t/1000).toFixed(2)+'秒';
   let tl='';
   for(const s of r.steps){
@@ -2712,7 +2908,79 @@ function judge(){
   };
   setTimeout(next, 250);
 }
+/* ---------- チュートリアル(1-1 と同じ回路を、リレーくんの案内つきで1手ずつ組む) ---------- */
+function tutStage(){
+  const b=STAGES[0];
+  return Object.assign({}, b, {id:'0-1', title:'はじめての回路', tutorial:true, hints:[], story:'', boss:false});
+}
+const TUT_STEPS = [
+  {sel:'.mission', text:'ここが「おしごと」。今回は<b>押しボタンを押している間だけ、ランプをつける</b>回路を作るよ。'},
+  {sel:'.rung', text:'これが<b>ラダー図</b>。左の緑の線から右の緑の線まで電気が届くと、右端につないだ機械が動くんだ。'},
+  {sel:'.hcard[data-k^="NO|"]', text:'まず部品を選ぼう。左にある「<b>{PB1}</b>」の「<b>a接点</b>」をタップしてね。<br>a接点は「ボタンを押すと電気を通す部品」だよ。',
+   until:()=>(G.tool||'').startsWith('NO|')},
+  {sel:'.rung-svg .hit.tgt1', text:'黄色く光っているマスをタップして、部品を置こう。',
+   until:()=>G.prog[0].cells.some(r=>r.some(c=>c&&c.t==='NO'))},
+  {sel:'.hcard[data-k^="COIL|"]', text:'次は「<b>{PL1}</b>」の「<b>コイル</b>」を選ぼう。<br>コイルは「電気が届くと機械を動かす部品」だよ。',
+   until:()=>(G.tool||'').startsWith('COIL|')},
+  {sel:'.rung-svg [data-act="out"]', text:'右端の「<b>出力</b>」をタップして、コイルを置こう。',
+   until:()=>!!(G.prog[0].out && G.prog[0].out.t==='COIL')},
+  {sel:'#machine .pb', text:'回路ができた!下の機械の<b>押しボタンを押してみよう</b>。押している間、ランプがつくはずだよ。',
+   before:()=>{ G.tool=null; renderEditor(); }, until:()=>G.prog[0].out && G.plc.get(G.prog[0].out.a)},
+  {sel:'.rstat', text:'ついたね!指を離すと消えるよ。<br>電気が止まっているときは、ラダー図に<b>✕</b>と、止まった理由がここに出るから見てみてね。'},
+  {sel:'[data-act="judge"]', text:'最後に「<b>判定</b>」を押して、いろいろな押し方でもちゃんと動くか確かめよう。', until:()=>false},
+];
+function startCoach(){
+  stopCoach();
+  G.coach={i:-1};
+  const d=document.createElement('div'); d.className='coach'; d.id='coach';
+  document.body.appendChild(d);
+  coachGo(0);
+  G.coach.timer=setInterval(coachTick, 250);
+}
+function stopCoach(){
+  if(G.coach && G.coach.timer) clearInterval(G.coach.timer);
+  G.coach=null;
+  document.querySelectorAll('.coach').forEach(e=>e.remove());
+  document.querySelectorAll('.coach-hi').forEach(e=>e.classList.remove('coach-hi'));
+}
+function coachGo(i){
+  const c=G.coach; if(!c) return;
+  c.i=i; const s=TUT_STEPS[i]; if(!s){ stopCoach(); return; }
+  if(s.before) s.before();
+  const d=document.getElementById('coach');
+  // {PB1} のような書き方は、設定に合わせた部品名に置き換える
+  const txt=s.text.replace(/\{(\w+)\}/g, (_,n)=>{ const x=prep(G.stage).io.find(v=>v.name===n); return x ? esc(showName(G.stage,x.a)) : n; });
+  d.innerHTML=`<div class="coach-in">${talkHTML(txt, i>=7?'happy':'normal')}
+    <div class="coach-acts"><span class="coach-n">${i+1} / ${TUT_STEPS.length}</span>
+      <button class="btn small" data-coach="skip">スキップ</button>
+      ${s.until?'':'<button class="btn small primary" data-coach="next">次へ</button>'}</div></div>`;
+  d.onclick=e=>{ const b=e.target.closest('[data-coach]'); if(!b) return;
+    if(b.dataset.coach==='next') coachGo(i+1);
+    if(b.dataset.coach==='skip'){ stopCoach(); toast('いつでもエリア1の一覧から、使い方をもう一度見られます'); } };
+  coachTick(true);
+}
+function coachTick(scroll){
+  const c=G.coach; if(!c) return;
+  const s=TUT_STEPS[c.i]; if(!s) return;
+  if(s.until && s.until()){ SFX.play('testOk', c.i); coachGo(c.i+1); return; }
+  // 案内している部品を目立たせる(描き直しで消えるので、毎回付け直す)
+  document.querySelectorAll('.coach-hi').forEach(e=>{ if(!e.matches(s.sel)) e.classList.remove('coach-hi'); });
+  const el=document.querySelector(s.sel);
+  if(el){ el.classList.add('coach-hi'); if(scroll===true) el.scrollIntoView({block:'center', behavior:reduced()?'auto':'smooth'}); }
+}
+function tutorialClear(){
+  stopCoach();
+  G.save.tut=true; persist();
+  SFX.play('clear'); confetti(45);
+  openModal(`<div class="clear-wrap"><p class="clear-title">CLEAR!</p></div>
+    ${talkHTML('チュートリアル完了!部品を選んで置く、ボタンで動かす、判定で確かめる。これで基本はばっちりだよ。いよいよ<b>はじまりの村</b>へ出発だ!','happy')}
+    <div class="acts"><button class="btn primary" data-m="go">${ic('map')} 冒険へ出発</button></div>`, t=>{
+    if(t.dataset.m==='go'){ closeModal(); G.mapArea=1; showMap(); }
+  });
+}
+
 function onClear(){
+  if(G.stage && G.stage.tutorial){ tutorialClear(); return; }
   const st=G.stage, P=prep(st), rec=stRec(st.id);
   const n=countContacts(G.prog);
   const stars=[true, n<=P.target, rec.hints===0 && !rec.peeked];
@@ -2900,8 +3168,36 @@ function setupPWA(){
   // 進捗がブラウザの容量整理で消されにくくなるよう依頼する(許可されなくても動作に影響なし)
   try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 }
+/* ---------- 設定画面 ---------- */
+function openSettings(){
+  const draw=()=>{
+    const o=(k,v,label,sub)=>`<button class="opt ${G.set[k]===v?'sel':''}" data-m="set" data-k="${k}" data-v="${v}">${label}${sub?`<small>${sub}</small>`:''}</button>`;
+    const ex = (G.set.names==='symbol'?'PB1':G.set.names==='both'?'ボタン1 PB1':'ボタン1') + (G.set.addr?'(%IX0.0)':'');
+    return `<h2>${ic('gear')} 設定</h2>
+      <div class="note">部品の名前</div>
+      <div class="opts">${o('names','easy','やさしい名前','ボタン1・ランプ1')}${o('names','symbol','記号','PB1・PL1')}${o('names','both','両方','ボタン1 PB1')}</div>
+      <div class="note">アドレス(%IX0.0 などの番地)</div>
+      <div class="opts">${o('addr',false,'表示しない','はじめての人向け')}${o('addr',true,'表示する','本物のPLCと同じ')}</div>
+      <div class="set-ex">表示の例:<b>${esc(ex)}</b></div>
+      <div class="note">効果音</div>
+      <div class="opts"><button class="opt ${SFX.on()?'sel':''}" data-m="snd" data-v="1">ON</button><button class="opt ${SFX.on()?'':'sel'}" data-m="snd" data-v="0">OFF</button></div>
+      <div class="note">そのほか</div>
+      <div class="opts"><button class="btn small" data-m="tut">${ic('hint')} チュートリアルをもう一度</button><button class="btn small" data-m="data">${ic('save')} データ(書き出し・読み込み)</button></div>
+      <div class="acts"><button class="btn primary" data-m="close">閉じる</button></div>`;
+  };
+  const bg=openModal(draw(), t=>{
+    const m=t.dataset.m;
+    if(m==='set'){ const k=t.dataset.k, v=t.dataset.v; G.set[k] = k==='addr' ? v==='true' : v; saveSettings(); applySettings();
+      bg.querySelector('.modal').innerHTML=draw(); if(G.stage){ renderEditor(); renderMachine(); renderBottom(); } return; }
+    if(m==='snd'){ SFX.set(t.dataset.v==='1'); document.querySelectorAll('[data-snd]').forEach(x=>x.innerHTML=ic(SFX.on()?'sound':'mute')); bg.querySelector('.modal').innerHTML=draw(); return; }
+    if(m==='tut'){ closeModal(); openStage(tutStage()); return; }
+    if(m==='data'){ closeModal(); showData(); return; }
+  });
+}
+
 function boot(){
   setupPWA();
+  G.set=loadSettings(); applySettings();
   G.save=loadSave();
   window.addEventListener('beforeunload', ()=>{ if(G.stage) saveDraft(); });
   showTitle();

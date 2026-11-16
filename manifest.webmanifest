@@ -1,7 +1,7 @@
 {
-  "name": "ラダー工場の冒険",
-  "short_name": "ラダー冒険",
-  "description": "OpenPLCのラダーを、回路を組んで機械を動かしながら覚える学習RPG",
+  "name": "CIRCUIT ISLES",
+  "short_name": "CIRCUIT ISLES",
+  "description": "回路を組み、島に電気を通す。PLC制御(ラダー)の入門パズル",
   "lang": "ja",
   "start_url": "./index.html",
   "scope": "./",
