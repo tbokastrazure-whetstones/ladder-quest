@@ -10,7 +10,7 @@
 <meta property="og:title" content="CIRCUIT ISLES">
 <meta property="og:description" content="回路を組み、島に電気を通す。PLC制御(ラダー)の入門パズル">
 <meta property="og:url" content="https://tbokastrazure-whetstones.github.io/ladder-quest/">
-<meta property="og:image" content="https://tbokastrazure-whetstones.github.io/ladder-quest/icon-512.png?v=3">
+<meta property="og:image" content="https://tbokastrazure-whetstones.github.io/ladder-quest/icon-512.png?v=4">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
 <meta name="twitter:card" content="summary">
@@ -21,8 +21,8 @@
 <meta name="apple-mobile-web-app-title" content="CIRCUIT ISLES">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icon-192.png?v=3">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+<link rel="icon" type="image/png" href="icon-192.png?v=4">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4">
 <style>
 :root{
   --bg:#fff6e5; --bg2:#fffaf0; --panel:#ffffff; --panel2:#fff1cf; --soft:#f1e6cf;
@@ -690,6 +690,19 @@ body.on-stage:has(.coach) .stage{padding-bottom:calc(240px + var(--sb))}
 .hand-tip b{color:var(--ink2)}
 .hand-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .hgrp{flex:none;background:#f4f6fa;border-radius:8px;padding:4px 6px 6px}
+.hsec{margin-bottom:4px;min-width:0}
+.hsec-row{display:flex;gap:10px;align-items:flex-start}
+.hsec-row .s-coil{flex:1 1 auto}
+.hsec-row .s-util{flex:none}
+.hsec-row .s-coil .hsec-h span{display:none}
+.hsec-h{display:flex;align-items:baseline;gap:8px;margin:2px 2px 3px}
+.hsec-h b{font-size:12px;letter-spacing:.06em;color:#fff;border-radius:4px;padding:0 7px}
+.hsec-h span{font-size:11px;color:var(--sub)}
+.s-contact .hsec-h b{background:#1f9a5a}
+.s-coil .hsec-h b{background:#2c63c2}
+.s-util .hsec-h b{background:#8e95a3}
+.s-coil .hgrp{background:#eef4ff}
+.s-coil .hcard{width:auto;min-width:54px;padding:0 6px}
 .hgrp .gh{font-size:11px;font-weight:800;color:var(--ink2);white-space:nowrap;margin-bottom:4px}
 .hgrp .gh span{font-weight:600;color:var(--sub);font-family:Consolas,monospace;font-size:10px}
 .hgrp .gc{display:flex;gap:5px}
@@ -701,6 +714,12 @@ body.on-stage:has(.coach) .stage{padding-bottom:calc(240px + var(--sb))}
 .drag-ghost svg{width:40px;height:26px;display:block}
 .rung-svg line.owire{stroke-dasharray:4 4;opacity:.7}
 .rung-svg .out.pl line.owire{stroke:var(--on);opacity:1}
+/* 部品を置いた瞬間 */
+.rung-svg .place-ring{fill:none;stroke:#ffc23d;transform-box:fill-box;transform-origin:center;animation:placering .55s ease-out both}
+@keyframes placering{from{transform:scale(.45);opacity:1}to{transform:scale(1.9);opacity:0}}
+.rung-svg .cell.placed .sym,.rung-svg .out.placed path,.rung-svg .out.placed rect.box{stroke:#e8a200!important;stroke-width:4.5}
+.rung-svg .cell.placed .cfill,.rung-svg .out.placed .ofill{fill:rgba(255,194,61,.35)}
+.rung-svg .cell.placed text.lab,.rung-svg .out.placed text.lab{fill:#b87800}
 /* ガイド枠 */
 .rung-svg .blank.slot{stroke:#e8a200;stroke-dasharray:5 4;stroke-width:2;fill:rgba(255,194,61,.10)}
 .rung-svg line.slotw{stroke-dasharray:3 3;opacity:.6}
@@ -2405,8 +2424,26 @@ function renderEditor(){
   el.innerHTML=h;
   el.classList.toggle('placing', !!G.tool);
   el.classList.toggle('running', G.running);
-  if(G.pop){ const pe=document.getElementById(G.pop); if(pe){ pe.classList.add('pop'); burstAt(pe, 14, {power:50, size:7}); } SFX.play('place'); G.pop=null; }
+  if(G.pop){ placedFx(document.getElementById(G.pop)); G.pop=null; }
   updateLadderVis();
+}
+// 部品を置いた瞬間の手応え:部品が金色に光る+輪が広がる+火花+音+(Androidは)短い振動
+function placedFx(pe){
+  SFX.play('place');
+  try{ if(navigator.vibrate) navigator.vibrate(18); }catch(e){}
+  if(!pe) return;
+  pe.classList.add('pop','placed');
+  setTimeout(()=>pe.classList.remove('placed'), 700);
+  burstAt(pe, 18, {power:60, size:8, colors:['#ffc23d','#fff3a0','#ffffff']});
+  if(reduced()) return;
+  const hit=pe.querySelector('.hit'), svg=pe.ownerSVGElement; if(!hit || !svg) return;
+  const b=hit.getBBox(), ns='http://www.w3.org/2000/svg';
+  for(const [d,w] of [[0,3.5],[120,2]]){
+    const c=document.createElementNS(ns,'circle');
+    c.setAttribute('cx', b.x+b.width/2); c.setAttribute('cy', b.y+b.height/2); c.setAttribute('r', Math.min(b.width,b.height)*0.42);
+    c.setAttribute('class','place-ring'); c.style.strokeWidth=w; c.style.animationDelay=d+'ms';
+    svg.appendChild(c); setTimeout(()=>c.remove(), 800+d);
+  }
 }
 function edited(){ saveDraft(); renderEditor(); }
 function addRung(){ const P=prep(G.stage); if(G.prog.length<P.maxRungs){ G.prog.push(newRung(P.cols)); edited(); } }
@@ -2494,22 +2531,25 @@ function cellPicker(ri,r,c){
   });
 }
 /* ---------- 部品の手札(選ぶ → 光ったマスをタップ。ドラッグでも置ける) ---------- */
+// 手札は「接点(条件)」「コイル(動かすもの)」「その他」の段に分ける
 function handTools(st){
-  const P=prep(st), pal=P.palette, list=[], ch=contactChoices(st);
+  const P=prep(st), pal=P.palette, ch=contactChoices(st);
+  const contacts=[], coils=[], util=[];
   ch.forEach(x=>{
-    const g={a:x.a, label:x.label, sub:x.sub, items:[]};
-    if(pal.includes('NO')) g.items.push({k:'NO|'+x.a, t:'NO', a:x.a, name:'a接点'});
-    if(pal.includes('NC')) g.items.push({k:'NC|'+x.a, t:'NC', a:x.a, name:'b接点'});
-    if(pal.includes('COIL') && ['Q','M'].includes(kindOf(x.a))) g.items.push({k:'COIL|'+x.a, t:'COIL', a:x.a, name:'コイル'});
-    if(g.items.length) list.push(g);
+    const items=[];
+    if(pal.includes('NO')) items.push({k:'NO|'+x.a, t:'NO', a:x.a, name:'a接点'});
+    if(pal.includes('NC')) items.push({k:'NC|'+x.a, t:'NC', a:x.a, name:'b接点'});
+    if(items.length) contacts.push({label:x.label, sub:x.sub, items});
+    if(pal.includes('COIL') && ['Q','M'].includes(kindOf(x.a))) coils.push({k:'COIL|'+x.a, t:'COIL', a:x.a, name:x.label});
   });
-  const fb=['TON','TOF','CTU','CTD'].filter(k=>pal.includes(k));
-  const util={label:'その他', sub:'', items:[]};
-  fb.forEach(k=>util.items.push({k:'FB|'+k, t:'FB', a:k, name:k}));
-  if(!isFill() && !(G.prog||[]).some(r=>r.guide)) util.items.push({k:'W|', t:'W', name:'横線'});
-  util.items.push({k:'E|', t:'E', name:'消す'});
-  list.push(util);
-  return list;
+  ['TON','TOF','CTU','CTD'].filter(k=>pal.includes(k)).forEach(k=>coils.push({k:'FB|'+k, t:'FB', a:k, name:k}));
+  if(!isFill() && !(G.prog||[]).some(r=>r.guide)) util.push({k:'W|', t:'W', name:'横線'});
+  util.push({k:'E|', t:'E', name:'消す'});
+  const sec=[];
+  if(contacts.length) sec.push({title:'接点', hint:'条件(ボタン・センサなど)', cls:'s-contact', groups:contacts});
+  if(coils.length) sec.push({title:'コイル', hint:'右端の「出力」に置く(動かすもの)', cls:'s-coil', groups:[{label:'', items:coils}]});
+  sec.push({title:'その他', hint:'', cls:'s-util', groups:[{label:'', items:util}]});
+  return sec;
 }
 function toolObj(){ if(!G.tool) return null; const [t,a]=G.tool.split('|'); return {t, a:a||null}; }
 // 選んでいる部品が、マス(cell)/出力(out)に置けるか
@@ -2530,13 +2570,17 @@ function toolIcon(t){
   return `<svg viewBox="0 0 40 24"><path d="M13 5 27 19M27 5 13 19" ${L}/></svg>`;
 }
 function handHTML(st){
-  const groups=handTools(st), o=toolObj();
-  const tip = !o ? '<b>① 下の部品をタップ</b>(またはマスへドラッグ)して選ぼう'
+  const secs=handTools(st), o=toolObj();
+  const tip = !o ? '<b>① 下の部品をタップ</b>(またはマスへドラッグ)して選ぼう。置いた部品は長押しで動かせるよ'
     : `<b>② 光っているマスをタップ</b>して置こう。${o.t==='COIL'||o.t==='FB'?'コイルは右端の「出力」に置きます。':''}もう一度部品をタップで選ぶのをやめる`;
-  return `<div class="hand"><div class="hand-tip">${tip}</div><div class="hand-row">${groups.map(g=>`
-    <div class="hgrp"><div class="gh">${esc(g.label)}${g.sub&&g.sub!==g.label?` <span>${esc(g.sub)}</span>`:''}</div><div class="gc">
-      ${g.items.map(it=>`<button class="hcard t-${it.t} ${G.tool===it.k?'sel':''}" data-act="tool" data-k="${esc(it.k)}" aria-pressed="${G.tool===it.k}">${toolIcon(it.t)}<span>${esc(it.name)}</span></button>`).join('')}
-    </div></div>`).join('')}</div></div>`;
+  const card=it=>`<button class="hcard t-${it.t} ${G.tool===it.k?'sel':''}" data-act="tool" data-k="${esc(it.k)}" aria-pressed="${G.tool===it.k}">${toolIcon(it.t)}<span>${esc(it.name)}</span></button>`;
+  const secHTML=s=>`<div class="hsec ${s.cls}"><div class="hsec-h"><b>${s.title}</b>${s.hint?`<span>${s.hint}</span>`:''}</div>
+    <div class="hand-row">${s.groups.map(g=>`
+      <div class="hgrp">${g.label?`<div class="gh">${esc(g.label)}${g.sub&&g.sub!==g.label?` <span>${esc(g.sub)}</span>`:''}</div>`:''}<div class="gc">${g.items.map(card).join('')}</div></div>`).join('')}
+    </div></div>`;
+  // 接点は1段、コイルとその他は横に並べて縦の長さを抑える
+  const c=secs.filter(s=>s.cls==='s-contact'), rest=secs.filter(s=>s.cls!=='s-contact');
+  return `<div class="hand"><div class="hand-tip">${tip}</div>${c.map(secHTML).join('')}<div class="hsec-row">${rest.map(secHTML).join('')}</div></div>`;
 }
 // 選んだ部品を、マス/出力に置く。置けたら true
 function placeTool(ri, r, c, where){
@@ -2558,31 +2602,83 @@ function placeTool(ri, r, c, where){
 }
 function selectTool(k){ G.tool = G.tool===k ? null : k; SFX.play('tick'); renderEditor(); }
 // ドラッグで置く(手札のカードを押したまま、マスの上で離す)
+/* ドラッグ操作
+   ・手札のカードを押したまま、マスの上で離す → 置く
+   ・置いてある部品を長押し(マウスはそのまま)してから動かす → 別のマスへ移動(相手がいれば入れ替え)
+     ラダー図の外で離す → 取り外し */
 function setupHandDrag(){
   if(G.dragInit) return; G.dragInit=true;     // 1回だけ登録
   let d=null;
+  const targetAt=(x,y)=>{ const el=document.elementFromPoint(x,y); return el&&el.closest&&el.closest('.rung-svg [data-act="cell"], .rung-svg [data-act="out"]'); };
+  const startGhost=(t)=>{ const g=document.createElement('div'); g.className='drag-ghost'; g.innerHTML=toolIcon(t); document.body.appendChild(g); d.g=g; G.dragging=true; };
+  // スマホで部品を動かしている間は、画面がスクロールしないようにする
+  document.addEventListener('touchmove', e=>{ if(G.dragging) e.preventDefault(); }, {passive:false});
   document.addEventListener('pointerdown', e=>{
-    const b=e.target.closest && e.target.closest('#editor .hcard'); if(!b || e.button>0) return;
-    d={k:b.dataset.k, x:e.clientX, y:e.clientY, on:false, g:null, hl:null};
+    if(e.button>0 || !G.stage) return;
+    const b=e.target.closest && e.target.closest('#editor .hcard');
+    if(b){ d={kind:'hand', k:b.dataset.k, x:e.clientX, y:e.clientY, on:false, g:null, hl:null}; return; }
+    // 置いてある部品
+    const h=e.target.closest && e.target.closest('#editor .rung-svg .hit'); if(!h) return;
+    const ri=+h.dataset.ri, rg=G.prog[ri]; if(!rg) return;
+    let src=null, t=null;
+    if(h.dataset.act==='cell'){ const r=+h.dataset.r, c=+h.dataset.c, cell=rg.cells[r][c];
+      if(cell && (cell.t==='NO'||cell.t==='NC') && !cellLocked(rg,r,c)){ src={kind:'cell', ri, r, c}; t=cell.t; } }
+    else if(h.dataset.act==='out'){ if(rg.out && !outLocked(rg)){ src={kind:'out', ri}; t=rg.out.t==='COIL'?'COIL':'FB'; } }
+    if(!src) return;
+    d={kind:'move', src, t, x:e.clientX, y:e.clientY, on:false, armed:e.pointerType==='mouse', g:null, hl:null};
+    if(!d.armed){ const dd=d; dd.timer=setTimeout(()=>{ if(d===dd && !dd.cancel){ dd.armed=true; SFX.play('tick'); try{ navigator.vibrate&&navigator.vibrate(10); }catch(_){}
+      h.classList.add('over'); } }, 260); }
   });
   addEventListener('pointermove', e=>{
     if(!d) return;
-    if(!d.on){ if(Math.hypot(e.clientX-d.x, e.clientY-d.y)<10) return;
-      d.on=true; G.tool=d.k; renderEditor();
-      const g=document.createElement('div'); g.className='drag-ghost'; const [t]=d.k.split('|'); g.innerHTML=toolIcon(t); document.body.appendChild(g); d.g=g; }
+    const dist=Math.hypot(e.clientX-d.x, e.clientY-d.y);
+    if(!d.on){
+      if(dist<10) return;
+      if(d.kind==='move' && !d.armed){ d.cancel=true; clearTimeout(d.timer); d=null; return; }   // 長押し前に動いたら、ただのスクロール
+      d.on=true;
+      if(d.kind==='hand'){ G.tool=d.k; renderEditor(); startGhost(d.k.split('|')[0]); }
+      else startGhost(d.t);
+    }
     d.g.style.left=e.clientX+'px'; d.g.style.top=e.clientY+'px';
-    const el=document.elementFromPoint(e.clientX,e.clientY), t=el&&el.closest&&el.closest('.rung-svg [data-act="cell"], .rung-svg [data-act="out"]');
+    const t=targetAt(e.clientX,e.clientY);
     if(d.hl && d.hl!==t) d.hl.classList.remove('over'); if(t){ t.classList.add('over'); d.hl=t; }
   }, {passive:true});
   const end=e=>{
-    if(!d) return; const dd=d; d=null;
+    if(!d) return; const dd=d; d=null; G.dragging=false; clearTimeout(dd.timer);
     if(dd.g) dd.g.remove();
-    if(!dd.on) return;                       // ただのタップはクリックとして扱う
+    if(!dd.on){ if(dd.kind==='move' && dd.armed && dd.timer){ G.dragged=Date.now(); renderEditor(); } return; }   // ただのタップはクリックとして扱う(長押しだけで離したときは何もしない)
     G.dragged=Date.now();
-    const el=document.elementFromPoint(e.clientX,e.clientY), t=el&&el.closest&&el.closest('.rung-svg [data-act="cell"], .rung-svg [data-act="out"]');
-    if(t) placeTool(+t.dataset.ri, +t.dataset.r, +t.dataset.c, t.dataset.act); else renderEditor();
+    const t=targetAt(e.clientX,e.clientY);
+    if(dd.kind==='hand'){ if(t) placeTool(+t.dataset.ri, +t.dataset.r, +t.dataset.c, t.dataset.act); else renderEditor(); return; }
+    movePart(dd.src, t);
   };
-  addEventListener('pointerup', end); addEventListener('pointercancel', e=>{ if(d&&d.g) d.g.remove(); d=null; });
+  addEventListener('pointerup', end); addEventListener('pointercancel', ()=>{ if(d){ clearTimeout(d.timer); if(d.g) d.g.remove(); } d=null; G.dragging=false; });
+}
+// 置いてある部品を動かす。t=離した場所(なければ取り外し)
+function movePart(src, t){
+  const A_=G.prog[src.ri];
+  if(!t){   // ラダー図の外で離した → 取り外し
+    if(src.kind==='cell') A_.cells[src.r][src.c]=null; else A_.out=null;
+    SFX.play('remove'); toast('部品を取り外しました'); edited(); return;
+  }
+  const ri=+t.dataset.ri, B_=G.prog[ri];
+  if(src.kind==='cell'){
+    if(t.dataset.act!=='cell'){ toast('接点は「出力」より左のマスに置きます'); renderEditor(); return; }
+    const r=+t.dataset.r, c=+t.dataset.c;
+    if(ri===src.ri && r===src.r && c===src.c){ renderEditor(); return; }
+    if(cellLocked(B_,r,c)){ toast('このマスは固定されています'); renderEditor(); return; }
+    const a=A_.cells[src.r][src.c], b=B_.cells[r][c];
+    B_.cells[r][c]=a;
+    // 相手が接点なら入れ替え。空き・横線なら、元の場所は空きにする(1行目の本線は横線に戻す)
+    A_.cells[src.r][src.c] = (b && (b.t==='NO'||b.t==='NC')) ? b : (src.r===0 && !A_.guide && G.stage.type!=='fill' ? {t:'W'} : null);
+    G.pop=`c-${ri}-${r}-${c}`; edited(); return;
+  }
+  // 出力(コイル)
+  if(t.dataset.act!=='out'){ toast('コイルは右端の「出力」に置きます'); renderEditor(); return; }
+  if(ri===src.ri){ renderEditor(); return; }
+  if(outLocked(B_)){ toast('この出力は固定されています'); renderEditor(); return; }
+  const tmp=B_.out; B_.out=A_.out; A_.out=tmp||null;
+  G.pop=`o-${ri}`; edited();
 }
 // 組む・最短挑戦では、1行目(出力につながる本線)の空きマスを自動で横線にする
 function autoWire(rg){
@@ -3049,7 +3145,7 @@ const TUT_STEPS = [
    until:()=>(G.tool||'').startsWith('NO|')},
   {sel:'.rung-svg .hit.tgt1', text:'黄色く光っているマスをタップして、部品を置こう。',
    until:()=>G.prog[0].cells.some(r=>r.some(c=>c&&c.t==='NO'))},
-  {sel:'.hcard[data-k^="COIL|"]', text:'次は「<b>{PL1}</b>」の「<b>コイル</b>」を選ぼう。<br>コイルは「電気が届くと機械を動かす部品」だよ。',
+  {sel:'.hcard[data-k^="COIL|"]', text:'次は、青い「<b>コイル</b>」の段にある「<b>{PL1}</b>」を選ぼう。<br>コイルは「電気が届くと機械を動かす部品」だよ。',
    until:()=>(G.tool||'').startsWith('COIL|')},
   {sel:'.rung-svg [data-act="out"]', text:'右端の「<b>出力</b>」をタップして、コイルを置こう。',
    until:()=>!!(G.prog[0].out && G.prog[0].out.t==='COIL')},
