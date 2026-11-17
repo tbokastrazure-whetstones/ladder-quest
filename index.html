@@ -10,7 +10,7 @@
 <meta property="og:title" content="CIRCUIT ISLES">
 <meta property="og:description" content="回路を組み、島に電気を通す。PLC制御(ラダー)の入門パズル">
 <meta property="og:url" content="https://tbokastrazure-whetstones.github.io/ladder-quest/">
-<meta property="og:image" content="https://tbokastrazure-whetstones.github.io/ladder-quest/icon-512.png?v=4">
+<meta property="og:image" content="https://tbokastrazure-whetstones.github.io/ladder-quest/icon-512.png?v=5">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
 <meta name="twitter:card" content="summary">
@@ -21,8 +21,8 @@
 <meta name="apple-mobile-web-app-title" content="CIRCUIT ISLES">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icon-192.png?v=4">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4">
+<link rel="icon" type="image/png" href="icon-192.png?v=5">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=5">
 <style>
 :root{
   --bg:#fff6e5; --bg2:#fffaf0; --panel:#ffffff; --panel2:#fff1cf; --soft:#f1e6cf;
@@ -390,9 +390,6 @@ body.quake{animation:quake .5s}
 .rung-svg .xbg,.rung-svg .xm{display:none}
 .rung-svg .xbg{fill:var(--ng);stroke:var(--ink);stroke-width:1.5}
 .rung-svg .xm{fill:#fff;font-size:11px;font-weight:900}
-.rung-svg .cell.blk .xbg,.rung-svg .cell.blk .xm{display:inline}
-.rung-svg .cell.blk .sym{stroke:var(--ng)}
-.rung-svg .cell.blk .blank{stroke:var(--ng);stroke-dasharray:none}
 .ctrlbar .btn.primary{flex:1.4 1 0}
 /* ---------- 見た目のルール ----------
    ボタンは3種類だけ:
@@ -420,6 +417,9 @@ body.quake{animation:quake .5s}
 .stage-btn.next{border-color:var(--ink);box-shadow:0 3px 0 var(--ink),0 0 0 4px #ffe08a}
 .stage-btn .nxt{background:var(--act);color:var(--ink)}
 .pb.held{outline:3px dashed var(--ink)}
+/* 押しっぱなし(ダブルタップ)中:黄色の輪で目立たせる */
+[data-kind="pb"].held{outline:4px solid #f5c400 !important;outline-offset:4px;box-shadow:0 0 0 8px rgba(245,196,0,.25)}
+.mach-ctrl .hold-tip{font-size:12px}
 .hint{border-left-color:var(--info);background:#eaf4ff}
 .clear-title.boss{color:var(--ng)}
 .jrow.run{border-color:var(--ink);background:#fff}
@@ -553,6 +553,18 @@ body.on-stage{background:linear-gradient(180deg,#d9e3f0 0%,#eef1f6 40%,#f3f4f7 1
 .stage-head .badge{border-width:1.5px}
 .stage-head .stars .off,.on-map .topbar .stars .off{color:rgba(255,255,255,.25);-webkit-text-stroke:0}
 .on-map .topbar h1{color:#fff;text-shadow:none}
+/* マップでは上のバー(設定・音・レベル)を常に画面上部に出す */
+body.on-map .topbar{position:sticky !important;top:0;z-index:30}
+@media (max-width:860px){
+  /* スマホのマップでは2段に詰める:1段目 タイトル+音+設定、2段目 レベル+図鑑。データは設定の中にある */
+  body.on-map .topbar{gap:6px 8px;padding-bottom:6px}
+  body.on-map .topbar h1{order:0;flex:1 1 auto;font-size:16px}
+  body.on-map .topbar [data-snd],body.on-map .topbar [data-act="settings"]{order:1}
+  body.on-map .topbar .status{order:2;flex:1 1 auto}
+  body.on-map .topbar [data-act="dex"]{order:3;font-size:0;padding:4px 8px}
+  body.on-map .topbar [data-act="dex"] svg{width:18px;height:18px}
+  body.on-map .topbar [data-act="data"]{display:none}
+}
 .on-map .topbar h1 small{color:rgba(255,255,255,.7)}
 .on-map .topbar .xptext{color:rgba(255,255,255,.7)}
 .on-map .topbar .xpbar{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.15)}
@@ -994,7 +1006,7 @@ const STAGES = [
   {
     id:'2-2', area:2, title:'停止はいつでも最優先', type:'fill',
     story:'森の木材コンベア。安全担当の妖精いわく「停止ボタンはいつでも勝たなきゃダメ」。',
-    task:'起動ボタン PB1 で コンベア CV1 が自己保持で動き、停止ボタン PB2 で止まる。起動と停止を同時に押したときは止まる(停止優先)ように、「?」を埋めよう。',
+    task:'起動ボタン PB1 を押すとコンベア CV1 が動き、手を離しても動き続ける。停止ボタン PB2 を押すと止まる。起動と停止を両方押しているときは、止まったまま(停止優先)。',
     io:[
       {a:'I0.0', name:'PB1', desc:'起動ボタン'},
       {a:'I0.1', name:'PB2', desc:'停止ボタン'},
@@ -1152,7 +1164,7 @@ const STAGES = [
   {
     id:'3-2', area:3, title:'消したあとも回る換気扇', type:'fill',
     story:'塔の2階の作業部屋。照明を消したあとも、しばらく換気扇を回しておきたい。',
-    task:'照明スイッチ SW1 がONの間は照明 PL1 と換気扇 FAN がON。SW1 をOFFにすると照明はすぐ消え、換気扇は5秒後に止まる。「?」を埋めよう(タイマの種類と時間も選ぶ)。',
+    task:'照明スイッチ SW1 がONの間は照明 PL1 と換気扇 FAN がON。SW1 をOFFにすると照明はすぐ消え、換気扇は5秒たってから止まる(タイマの種類と時間も選ぶ)。',
     io:[
       {a:'I0.0', name:'SW1', desc:'照明スイッチ(切替)'},
       {a:'Q0.0', name:'PL1',  desc:'照明'},
@@ -1659,7 +1671,7 @@ function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
    ここから画面(ブラウザでのみ実行)
    ===================================================================== */
 const G = { save:null, stage:null, prog:null, plc:new PLC(), running:false, acc:0, last:0,
-            hold:false, tab:'task', phys:{}, raf:0 };
+            latch:new Set(), lastTap:{}, tab:'task', phys:{}, raf:0 };
 
 function persist(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(G.save)); }
@@ -1832,10 +1844,23 @@ const SFX = {
   ac(){
     if(!this.on()) return null;
     try{
+      // iPhone はアプリを裏に回すと state が 'interrupted' になり、そのままだと鳴らない。'closed' なら作り直す
+      if(this.ctx && this.ctx.state==='closed') this.ctx=null;
       if(!this.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; this.ctx=new C(); }
-      if(this.ctx.state==='suspended') this.ctx.resume();
+      if(this.ctx.state!=='running') this.ctx.resume().catch(()=>{});
       return this.ctx;
     }catch(e){ return null; }
+  },
+  // 画面に戻ったとき・タップしたときに音を起こし直す
+  wake(){
+    const c=this.ctx; if(!c) return;
+    if(c.state==='closed'){ this.ctx=null; return; }
+    if(c.state!=='running'){
+      c.resume().then(()=>{
+        // それでも鳴らない端末(古いiOS)は作り直す
+        if(c.state!=='running'){ try{ c.close(); }catch(e){} this.ctx=null; }
+      }).catch(()=>{ try{ c.close(); }catch(e){} this.ctx=null; });
+    }
   },
   tone(f, t0, dur, type, vol, f2){
     const c=this.ac(); if(!c) return;
@@ -2214,7 +2239,7 @@ function openStage(st){
   stopRun(); stopCoach();
   document.querySelectorAll('.prolog').forEach(e=>e.remove());
   document.body.classList.remove('on-map','prologue'); document.body.classList.add('on-stage'); closeAreaSheet();
-  G.stage=st; G.tab='task'; G.hold=false; G.mapArea=st.area; G.tool=null;
+  G.stage=st; G.tab='task'; G.latch=new Set(); G.mapArea=st.area; G.tool=null;
   setupHandDrag();
   const P=prep(st);
   let d=st.tutorial ? null : G.save.drafts[st.id];      // チュートリアルは毎回まっさらから
@@ -2765,12 +2790,8 @@ function rungStatusHTML(rg, res, blk){
     if(o.t==='TOF') return `${ic('check')} 通電中 → ${esc(o.n)} ON(切れてから時間を計る)`;
     return `${ic('check')} 通電中 → ${esc(o.n)} に1回数える信号`;
   }
-  if(!blk) return '✕ どこかで線がつながっていません(縦線の位置を確認)';
-  const c=blk.cell;
-  if(!c) return rg.guide ? '✕ ここで止まる:まだ部品を置いていない枠があります' : '✕ ここで止まる:空きマスで線が切れています';
-  if(c.t==='NO') return `✕ ここで止まる:a接点 ${nm(c.a)} がOFFなので閉じない`;
-  if(c.t==='NC') return `✕ ここで止まる:b接点 ${nm(c.a)} がONなので開いている`;
-  return '✕ ここで止まる';
+  // 止まっているときは文字を出さない(光が途切れた所を見れば分かる形にする)
+  return '';
 }
 
 /* ---------- 通電表示の更新 ---------- */
@@ -2909,11 +2930,9 @@ function renderMachine(){
       ${tr ? trainerHTML(st, tr) : `<div class="plant">${pl||'<span class="note">出力機器なし</span>'}</div>
       <div class="opanel">${ip||'<span class="note">操作盤なし</span>'}</div>`}
       <div class="mach-ctrl">
-        ${hasPB?`<label><input type="checkbox" id="holdchk" ${G.hold?'checked':''}> 押しっぱなし(タップでON/OFF。2つ同時押し用)</label>`:''}
+        ${hasPB?`<span class="hold-tip">ボタンは<b>ダブルタップで押しっぱなし</b>(もう一度ダブルタップで離す)</span>`:''}
         <span class="clock" id="clock">停止中 0.0s</span>
       </div></div>`;
-  const chk=el.querySelector('#holdchk');
-  if(chk) chk.onchange=()=>{ G.hold=chk.checked; if(!G.hold){ el.querySelectorAll('.pb').forEach(b=>{ setIn(b.dataset.in,false); }); } updateMachineVis(); };
   el.querySelectorAll('[data-in]').forEach(btn=>{
     const a=btn.dataset.in, kind=btn.dataset.kind;
     if(kind==='auto') return;
@@ -2921,14 +2940,24 @@ function renderMachine(){
     btn.addEventListener('pointerdown', e=>{
       e.preventDefault();
       SFX.play('press');
-      if(kind==='sw' || G.hold){ setIn(a, !G.plc.inputs[a]); }
-      else { setIn(a, true); try{ btn.setPointerCapture(e.pointerId); }catch(_){} }
+      if(kind==='sw'){ setIn(a, !G.plc.inputs[a]); return; }
+      const now=Date.now();
+      // 押しボタン:押しっぱなし中は、もう一度ダブルタップで離す(1回のタップでは離れない)
+      if(G.latch.has(a)){
+        if(G.lastTap[a] && now-G.lastTap[a]<350){ G.latch.delete(a); G.lastTap[a]=0; setIn(a,false); SFX.play('remove'); }
+        else G.lastTap[a]=now;
+        return;
+      }
+      // 0.35秒以内の2回目のタップで押しっぱなしにする(2つ同時押し用)
+      if(G.lastTap[a] && now-G.lastTap[a]<350){ G.lastTap[a]=0; G.latch.add(a); setIn(a,true); SFX.play('place'); return; }
+      G.lastTap[a]=now;
+      setIn(a, true); try{ btn.setPointerCapture(e.pointerId); }catch(_){}
     });
-    const up=()=>{ if(kind==='pb' && !G.hold) setIn(a,false); };
+    const up=()=>{ if(kind==='pb' && !G.latch.has(a)) setIn(a,false); };
     btn.addEventListener('pointerup', up);
     btn.addEventListener('pointercancel', up);
-    btn.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); if(kind==='sw'||G.hold){ if(!e.repeat) setIn(a,!G.plc.inputs[a]); } else setIn(a,true);} });
-    btn.addEventListener('keyup', e=>{ if((e.key===' '||e.key==='Enter') && kind==='pb' && !G.hold) setIn(a,false); });
+    btn.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); if(kind==='sw'){ if(!e.repeat) setIn(a,!G.plc.inputs[a]); } else setIn(a,true);} });
+    btn.addEventListener('keyup', e=>{ if((e.key===' '||e.key==='Enter') && kind==='pb' && !G.latch.has(a)) setIn(a,false); });
   });
   updateMachineVis();
 }
@@ -2973,7 +3002,7 @@ function updateMachineVis(){
   el.querySelectorAll('[data-in]').forEach(b=>{
     const on=!!G.plc.inputs[b.dataset.in];
     b.classList.toggle('on', on);
-    if(b.classList.contains('pb')) b.classList.toggle('held', G.hold && on);
+    if(b.dataset.kind==='pb') b.classList.toggle('held', G.latch.has(b.dataset.in) && on);
   });
   const outv=a=> G.running || G.plc.time>0 ? G.plc.get(a) : false;
   el.querySelectorAll('[data-out]').forEach(d=>{
@@ -3028,7 +3057,7 @@ function stopRun(){
 }
 function resetRun(){
   stopRun();
-  G.plc=new PLC();
+  G.plc=new PLC(); G.latch=new Set();
   resetPhys();
   updateLadderVis(); updateMachineVis();
 }
@@ -3151,7 +3180,7 @@ const TUT_STEPS = [
    until:()=>!!(G.prog[0].out && G.prog[0].out.t==='COIL')},
   {sel:'#machine .pb', text:'回路ができた!下の機械の<b>押しボタンを押してみよう</b>。押している間、ランプがつくはずだよ。',
    before:()=>{ G.tool=null; renderEditor(); }, until:()=>G.prog[0].out && G.plc.get(G.prog[0].out.a)},
-  {sel:'.rstat', text:'ついたね!指を離すと消えるよ。<br>電気が止まっているときは、ラダー図に<b>✕</b>と、止まった理由がここに出るから見てみてね。'},
+  {sel:'.rung', text:'ついたね!指を離すと消えるよ。<br>電気が通っている線は<b>光る</b>。光が途切れた所で、電気が止まっているんだ。'},
   {sel:'[data-act="judge"]', text:'最後に「<b>判定</b>」を押して、いろいろな押し方でもちゃんと動くか確かめよう。', until:()=>false},
 ];
 function startCoach(){
@@ -3239,8 +3268,6 @@ function onClear(){
     ${newDex.some(id=>PALS[id])?`<div class="pal-join">${newDex.filter(id=>PALS[id]).map(id=>`<div class="pal-card">${palSVG(id,'happy')}<b>${esc((DEX.find(x=>x.id===id)||{}).name||id)}</b><small>が仲間になった!</small></div>`).join('')}</div>`:''}
     ${dexNames.length?`<div class="newdex">${ic('book')} 命令図鑑に追加:<b>${esc(dexNames.join('、'))}</b></div>`:''}
     ${talkHTML(pick(st.boss?LINES.boss:LINES.clear),'happy')}
-    <hr class="sep">
-    ${openplcHTML(st)}
     <div class="acts">
       <button class="btn" data-m="close">このステージに残る</button>
       <button class="btn" data-m="map">マップへ</button>
@@ -3430,6 +3457,11 @@ function boot(){
   G.set=loadSettings(); applySettings();
   G.save=loadSave();
   window.addEventListener('beforeunload', ()=>{ if(G.stage) saveDraft(); });
+  // アプリを裏から戻したときに音が消えないよう、戻った時と最初のタップで起こし直す
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) SFX.wake(); });
+  window.addEventListener('pageshow', ()=>SFX.wake());
+  window.addEventListener('focus', ()=>SFX.wake());
+  document.addEventListener('pointerdown', ()=>SFX.wake(), true);
   showTitle();
 }
 if(typeof document!=='undefined') boot();
