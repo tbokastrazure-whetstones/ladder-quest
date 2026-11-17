@@ -383,6 +383,15 @@ body.quake{animation:quake .5s}
 .stage{grid-template-areas:"mission mission" "editor machine" "bottom bottom"}
 .mission{grid-area:mission;background:#fff;border:2.5px solid var(--ink);border-left:10px solid var(--area);border-radius:14px;padding:8px 12px;font-weight:800;font-size:15.5px;line-height:1.45;box-shadow:0 3px 0 var(--ink)}
 .mission .chip{display:inline-block;font-size:11px;font-weight:900;background:var(--ink);color:#fff;border-radius:999px;padding:0 9px;margin-right:8px;vertical-align:2px}
+.mission .mgoal{font-size:15.5px;line-height:1.45}
+.mission .msteps{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:14px}
+.mission .msteps li{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;background:#f4f6fb;border-radius:8px;padding:4px 8px;line-height:1.5}
+.mission .mdo{color:#24305e}
+.mission .marr{color:#b88a14;font-weight:900}
+.mission .mres{color:#137a4b}
+.mission .nm{font-weight:900}
+.mission .nm small{font-size:10.5px;font-weight:800;color:#fff;background:#24305e;border-radius:6px;padding:0 5px;margin-left:3px;vertical-align:1px}
+.mission .mtip{margin-top:5px;font-size:12.5px;font-weight:700;color:var(--sub)}
 .rstat{font-size:13px;font-weight:800;padding:4px 10px;margin:2px 2px 6px;border-radius:8px;background:#f1edf8;color:var(--sub);min-height:1.6em}
 .rstat.ok{background:#dcfaec;color:#137a4b}
 .rstat.ng{background:#ffe6eb;color:#c0294a}
@@ -834,6 +843,8 @@ const STAGES = [
     id:'1-1', area:1, title:'灯りをともせ', type:'build',
     story:'はじまりの村にやってきた。村の入口の灯りがつかない…。制御盤を開けると、ラダー図はまっさらだ。',
     task:'押しボタン PB1 を押している間だけ、ランプ PL1 が点灯する回路を組もう。',
+    goal:'ボタンを押している間だけ、ランプがつく回路を作ろう',
+    steps:[['{PB1|ボタン}を押している間','{PL1|ランプ}がつく'],['{PB1|ボタン}を離す','{PL1|ランプ}が消える']],
     io:[
       {a:'I0.0', name:'PB1', desc:'押しボタン(押している間ON)'},
       {a:'Q0.0', name:'PL1',  desc:'入口ランプ'},
@@ -862,6 +873,8 @@ const STAGES = [
     id:'1-2', area:1, title:'井戸ポンプの点検', type:'build',
     story:'村の井戸ポンプはいつも回り続けている。点検のときだけ止めたいらしい。',
     task:'ポンプ P1 はふだん運転し続け、点検ボタン PB1 を押している間だけ停止する回路を組もう。',
+    goal:'ふだんは動いていて、ボタンを押すと止まる回路を作ろう',
+    steps:[['何もしない','{P1|ポンプ}が動いている'],['{PB1|点検ボタン}を押している間','{P1|ポンプ}が止まる'],['{PB1|点検ボタン}を離す','{P1|ポンプ}がまた動く']],
     io:[
       {a:'I0.0', name:'PB1', desc:'点検ボタン(押している間ON)'},
       {a:'Q0.0', name:'P1',  desc:'井戸ポンプ'},
@@ -886,6 +899,9 @@ const STAGES = [
     id:'1-3', area:1, title:'ふたりで開ける倉の扉', type:'fill',
     story:'村の倉の扉は重い。安全のため、ふたりが同時にボタンを押したときだけ開くことにした。',
     task:'左ボタン PB1 と右ボタン PB2 を両方押している間だけ、扉シリンダ Y1 が開く(前進する)ようにしよう。「?」のマスを埋めてください。',
+    goal:'2つのボタンを両方押したときだけ、扉が開くようにしよう',
+    steps:[['{PB1|左ボタン}だけ押す','扉は開かない'],['{PB2|右ボタン}だけ押す','扉は開かない'],['両方を押している間','{Y1|扉}が開く']],
+    tip:'2つ同時に押すには、ボタンをダブルタップして押しっぱなしにしよう。',
     io:[
       {a:'I0.0', name:'PB1', desc:'左ボタン'},
       {a:'I0.1', name:'PB2', desc:'右ボタン'},
@@ -913,6 +929,8 @@ const STAGES = [
     id:'1-4', area:1, title:'廊下の灯りが片側しか…', type:'bug',
     story:'村長の家の長い廊下。両端どちらのボタンでも灯りがつくはずが、奥のボタンでは反応しない。',
     task:'手前ボタン PB1 と奥ボタン PB2 のどちらを押しても、押している間ランプ PL1 が点灯するように、ラダーの不具合を直そう。',
+    goal:'どちらのボタンでもランプがつくように、回路を直そう',
+    steps:[['{PB1|手前ボタン}を押している間','{PL1|ランプ}がつく'],['{PB2|奥ボタン}を押している間','{PL1|ランプ}がつく(今はつかない)']],
     io:[
       {a:'I0.0', name:'PB1', desc:'手前のボタン'},
       {a:'I0.1', name:'PB2', desc:'奥のボタン'},
@@ -940,6 +958,8 @@ const STAGES = [
     id:'1-5', area:1, title:'ボス:村の水車小屋', type:'build', boss:true,
     story:'村いちばんの大仕事、水車小屋の制御だ。条件が多いぞ。',
     task:'水車モータ M1 は「運転許可スイッチ SW1 がON」かつ「起動ボタン PB1 または点検ボタン PB2 を押している」かつ「扉センサ S1 がOFF(扉が閉じている)」のときだけ回る。さらに、扉が開いている(S1がON)間は警告灯 PL1 を点灯させよう。',
+    goal:'条件がそろったときだけ水車を回し、扉が開いたら止めて知らせよう',
+    steps:[['{SW1|運転許可スイッチ}がONで、{PB1|起動ボタン}か{PB2|点検ボタン}を押している間','{M1|水車}が回る'],['{SW1|運転許可スイッチ}がOFF','何を押しても回らない'],['{S1|扉センサ}がON(扉が開いた)','水車は止まり、{PL1|警告灯}がつく']],
     io:[
       {a:'I0.0', name:'SW1', desc:'運転許可スイッチ(切替)'},
       {a:'I0.1', name:'PB1', desc:'起動ボタン'},
@@ -981,6 +1001,8 @@ const STAGES = [
     id:'2-1', area:2, title:'止まらない粉ひき機', type:'build',
     story:'森の入口の粉ひき機。起動ボタンを押している間しか回らず、木こりたちが困っている。',
     task:'起動ボタン PB1 を一度押したら、離しても粉ひきモータ M1 が回り続け、停止ボタン PB2 を押すと止まる回路(自己保持回路)を組もう。',
+    goal:'一度押したら、手を離しても回り続ける回路(自己保持)を作ろう',
+    steps:[['{PB1|起動ボタン}を押して離す','{M1|粉ひき機}が回り続ける'],['{PB2|停止ボタン}を押す','{M1|粉ひき機}が止まる']],
     io:[
       {a:'I0.0', name:'PB1', desc:'起動ボタン'},
       {a:'I0.1', name:'PB2', desc:'停止ボタン'},
@@ -1007,6 +1029,8 @@ const STAGES = [
     id:'2-2', area:2, title:'停止はいつでも最優先', type:'fill',
     story:'森の木材コンベア。安全担当の妖精いわく「停止ボタンはいつでも勝たなきゃダメ」。',
     task:'起動ボタン PB1 を押すとコンベア CV1 が動き、手を離しても動き続ける。停止ボタン PB2 を押すと止まる。起動と停止を両方押しているときは、止まったまま(停止優先)。',
+    goal:'停止ボタンがいつでも勝つ回路(停止優先)にしよう',
+    steps:[['{PB1|起動ボタン}を押して離す','{CV1|コンベア}が動き続ける'],['{PB2|停止ボタン}を押す','{CV1|コンベア}が止まる'],['起動と停止を両方押している','止まったまま']],
     io:[
       {a:'I0.0', name:'PB1', desc:'起動ボタン'},
       {a:'I0.1', name:'PB2', desc:'停止ボタン'},
@@ -1035,6 +1059,8 @@ const STAGES = [
     id:'2-3', area:2, title:'危ない起動優先', type:'bug',
     story:'森の丸太ころがし機。前の担当者のラダーは、停止ボタンを押していても起動ボタンで動いてしまうらしい。',
     task:'今のラダーは「起動優先」になっていて危険です。起動ボタン PB1 と停止ボタン PB2 を同時に押したら止まる「停止優先」に直そう(自己保持の動きはそのまま)。',
+    goal:'起動と停止を両方押したら止まるように、回路を直そう',
+    steps:[['{PB1|起動ボタン}を押して離す','{M1|丸太ころがし機}が動き続ける'],['{PB2|停止ボタン}を押す','止まる'],['起動と停止を両方押している','止まる(今は動いてしまう)']],
     io:[
       {a:'I0.0', name:'PB1', desc:'起動ボタン'},
       {a:'I0.1', name:'PB2', desc:'停止ボタン'},
@@ -1062,6 +1088,8 @@ const STAGES = [
     id:'2-4', area:2, title:'行ったり来たりの台車', type:'build',
     story:'森の資材置き場には、前後に動くコンベアがある。正転と逆転が同時に入るとモータが焼けてしまう!',
     task:'正転ボタン PB1 で正転 MF、逆転ボタン PB2 で逆転 MR が自己保持で動き、停止ボタン PB3 でどちらも止まる。正転中は逆転できない・逆転中は正転できないようにインターロックをかけよう。',
+    goal:'前後に動かせて、前と後ろが同時には動かない回路(インターロック)を作ろう',
+    steps:[['{PB1|正転ボタン}を押して離す','{MF|正転}で動き続ける'],['{PB2|逆転ボタン}を押して離す','{MR|逆転}で動き続ける'],['{PB3|停止ボタン}を押す','どちらも止まる'],['正転中に逆転ボタンを押す','逆転しない(逆転中の正転ボタンも同じ)']],
     io:[
       {a:'I0.0', name:'PB1', desc:'正転ボタン'},
       {a:'I0.1', name:'PB2', desc:'逆転ボタン'},
@@ -1099,6 +1127,8 @@ const STAGES = [
     id:'2-5', area:2, title:'ボス:森の製材所', type:'build', boss:true,
     story:'森の奥の製材所。丸のこが回っていないのに木材を送ると大事故になる。',
     task:'起動 PB1 で丸のこモータ SAW が自己保持で回り、停止 PB2 で止まる。送りボタン PB3 で送りコンベア FEED が自己保持で動くが、丸のこが回っているときしか動かず、丸のこが止まると送りも止まる。丸のこ運転中は運転表示灯 PL1 を点灯。',
+    goal:'丸のこが回っているときだけ、木材を送れるようにしよう',
+    steps:[['{PB1|起動ボタン}を押して離す','{SAW|丸のこ}が回り続け、{PL1|運転表示灯}がつく'],['{PB3|送りボタン}を押して離す','{FEED|送りコンベア}が動き続ける(丸のこが回っているときだけ)'],['{PB2|停止ボタン}を押す','丸のこも送りも止まる']],
     io:[
       {a:'I0.0', name:'PB1',  desc:'丸のこ起動'},
       {a:'I0.1', name:'PB2',  desc:'停止'},
@@ -1140,6 +1170,8 @@ const STAGES = [
     id:'3-1', area:3, title:'ゆっくり開く塔の門', type:'build',
     story:'タイマの塔の門番いわく「スイッチを入れて3秒たってから門を開けるのが塔の決まり」。',
     task:'門スイッチ SW1 をONにしてから3秒後に門シリンダ Y1 が開く(ON)ようにしよう。SW1 をOFFにしたらすぐ閉じる(OFF)こと。',
+    goal:'スイッチを入れてから、少し時間をおいて門を開けよう(タイマ)',
+    steps:[['{SW1|門スイッチ}をON','3秒たってから{Y1|門}が開く'],['{SW1|門スイッチ}をOFF','{Y1|門}がすぐ閉じる']],
     io:[
       {a:'I0.0', name:'SW1', desc:'門スイッチ(切替)'},
       {a:'Q0.0', name:'Y1',  desc:'門シリンダ(ONで開く)'},
@@ -1165,6 +1197,9 @@ const STAGES = [
     id:'3-2', area:3, title:'消したあとも回る換気扇', type:'fill',
     story:'塔の2階の作業部屋。照明を消したあとも、しばらく換気扇を回しておきたい。',
     task:'照明スイッチ SW1 がONの間は照明 PL1 と換気扇 FAN がON。SW1 をOFFにすると照明はすぐ消え、換気扇は5秒たってから止まる(タイマの種類と時間も選ぶ)。',
+    goal:'照明を消したあとも、換気扇だけしばらく回しておこう',
+    steps:[['{SW1|照明スイッチ}をON','{PL1|照明}と{FAN|換気扇}がつく'],['{SW1|照明スイッチ}をOFF','{PL1|照明}はすぐ消え、{FAN|換気扇}は5秒たってから止まる']],
+    tip:'タイマの種類と時間も選ぼう。',
     io:[
       {a:'I0.0', name:'SW1', desc:'照明スイッチ(切替)'},
       {a:'Q0.0', name:'PL1',  desc:'照明'},
@@ -1192,6 +1227,8 @@ const STAGES = [
     id:'3-3', area:3, title:'点滅する警告灯', type:'build',
     story:'塔の階段は暗くて危ない。点滅する警告灯をつけよう。',
     task:'スイッチ SW1 がONの間、警告灯 PL1 を「0.5秒消灯 → 0.5秒点灯」のくり返しで点滅させよう(ONにした直後は消灯から始まる)。SW1 をOFFにしたら消灯。',
+    goal:'スイッチを入れている間、警告灯を点滅させよう',
+    steps:[['{SW1|スイッチ}をON','{PL1|警告灯}が「0.5秒消える → 0.5秒つく」をくり返す(消えた状態から始まる)'],['{SW1|スイッチ}をOFF','{PL1|警告灯}が消える']],
     io:[
       {a:'I0.0', name:'SW1', desc:'点滅スイッチ(切替)'},
       {a:'Q0.0', name:'PL1',  desc:'警告灯'},
@@ -1225,6 +1262,9 @@ const STAGES = [
     id:'3-4', area:3, title:'階段のあかり(最短挑戦)', type:'short',
     story:'塔の階段のあかり。ボタンを押すとしばらく点いて、自動で消えるようにしたい。',
     task:'ボタン PB1 を押して離すと、階段灯 PL1 が点灯し、離してから5秒後に自動で消える。できるだけ少ない接点数で作ろう(★目標 2個)。',
+    goal:'押して離すと、しばらくして自動で消えるあかりを、少ない部品で作ろう',
+    steps:[['{PB1|ボタン}を押して離す','{PL1|階段灯}がつく'],['離してから5秒たつ','{PL1|階段灯}が自動で消える']],
+    tip:'目標:接点2個以下(★)。',
     io:[
       {a:'I0.0', name:'PB1', desc:'階段灯ボタン'},
       {a:'Q0.0', name:'PL1',  desc:'階段灯'},
@@ -1251,6 +1291,8 @@ const STAGES = [
     id:'3-5', area:3, title:'ボス:塔の信号機', type:'build', boss:true,
     story:'塔の最上階には、街道の信号機の制御盤がある。正しい順番で光らせれば塔を制覇だ!',
     task:'運転スイッチ SW1 がONの間、信号機を「青 3秒 → 黄 1秒 → 赤 3秒」の順でくり返し点灯させる(ONにした瞬間は青から)。どの色も同時に2つ点かないこと。SW1 をOFFにしたら全部消灯。',
+    goal:'信号機を、決まった順番と時間でくり返し光らせよう',
+    steps:[['{SW1|運転スイッチ}をON','{G|青}3秒 → {Y|黄}1秒 → {R|赤}3秒 をくり返す(青から始まる)'],['動いている間','2つの色が同時につかない'],['{SW1|運転スイッチ}をOFF','全部消える']],
     io:[
       {a:'I0.0', name:'SW1', desc:'運転スイッチ(切替)'},
       {a:'Q0.0', name:'G',   desc:'青信号'},
@@ -2257,7 +2299,8 @@ function initialProg(st){
 }
 /* ---------- ガイド枠(エリア1〜2の「組む」ステージ) ----------
    模範解答の形から、接点を置く場所だけを点線の枠にして残す。横線・縦線(並列の分かれ道)は最初から描いておき、動かせない */
-function guideOn(st){ return (G.set||SET_DEFAULT).guide!==false && !!st && st.type==='build' && st.area<=2; }
+// 2026-11-17:置ける場所を決めるのはやめ、どこにでも置ける形にした(ガイド枠は使わない)
+function guideOn(st){ return false; }
 function guideProg(P){
   return P.answer.map(src=>{
     const g=clone(src); g.guide=true; g.olock=false; g.out=null;
@@ -2268,6 +2311,22 @@ function guideProg(P){
 }
 function saveDraft(){ if(G.stage){ G.save.drafts[G.stage.id]=G.prog; persist(); } }
 
+// 問題文:「目的」+「何をしたら → どうなればOKか」の一覧。{PB1|起動ボタン} は「起動ボタン」+小さく部品名
+function fillNames(st, text){
+  const P=prep(st);
+  return esc(text).replace(/\{([A-Za-z0-9]+)(?:\|([^}]+))?\}/g, (m, sym, label)=>{
+    const io=P.io.find(x=>x.name===sym);
+    const shown=io ? showName(st, io.a) : sym;
+    if(!label) return `<b class="nm">${esc(shown)}</b>`;
+    return `<b class="nm">${label}${shown && shown!==label ? `<small>${esc(shown)}</small>` : ''}</b>`;
+  });
+}
+function missionHTML(st){
+  if(!st.steps) return `<span class="chip">おしごと</span>${esc(nameText(st, st.task))}`;
+  return `<div class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}</div>
+    <ol class="msteps">${st.steps.map(([d,r])=>`<li><span class="mdo">${fillNames(st,d)}</span><span class="marr">→</span><span class="mres">${fillNames(st,r)}</span></li>`).join('')}</ol>
+    ${st.tip?`<div class="mtip">${fillNames(st,st.tip)}</div>`:''}`;
+}
 function renderStage(){
   const st=G.stage, P=prep(st), rec=stRec(st.id);
   const app=document.getElementById('app');
@@ -2279,7 +2338,7 @@ function renderStage(){
     <span class="info">${starsHTML(rec.stars)}</span><button class="btn small icon-btn" data-act="settings" title="設定(効果音・表示)" aria-label="設定">${ic('gear')}</button>
   </div>
   <div class="stage">
-    <div class="mission"><span class="chip">おしごと</span>${esc(nameText(st, st.task))}</div>
+    <div class="mission">${missionHTML(st)}</div>
     <section class="pane editor" id="editor"></section>
     <section class="pane machine" id="machine"></section>
     <section class="pane bottom" id="bottom"></section>
@@ -2424,8 +2483,9 @@ function rungSVG(rg, ri, st, opt){
 }
 function renderEditor(){
   const st=G.stage, P=prep(st), guided=G.prog.some(r=>r.guide), fill=isFill()||guided;   // ガイド枠のときも形は固定
+  G.prog.forEach(tidyRows);
   const n=countContacts(G.prog);
-  let h=`<h3>ラダーエディタ <span class="note">マスをタップして部品を置く/●をタップで縦線</span></h3>
+  let h=`<h3>ラダーエディタ <span class="note">${fill?'「?」のマスに部品を置く':'好きなマスに置ける/<b>下の段に置くと枝分かれ(または)</b>'}</span></h3>
     ${guided?`<div class="guide-note">${ic('hint')} 点線の<b>+</b>の枠に部品を置こう。線のつなぎ方は、最初から用意してあるよ(設定で枠なしにもできます)</div>`:''}
     <div class="toolbar">
       ${fill?'':`<button class="btn small" data-act="addRung" ${G.prog.length>=P.maxRungs?'disabled':''}>+ ラング追加</button>`}
@@ -2438,8 +2498,6 @@ function renderEditor(){
     if(!fill){
       h+=`<button data-act="up" data-ri="${ri}" ${ri===0?'disabled':''}>↑</button>
           <button data-act="down" data-ri="${ri}" ${ri===G.prog.length-1?'disabled':''}>↓</button>
-          <button data-act="rowAdd" data-ri="${ri}" ${rg.cells.length>=P.maxRows?'disabled':''}>行+</button>
-          <button data-act="rowDel" data-ri="${ri}" ${rg.cells.length<=1?'disabled':''}>行−</button>
           <button data-act="rungDel" data-ri="${ri}">削除</button>`;
     }
     h+=`</div>${rungSVG(rg,ri,st)}<div class="rstat" id="rs-${ri}"></div></div>`;
@@ -2616,6 +2674,7 @@ function placeTool(ri, r, c, where){
     rg.cells[r][c] = o.t==='E' ? null : o.t==='W' ? {t:'W'} : {t:o.t, a:o.a};
     if(o.t==='E') SFX.play('remove'); else G.pop=`c-${ri}-${r}-${c}`;
     if(r===0 && (o.t==='NO'||o.t==='NC')) autoWire(rg);
+    if(r>0) branchWire(rg, r);
     edited(); return true;
   }
   if(!toolFor('out')){ toast('接点は「出力」より左のマスに置きます'); return true; }
@@ -2683,7 +2742,7 @@ function setupHandDrag(){
 function movePart(src, t){
   const A_=G.prog[src.ri];
   if(!t){   // ラダー図の外で離した → 取り外し
-    if(src.kind==='cell') A_.cells[src.r][src.c]=null; else A_.out=null;
+    if(src.kind==='cell'){ A_.cells[src.r][src.c]=null; if(src.r>0) branchWire(A_, src.r); } else A_.out=null;
     SFX.play('remove'); toast('部品を取り外しました'); edited(); return;
   }
   const ri=+t.dataset.ri, B_=G.prog[ri];
@@ -2696,6 +2755,8 @@ function movePart(src, t){
     B_.cells[r][c]=a;
     // 相手が接点なら入れ替え。空き・横線なら、元の場所は空きにする(1行目の本線は横線に戻す)
     A_.cells[src.r][src.c] = (b && (b.t==='NO'||b.t==='NC')) ? b : (src.r===0 && !A_.guide && G.stage.type!=='fill' ? {t:'W'} : null);
+    if(src.r>0) branchWire(A_, src.r);
+    if(r>0) branchWire(B_, r);
     G.pop=`c-${ri}-${r}-${c}`; edited(); return;
   }
   // 出力(コイル)
@@ -2711,6 +2772,37 @@ function autoWire(rg){
   if(ty!=='build' && ty!=='short') return;
   if(rg.guide) return;                       // ガイド枠のときは線が用意済み(枠を横線で埋めない)
   rg.cells[0].forEach((cell,c)=>{ if(!cell) rg.cells[0][c]={t:'W'}; });
+}
+/* 下の段(2行目以降)に部品を置いたら、自動で枝分かれ(並列)の縦線を引く。
+   その段で横につながった部品のかたまりごとに、左端と右端だけ上の段へつなぐ(かたまりの内側には縦線を引かない)。
+   左端が1列目なら左の母線につながっているので縦線は不要。上の段のその位置が空いていれば、さらに上までつなぐ */
+function branchWire(rg, r){
+  if(r<=0 || isFill() || rg.guide) return;
+  const C=rg.cells[0].length, row=rg.cells[r];
+  for(let b=1;b<=C;b++) rg.v[r-1][b]=false;
+  const link=b=>{
+    let k=r-1; rg.v[k][b]=true;
+    while(k>0 && !rg.cells[k][b-1] && !(b<C && rg.cells[k][b])){ k--; rg.v[k][b]=true; }
+  };
+  let c=0;
+  while(c<C){
+    if(!row[c]){ c++; continue; }
+    let e=c; while(e+1<C && row[e+1]) e++;
+    if(c>0) link(c);
+    link(e+1);
+    c=e+1;
+  }
+}
+// いちばん下に、いつも空いた段を1つ用意しておく(そこに置くと枝分かれになる)。空いた段が2つ以上続いたら減らす
+function tidyRows(rg){
+  if(isFill() || rg.guide) return;
+  const P=prep(G.stage), C=rg.cells[0].length;
+  const empty=r=>rg.cells[r].every(x=>!x);
+  while(rg.cells.length>1 && empty(rg.cells.length-1) && empty(rg.cells.length-2)){ rg.cells.pop(); rg.v.pop(); }
+  if(rg.cells.length<P.maxRows && !empty(rg.cells.length-1)){ rg.cells.push(Array(C).fill(null)); rg.v.push(Array(C+1).fill(false)); }
+  if(rg.cells.length===1 && P.maxRows>1){ rg.cells.push(Array(C).fill(null)); rg.v.push(Array(C+1).fill(false)); }
+  // 最後の段の縦線は使わない(下に段がない)
+  rg.v[rg.cells.length-1]=Array(C+1).fill(false);
 }
 function outPicker(ri){
   const rg=G.prog[ri], st=G.stage, P=prep(st);
@@ -3431,8 +3523,6 @@ function openSettings(){
       <div class="note">アドレス(%IX0.0 などの番地)</div>
       <div class="opts">${o('addr',false,'表示しない','はじめての人向け')}${o('addr',true,'表示する','本物のPLCと同じ')}</div>
       <div class="set-ex">表示の例:<b>${esc(ex)}</b></div>
-      <div class="note">ガイド枠(エリア1〜2の「組む」ステージ)</div>
-      <div class="opts">${o('guide',true,'使う','置く場所が点線の枠で出る')}${o('guide',false,'使わない','自由にマスへ置く')}</div>
       <div class="note">効果音</div>
       <div class="opts"><button class="opt ${SFX.on()?'sel':''}" data-m="snd" data-v="1">ON</button><button class="opt ${SFX.on()?'':'sel'}" data-m="snd" data-v="0">OFF</button></div>
       <div class="note">そのほか</div>
