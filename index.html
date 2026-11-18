@@ -392,6 +392,14 @@ body.quake{animation:quake .5s}
 .mission .nm{font-weight:900}
 .mission .nm small{font-size:10.5px;font-weight:800;color:#fff;background:#24305e;border-radius:6px;padding:0 5px;margin-left:3px;vertical-align:1px}
 .mission .mtip{margin-top:5px;font-size:12.5px;font-weight:700;color:var(--sub)}
+/* 条件が多いときの折りたたみ */
+.mission .mdet summary{list-style:none;cursor:pointer}
+.mission .mdet summary::-webkit-details-marker{display:none}
+.mission .mmore{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:900;color:#24305e;background:#f5c400;border-radius:999px;padding:1px 10px;vertical-align:1px;white-space:nowrap}
+.mission .mmore .c{display:none}
+.mission .mdet[open] .mmore{background:#e6e9f2}
+.mission .mdet[open] .mmore .o{display:none}
+.mission .mdet[open] .mmore .c{display:inline}
 .rstat{font-size:13px;font-weight:800;padding:4px 10px;margin:2px 2px 6px;border-radius:8px;background:#f1edf8;color:var(--sub);min-height:1.6em}
 .rstat.ok{background:#dcfaec;color:#137a4b}
 .rstat.ng{background:#ffe6eb;color:#c0294a}
@@ -651,6 +659,13 @@ table.io th{background:var(--navy)}
 .tbelt i{position:absolute;inset:6px 4px;border-radius:4px;background:repeating-linear-gradient(90deg,#2d3e55 0 8px,#24344a 8px 16px)}
 .tbelt span{position:absolute;right:6px;bottom:-1px;font-size:9px;color:rgba(255,255,255,.55);font-weight:700}
 .tbelt.on i{animation:belt .5s linear infinite;background:repeating-linear-gradient(90deg,#3d5577 0 8px,#2e4363 8px 16px)}
+.tbelt.on.rev i{animation-direction:reverse}
+/* パレット:ベルトの上を動く箱。位置は機械の動き(physStep)で決まる */
+.tbelt .pallet{position:absolute;top:3px;width:34px;height:24px;border-radius:4px;background:linear-gradient(#e9c27a,#c99a45);box-shadow:0 1px 0 #7a5a22,inset 0 0 0 2px rgba(0,0,0,.18);z-index:2}
+.tbelt .pallet::after{content:"";position:absolute;inset:7px 6px;border-radius:2px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 3px,transparent 3px 8px)}
+.tr-sens[data-kind="auto"]{cursor:default}
+.tr-pal-ctl{display:flex;gap:6px;justify-content:center;margin:4px 0 2px}
+.tr-pal-ctl .btn.small{font-size:11px;padding:2px 8px;background:rgba(255,255,255,.12) !important;color:#e8eefc !important;border:1px solid rgba(255,255,255,.4) !important;box-shadow:none !important}
 .tr-mid{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;justify-content:space-between}
 .tr-ss{display:flex;gap:6px}
 .tr-pbs{display:flex;gap:6px}
@@ -831,7 +846,7 @@ const AREAS = [
   {no:1, name:'はじまりの村', icon:'house', color:'#ff9f43', learn:'a接点・b接点、コイル、直列(AND)・並列(OR)'},
   {no:2, name:'自己保持の森', icon:'tree', color:'#22b573', learn:'自己保持、停止優先/起動優先、インターロック'},
   {no:3, name:'タイマの塔',   icon:'tower', color:'#8b5cf6', learn:'TON/TOF、点滅回路、遅延動作'},
-  {no:4, name:'カウンタの洞窟', icon:'gem', color:'#3d9bff', learn:'CTU/CTD、リセット、設定値到達'},
+  {no:4, name:'運び屋の谷', icon:'gem', color:'#3d9bff', learn:'実習機パネル、コンベアの手動運転、サイクル動作、手動/自動切替'},
   {no:5, name:'シーケンスの城', icon:'castle', color:'#ff5d8f', learn:'内部リレー(M)、ステップ制御、順序動作'},
   {no:6, name:'工場の迷宮',   icon:'factory', color:'#5b6b8c', learn:'コンベア・パレット、複数機構、非常停止、手動/自動切替'},
   {no:7, name:'検定の頂',     icon:'mountain', color:'#e0a100', learn:'1級風の複合課題、接点数制限、制限時間'},
@@ -1336,6 +1351,169 @@ const STAGES = [
   },
 ];
 
+/* ---------------- エリア4 運び屋の谷(3級:コンベアの手動・サイクル動作)----------------
+   ここから機械の欄は TRAINER-S01 そっくりのパネル。
+   ※ 実習機の割り付けは仮(実機の I/O が分かったら DEV_TRAINER_MAP を合わせる) */
+const DEV_TRAINER_MAP = {PB1:'I0.0', PB2:'I0.1', PB3:'I0.2', PB4:'I0.3', PB5:'I0.4', SS1:'I0.5', LS1:'I0.6', LS2:'I0.7', PL1:'Q0.0', BELT:'Q0.4', BELTL:'Q0.5'};
+const TR_IO = {
+  PB1:{a:'I0.0', name:'PB1', desc:'左ボタン'}, PB2:{a:'I0.1', name:'PB2', desc:'右ボタン'}, PB3:{a:'I0.2', name:'PB3', desc:'起動ボタン'},
+  SS1:{a:'I0.5', name:'SS1', desc:'手動/自動スイッチ(ONで自動)'},
+  LS1:{a:'I0.6', name:'LS1', desc:'左端センサ'}, LS2:{a:'I0.7', name:'LS2', desc:'右端センサ'},
+  PL1:{a:'Q0.0', name:'PL1', desc:'ランプ'}, BR:{a:'Q0.4', name:'BR', desc:'ベルト右行き'}, BL:{a:'Q0.5', name:'BL', desc:'ベルト左行き'},
+};
+const trIO=(...k)=>k.map(x=>Object.assign({}, TR_IO[x]));
+const AREA4_STAGES = [
+  {
+    id:'4-1', area:4, title:'ベルトを動かしてみよう', type:'build',
+    story:'谷の運び屋にやってきた。ここの機械は、本物の実習機そっくりのパネルで動かす。',
+    task:'PB1 を押している間ベルトを左へ動かす。パレットが左端に着いて LS1 がONの間は PL1 をつける。',
+    goal:'ボタンでベルトを動かし、端のセンサでランプをつけよう',
+    steps:[['{PB1|左ボタン}を押している間','{BL|ベルト左}が動き、パレットが左へ進む'],['パレットが左端に着く','{LS1|左端センサ}が自動でON → {PL1|ランプ}がつく']],
+    tip:'センサはパレットが端に着くと自動で入る(手では押せない)。パレットは「右端へ」で置き直せる。',
+    io:trIO('PB1','LS1','PL1','BL'),
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
+    answer:[ {r:['a:I0.0 - - -'], o:'Q0.5'}, {r:['a:I0.6 - - -'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.5'} ], [ {r:['a:I0.0 - - -'], o:'Q0.5'}, {r:['b:I0.6 - - -'], o:'Q0.0'} ] ],
+    tests:[
+      {name:'押している間ベルトが左へ動く', s:[[0,'I0.0=1',''],[300,'','Q0.5=1 Q0.0=0'],[800,'I0.0=0',''],[1000,'','Q0.5=0']]},
+      {name:'左端に着くとランプがつく', s:[[0,'I0.0=1',''],[3400,'','I0.6=1 Q0.0=1']]},
+    ],
+    hints:['ラングを2本にする。1本目はベルト左、2本目はランプ。','ランプのラングは「左端センサのa接点 → ランプ」。'],
+    unlock:[],
+  },
+  {
+    id:'4-2', area:4, title:'端で止める', type:'build',
+    story:'ベルトを動かしっぱなしにすると、パレットが端に押し付けられて傷む。端に着いたら止めよう。',
+    task:'PB1 を押している間ベルトを左へ動かすが、左端センサ LS1 がONになったら止める。',
+    goal:'押している間だけ動き、端に着いたら止まる回路を作ろう',
+    steps:[['{PB1|左ボタン}を押している間','パレットが左へ進む'],['左端に着く({LS1|左端センサ}がON)','押していても{BL|ベルト左}が止まる'],['手を離す','止まる']],
+    io:trIO('PB1','LS1','BL'),
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
+    answer:[ {r:['a:I0.0 b:I0.6 - -'], o:'Q0.5'} ],
+    wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.5'} ], [ {r:['a:I0.0 a:I0.6 - -'], o:'Q0.5'} ] ],
+    tests:[
+      {name:'押している間だけ動く', s:[[0,'I0.0=1',''],[300,'','Q0.5=1'],[800,'I0.0=0',''],[1000,'','Q0.5=0']]},
+      {name:'左端に着いたら止まる', s:[[0,'I0.0=1',''],[300,'','Q0.5=1'],[3400,'','Q0.5=0 I0.6=1']]},
+    ],
+    hints:['「センサが入ったら切れる」接点が必要。','左ボタンのa接点の右に、左端センサのb接点を直列に置く。'],
+    unlock:[],
+  },
+  {
+    id:'4-3', area:4, title:'左右に寄せる(手動運転)', type:'build',
+    story:'谷の運び屋のベルト。まずは手で動かせるようにしよう。',
+    task:'PB1 を押している間ベルトを左へ、PB2 を押している間右へ動かす。端のセンサで止まり、左右が同時に入らないこと。',
+    goal:'ボタンを押している間だけパレットを左右に動かし、端で止めよう',
+    steps:[['{PB1|左ボタン}を押している間','パレットが左へ動く'],['パレットが左端に着く({LS1|左端センサ}がON)','押していても止まる'],['{PB2|右ボタン}を押している間','右へ動き、右端({LS2|右端センサ})で止まる'],['左右のボタンを両方押す','左行きと右行きが同時に入らない']],
+    tip:'パレットは右端から始まる。「パレットを右端へ」で置き直せる。',
+    io:[
+      {a:'I0.0', name:'PB1', desc:'左ボタン'}, {a:'I0.1', name:'PB2', desc:'右ボタン'},
+      {a:'I0.6', name:'LS1', desc:'左端センサ'}, {a:'I0.7', name:'LS2', desc:'右端センサ'},
+      {a:'Q0.4', name:'BR', desc:'ベルト右行き'}, {a:'Q0.5', name:'BL', desc:'ベルト左行き'},
+    ],
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:3,
+    machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
+    answer:[ {r:['a:I0.0 b:I0.6 b:Q0.4 -'], o:'Q0.5'}, {r:['a:I0.1 b:I0.7 b:Q0.5 -'], o:'Q0.4'} ],
+    wrong:[
+      [ {r:['a:I0.0 b:Q0.4 - -'], o:'Q0.5'}, {r:['a:I0.1 b:Q0.5 - -'], o:'Q0.4'} ],
+      [ {r:['a:I0.0 b:I0.6 - -'], o:'Q0.5'}, {r:['a:I0.1 b:I0.7 - -'], o:'Q0.4'} ],
+    ],
+    forbid:[ {all:['Q0.4','Q0.5'], msg:'左行きと右行きが同時に入っています'} ],
+    tests:[
+      {name:'押している間だけ左へ動く', s:[[0,'I0.0=1',''],[300,'','Q0.5=1 Q0.4=0'],[1000,'I0.0=0',''],[1200,'','Q0.5=0']]},
+      {name:'左端に着いたら止まる', s:[[0,'I0.0=1',''],[300,'','Q0.5=1'],[3400,'','Q0.5=0 I0.6=1'],[3500,'I0.0=0','']]},
+      {name:'右端では右ボタンを押しても動かない', s:[[0,'I0.1=1',''],[300,'','Q0.4=0']]},
+      {name:'左右を両方押しても同時に入らない', s:[[0,'I0.0=1',''],[300,'I0.1=1',''],[600,'','Q0.5=1 Q0.4=0'],[700,'I0.0=0 I0.1=0','']]},
+    ],
+    hints:['左行きのコイルには「左ボタン」と「左端センサのb接点」を直列に。','インターロック:左行きの行に「右行きのb接点」、右行きの行に「左行きのb接点」。'],
+    unlock:[],
+  },
+  {
+    id:'4-4', area:4, title:'行って、止まって、戻る(サイクル動作)', type:'build',
+    story:'荷物を左端まで運び、1秒待ってから戻ってくる。運び屋の基本の動きだ。',
+    task:'右端にパレットがあるとき PB3 を押すと、左へ動き、左端で1秒止まり、右へ戻って右端で止まる。',
+    goal:'ボタンを1回押すと、左へ運んで1秒待ち、右へ戻る一連の動き(サイクル動作)を作ろう',
+    steps:[['パレットが右端にあるとき{PB3|起動ボタン}を押す','パレットが左へ動く'],['左端に着く','1秒止まる'],['1秒たつ','右へ動き、右端で止まる']],
+    tip:'「押す」は押してすぐ離すこと(検定と同じ)。動きを工程に分け、工程ごとに内部リレー(M)を1つ使おう。',
+    io:[
+      {a:'I0.2', name:'PB3', desc:'起動ボタン'},
+      {a:'I0.6', name:'LS1', desc:'左端センサ'}, {a:'I0.7', name:'LS2', desc:'右端センサ'},
+      {a:'Q0.4', name:'BR', desc:'ベルト右行き'}, {a:'Q0.5', name:'BL', desc:'ベルト左行き'},
+    ],
+    mem:[ {a:'M0.0', name:'M1', desc:'左行き工程'}, {a:'M0.1', name:'M2', desc:'左端で待つ工程'}, {a:'M0.2', name:'M3', desc:'右行き工程'} ],
+    timers:['T0'],
+    palette:['NO','NC','COIL','TON'], cols:4, maxRows:2, maxRungs:6,
+    machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
+    answer:[
+      {r:['a:M0.0 a:I0.6 + b:M0.2 -','a:M0.1 -'], o:'M0.1'},
+      {r:['a:I0.2 a:I0.7 + b:I0.6 -','a:M0.0 -'], o:'M0.0'},
+      {r:['a:M0.1 - - -'], o:'TON T0 1000'},
+      {r:['a:T0 + b:I0.7 - -','a:M0.2'], o:'M0.2'},
+      {r:['a:M0.0 - - -'], o:'Q0.5'},
+      {r:['a:M0.2 - - -'], o:'Q0.4'},
+    ],
+    wrong:[
+      [ {r:['a:I0.2 + b:I0.6 - -','a:Q0.5'], o:'Q0.5'} ],
+    ],
+    forbid:[ {all:['Q0.4','Q0.5'], msg:'左行きと右行きが同時に入っています'} ],
+    tests:[
+      {name:'押すと左へ動き出す(押してすぐ離す)', s:[[0,'I0.2=tap',''],[300,'','Q0.5=1 Q0.4=0']]},
+      {name:'左端で1秒止まってから右へ戻る', s:[[0,'I0.2=tap',''],[3300,'','Q0.5=0 Q0.4=0'],[3800,'','Q0.4=0'],[4400,'','Q0.4=1'],[7700,'','Q0.4=0 I0.7=1']]},
+      {name:'何もしなければ動かない', s:[[0,'',''],[1000,'','Q0.4=0 Q0.5=0']]},
+    ],
+    hints:['工程は「左行き → 左端で待つ → 右行き」の3つ。','左端で待つ工程は、左行き中に左端センサが入ったら始まる。この行を左行きの行より上に置こう。'],
+    unlock:[],
+  },
+  {
+    id:'4-5', area:4, title:'ボス:谷の運び屋', type:'build', boss:true,
+    story:'谷いちばんの運び屋。手で寄せることも、自動で往復させることもできる機械に仕上げよう。',
+    task:'SS1 がOFFなら手動(PB1 で左、PB2 で右、押している間だけ・端で停止・インターロック)。SS1 がONなら自動:右端で PB3 を押すとサイクル動作。サイクル中は PL1 を点灯。サイクル中に手動へ切り替えたら止まる。',
+    goal:'手動と自動を切り替えられるコンベアを作ろう',
+    steps:[
+      ['{SS1|切替スイッチ}がOFF(手動)','{PB1|左ボタン}で左、{PB2|右ボタン}で右(押している間だけ・端で止まる・同時に入らない)'],
+      ['{SS1|切替スイッチ}がON(自動)で、右端で{PB3|起動ボタン}を押す','左へ → 左端で1秒止まる → 右へ戻って止まる'],
+      ['サイクル動作の間','{PL1|ランプ}がつく'],
+      ['自動では左右ボタン、手動では起動ボタン','押しても動かない'],
+      ['サイクルの途中で手動に切り替える','すぐ止まる'],
+    ],
+    tip:'4-3 と 4-4 の回路を組み合わせ、どちらにも切替スイッチの条件を足そう。',
+    io:trIO('PB1','PB2','PB3','SS1','LS1','LS2','PL1','BR','BL'),
+    mem:[ {a:'M0.0', name:'M1', desc:'左行き工程'}, {a:'M0.1', name:'M2', desc:'左端で待つ工程'}, {a:'M0.2', name:'M3', desc:'右行き工程'} ],
+    timers:['T0'],
+    palette:['NO','NC','COIL','TON'], cols:5, maxRows:3, maxRungs:7,
+    machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
+    answer:[
+      {r:['a:I0.5 + a:M0.0 a:I0.6 + b:M0.2 -','. a:M0.1 -'], o:'M0.1'},
+      {r:['a:I0.5 + a:I0.2 a:I0.7 + b:I0.6 -','. a:M0.0 -'], o:'M0.0'},
+      {r:['a:M0.1 - - - -'], o:'TON T0 1000'},
+      {r:['a:I0.5 + a:T0 + b:I0.7 - -','. a:M0.2'], o:'M0.2'},
+      {r:['b:I0.5 a:I0.0 b:I0.6 + b:Q0.4 -','a:M0.0 - -'], o:'Q0.5'},
+      {r:['b:I0.5 a:I0.1 b:I0.7 + b:Q0.5 -','a:M0.2 - -'], o:'Q0.4'},
+      {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.0'},
+    ],
+    wrong:[
+      // 切替スイッチの条件がない(手動ボタンが自動中も効く)
+      [ {r:['a:I0.5 + a:M0.0 a:I0.6 + b:M0.2 -','. a:M0.1 -'], o:'M0.1'}, {r:['a:I0.5 + a:I0.2 a:I0.7 + b:I0.6 -','. a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:I0.5 + a:T0 + b:I0.7 - -','. a:M0.2'], o:'M0.2'},
+        {r:['a:I0.0 b:I0.6 + b:Q0.4 - -','a:M0.0 -'], o:'Q0.5'}, {r:['a:I0.1 b:I0.7 + b:Q0.5 - -','a:M0.2 -'], o:'Q0.4'}, {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.0'} ],
+      // 工程に切替スイッチの条件がない(途中で手動にしても止まらない)
+      [ {r:['a:M0.0 a:I0.6 + b:M0.2 - -','a:M0.1 -'], o:'M0.1'}, {r:['a:I0.2 a:I0.7 + b:I0.6 - -','a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:T0 + b:I0.7 - - -','a:M0.2'], o:'M0.2'},
+        {r:['b:I0.5 a:I0.0 b:I0.6 + b:Q0.4 -','a:M0.0 - -'], o:'Q0.5'}, {r:['b:I0.5 a:I0.1 b:I0.7 + b:Q0.5 -','a:M0.2 - -'], o:'Q0.4'}, {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.0'} ],
+    ],
+    forbid:[ {all:['Q0.4','Q0.5'], msg:'左行きと右行きが同時に入っています'} ],
+    tests:[
+      {name:'手動:押している間だけ左へ', s:[[0,'I0.0=1',''],[300,'','Q0.5=1 Q0.0=0'],[800,'I0.0=0',''],[1000,'','Q0.5=0']]},
+      {name:'手動:起動ボタンでは動かない', s:[[0,'I0.2=tap',''],[400,'','Q0.5=0 Q0.4=0']]},
+      {name:'自動:左右ボタンでは動かない', s:[[0,'I0.5=1',''],[100,'I0.0=1',''],[400,'','Q0.5=0'],[500,'I0.0=0','']]},
+      {name:'自動:サイクル動作とランプ', s:[[0,'I0.5=1',''],[100,'I0.2=tap',''],[400,'','Q0.5=1 Q0.0=1'],[3500,'','Q0.5=0 Q0.4=0 Q0.0=1'],[4500,'','Q0.4=1 Q0.0=1'],[7800,'','Q0.4=0 Q0.0=0 I0.7=1']]},
+      {name:'サイクル中に手動へ切り替えると止まる', s:[[0,'I0.5=1',''],[100,'I0.2=tap',''],[1000,'I0.5=0',''],[1200,'','Q0.5=0 Q0.0=0']]},
+    ],
+    hints:['工程(M1〜M3)の行の先頭に、切替スイッチのa接点を直列に置く。','手動の行は「切替スイッチのb接点 → ボタン → 端センサのb接点」。下の段に工程(M1 か M3)を置くと「または」になる。','ランプは M1・M2・M3 の3つを縦に並べた「または」。'],
+    unlock:[],
+  },
+];
+STAGES.push(...AREA4_STAGES);
+
 /* 命令図鑑 */
 const DEX = [
   {id:'SCAN', name:'スキャン', op:'(PLCの動き方)', area:1,
@@ -1565,8 +1743,19 @@ function parseAssign(s){
   }
   return o;
 }
+// 'I0.0=tap' は「押してすぐ離す」(検定の「押す」と同じ):その時刻にON、0.1秒後にOFF
+const TAP_MS=100;
 function normTest(t){
-  return {name:t.name, steps:t.s.map(([tm,i,e])=>({t:tm, in:parseAssign(i), ex:parseAssign(e)})).sort((a,b)=>a.t-b.t)};
+  const steps=[];
+  t.s.forEach(([tm,i,e])=>{
+    const taps=[], rest=[];
+    String(i||'').trim().split(/\s+/).filter(Boolean).forEach(p=>{ const [k,v]=p.split('='); if(v==='tap') taps.push(k); else rest.push(p); });
+    const inp=parseAssign(rest.join(' '));
+    taps.forEach(k=>{ inp[A(k)]=true; });
+    steps.push({t:tm, in:inp, ex:parseAssign(e)});
+    if(taps.length){ const off={}; taps.forEach(k=>{ off[A(k)]=false; }); steps.push({t:tm+TAP_MS, in:off, ex:{}}); }
+  });
+  return {name:t.name, steps:steps.sort((a,b)=>a.t-b.t)};
 }
 function runOneTest(prog, test, stage){
   const plc=new PLC();
@@ -1574,8 +1763,11 @@ function runOneTest(prog, test, stage){
   const end=Math.max(...steps.map(s=>s.t));
   const applied=steps.map(()=>false), checked=steps.map(()=>false);
   const forbid=(stage.forbid||[]).map(f=>({all:f.all.map(A), msg:f.msg}));
+  const ph = usesPhys(stage) ? physInit(stage) : null;   // パレット・シリンダの位置でセンサが決まるステージ
+  if(ph) physSensors(stage, ph, plc);
   for(let tau=0; tau<=end; tau+=SCAN_MS){
     steps.forEach((s,i)=>{ if(!applied[i] && s.t<=tau){ Object.assign(plc.inputs, s.in); applied[i]=true; } });
+    if(ph) physStep(stage, ph, plc, SCAN_MS);
     plc.scan(prog, SCAN_MS);
     for(const f of forbid){
       if(f.all.every(a=>plc.get(a))) return {ok:false, t:tau, forbid:f, steps};
@@ -1637,7 +1829,7 @@ function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(G.set
 function applySettings(){ if(typeof document!=='undefined') document.body.classList.toggle('hide-addr', !G.set.addr); }
 // やさしい名前:機械の種類+番号(PB1→ボタン1、L1→ランプ1)
 const EASY_TYPE={pb:'ボタン', sw:'スイッチ', sensor:'センサ', lamp:'ランプ', buzzer:'ブザー', motor:'モーター', conveyor:'コンベア', cylinder:'シリンダ', tank:'タンク'};
-const TR_EASY={PB:'ボタン', PL:'ランプ', SS:'スイッチ', LS:'センサ', T:'小ボタン', BELT:'ベルト'};
+const TR_EASY={PB:'ボタン', PL:'ランプ', SS:'スイッチ', LS:'センサ', T:'小ボタン', BELT:'ベルト右', BELTL:'ベルト左'};
 const SUB_EASY={ext:'前進センサ', ret:'後退センサ', lo:'下限センサ', hi:'上限センサ', drain:'排水'};
 function easyName(st, a){
   const sym=nameOf(st,a), num=(sym.match(/\d+$/)||[''])[0];
@@ -2323,9 +2515,12 @@ function fillNames(st, text){
 }
 function missionHTML(st){
   if(!st.steps) return `<span class="chip">おしごと</span>${esc(nameText(st, st.task))}`;
-  return `<div class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}</div>
-    <ol class="msteps">${st.steps.map(([d,r])=>`<li><span class="mdo">${fillNames(st,d)}</span><span class="marr">→</span><span class="mres">${fillNames(st,r)}</span></li>`).join('')}</ol>
+  const list=`<ol class="msteps">${st.steps.map(([d,r])=>`<li><span class="mdo">${fillNames(st,d)}</span><span class="marr">→</span><span class="mres">${fillNames(st,r)}</span></li>`).join('')}</ol>
     ${st.tip?`<div class="mtip">${fillNames(st,st.tip)}</div>`:''}`;
+  // 条件が4つ以上ある(ボスなど)ときは折りたたむ。目的の行をタップで開け閉め
+  if(st.steps.length>=4) return `<details class="mdet"><summary class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}
+      <span class="mmore"><span class="o">条件を見る(${st.steps.length})</span><span class="c">閉じる</span></span></summary>${list}</details>`;
+  return `<div class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}</div>${list}`;
 }
 function renderStage(){
   const st=G.stage, P=prep(st), rec=stRec(st.id);
@@ -2970,18 +3165,23 @@ const TRAINER_LED = {PL1:'green', PL2:'yellow', PL3:'red', PL4:'white'};   // PL
 function trainerHTML(st, d){
   const m=d.map||{}, A_=k=>m[k]?A(m[k]):null;
   const tag=k=>m[k]?`<span class="ad">${A(m[k])}</span>`:'';
+  // パレットがあるときは、ベルト両端のセンサはパレットの位置で自動的に入る(手では押せない)
+  const pal=d.pallet?palletCfg(d):null, pi=(st.machine||[]).indexOf(d);
+  const kindOfSens=k=> pal && (k===pal.left||k===pal.right) ? 'auto' : 'sw';
   const btn=(k,cls,kind)=>{ const a=A_(k);
     return a?`<button class="${cls}" data-in="${a}" data-kind="${kind}" aria-label="${k}"><i></i></button>`
             :`<button class="${cls} unused" disabled aria-label="${k}(使わない)"><i></i></button>`; };
   const led=k=>{ const a=A_(k); return `<i class="tr-led ${TRAINER_LED[k]} ${a?'':'unused'}" ${a?`data-out="${a}"`:''}></i>`; };
-  const belt=A_('BELT');
+  const belt=A_('BELT'), beltL=A_('BELTL');
+  const beltAttr = belt ? `data-out="${belt}"${beltL?` data-rev="${beltL}"`:''}` : beltL ? `data-out="${beltL}" data-revonly="1"` : '';
   return `<div class="trainer">
     <div class="tr-name">PLC-TRAINER-S01</div>
     <div class="tr-top">
-      <div class="tr-ls">${btn('LS1','tr-sens','sw')}<b>LS1</b>${tag('LS1')}</div>
-      <div class="tbelt ${belt?'':'unused'}" ${belt?`data-out="${belt}"`:''}><i></i><span>Conv.Belt</span></div>
-      <div class="tr-ls">${btn('LS2','tr-sens','sw')}<b>LS2</b>${tag('LS2')}</div>
+      <div class="tr-ls">${btn('LS1','tr-sens',kindOfSens('LS1'))}<b>LS1</b>${tag('LS1')}</div>
+      <div class="tbelt ${belt||beltL?'':'unused'}" ${beltAttr}><i></i>${pal?`<b class="pallet" data-pallet="${pi}" title="パレット"></b>`:''}<span>Conv.Belt${belt?` →${tag('BELT')}`:''}${beltL?` ←${tag('BELTL')}`:''}</span></div>
+      <div class="tr-ls">${btn('LS2','tr-sens',kindOfSens('LS2'))}<b>LS2</b>${tag('LS2')}</div>
     </div>
+    ${pal?`<div class="tr-pal-ctl"><button class="btn small" data-pal-move="${pi}" data-to="0">パレットを左端へ</button><button class="btn small" data-pal-move="${pi}" data-to="1">右端へ</button></div>`:''}
     <div class="tr-mid">
       <div class="tr-ss">${['SS1','SS2'].map(k=>`<div class="tr-cell">${btn(k,'tr-slide','sw')}<b>${k}</b>${tag(k)}</div>`).join('')}</div>
       <div class="tr-pbs">${[1,2,3,4].map(i=>`<div class="tr-cell">${m['PL'+i]?`<span class="led-ad">PL${i}<span class="ad"> ${A(m['PL'+i])}</span></span>`:'<span class="led-ad">&nbsp;</span>'}${led('PL'+i)}${btn('PB'+i,'tr-pb','pb')}<b>PB${i}</b>${tag('PB'+i)}</div>`).join('')}</div>
@@ -3025,6 +3225,11 @@ function renderMachine(){
         ${hasPB?`<span class="hold-tip">ボタンは<b>ダブルタップで押しっぱなし</b>(もう一度ダブルタップで離す)</span>`:''}
         <span class="clock" id="clock">停止中 0.0s</span>
       </div></div>`;
+  // パレットを手で置き直す(検定の「製品を投入部に手で戻す」に当たる)
+  el.querySelectorAll('[data-pal-move]').forEach(b=>b.addEventListener('click', ()=>{
+    const p=G.phys[b.dataset.palMove]; if(!p) return;
+    p.pos=+b.dataset.to; applyPhysSensors(); SFX.play('click'); updateMachineVis();
+  }));
   el.querySelectorAll('[data-in]').forEach(btn=>{
     const a=btn.dataset.in, kind=btn.dataset.kind;
     if(kind==='auto') return;
@@ -3054,41 +3259,61 @@ function renderMachine(){
   updateMachineVis();
 }
 function setIn(a,v){ G.plc.inputs[a]=v; updateMachineVis(); }
-function resetPhys(){
-  G.phys={};
-  (G.stage && G.stage.machine||[]).forEach((d,i)=>{
-    if(d.type==='cylinder') G.phys[i]={pos:0};
-    if(d.type==='tank') G.phys[i]={lv:d.init||0};
+/* ---------- 機械の動き(シリンダ・タンク・実習機のベルトとパレット) ----------
+   画面の実行と判定(テスト)の両方で同じ動きを使えるよう、ステージ・状態・PLC を引数で受け取る */
+// 実習機のベルト:map.BELT=右行き、map.BELTL=左行き。pallet:{start:'right'|'left', travel:端から端までのms, left:'LS1', right:'LS2'}
+function palletCfg(d){ const p=d.pallet||{}; return {start:p.start||'right', travel:p.travel||3000, left:p.left||'LS1', right:p.right||'LS2'}; }
+function physInit(st){
+  const ph={};
+  (st && st.machine||[]).forEach((d,i)=>{
+    if(d.type==='cylinder') ph[i]={pos:0};
+    if(d.type==='tank') ph[i]={lv:d.init||0};
+    if(d.type==='trainer' && d.pallet) ph[i]={pos: palletCfg(d).start==='left'?0:1};
   });
-  applyPhysSensors();
+  return ph;
 }
-function physics(dt){
-  (G.stage.machine||[]).forEach((d,i)=>{
-    const p=G.phys[i]; if(!p) return;
+function physStep(st, ph, plc, dt){
+  (st.machine||[]).forEach((d,i)=>{
+    const p=ph[i]; if(!p) return;
     if(d.type==='cylinder'){
-      const on=G.plc.get(A(d.a)), T=d.time||1000;
+      const on=plc.get(A(d.a)), T=d.time||1000;
       p.pos=Math.max(0, Math.min(1, p.pos + (on?1:-1)*dt/T));
     }
     if(d.type==='tank'){
-      const f=G.plc.get(A(d.a)), dr=d.drain?G.plc.get(A(d.drain)):false;
+      const f=plc.get(A(d.a)), dr=d.drain?plc.get(A(d.drain)):false;
       p.lv=Math.max(0, Math.min(1, p.lv + (f?dt/(d.fill||5000):0) - (dr?dt/(d.drainTime||5000):0)));
     }
+    if(d.type==='trainer' && d.pallet){
+      const m=d.map||{}, c=palletCfg(d);
+      const r=m.BELT?plc.get(A(m.BELT)):false, l=m.BELTL?plc.get(A(m.BELTL)):false;
+      if(r!==l) p.pos=Math.max(0, Math.min(1, p.pos + (r?1:-1)*dt/c.travel));   // 両方ONなら動かない
+    }
   });
-  applyPhysSensors();
+  physSensors(st, ph, plc);
 }
-function applyPhysSensors(){
-  (G.stage && G.stage.machine||[]).forEach((d,i)=>{
-    const p=G.phys[i]; if(!p) return;
+function physSensors(st, ph, plc){
+  (st && st.machine||[]).forEach((d,i)=>{
+    const p=ph[i]; if(!p) return;
     if(d.type==='cylinder'){
-      if(d.ext) G.plc.inputs[A(d.ext)] = p.pos>=1;
-      if(d.ret) G.plc.inputs[A(d.ret)] = p.pos<=0;
+      if(d.ext) plc.inputs[A(d.ext)] = p.pos>=1;
+      if(d.ret) plc.inputs[A(d.ret)] = p.pos<=0;
     }
     if(d.type==='tank'){
-      if(d.lo) G.plc.inputs[A(d.lo)] = p.lv>=0.15;
-      if(d.hi) G.plc.inputs[A(d.hi)] = p.lv>=0.85;
+      if(d.lo) plc.inputs[A(d.lo)] = p.lv>=0.15;
+      if(d.hi) plc.inputs[A(d.hi)] = p.lv>=0.85;
+    }
+    if(d.type==='trainer' && d.pallet){
+      const m=d.map||{}, c=palletCfg(d);
+      if(m[c.left])  plc.inputs[A(m[c.left])]  = p.pos<=0.01;
+      if(m[c.right]) plc.inputs[A(m[c.right])] = p.pos>=0.99;
     }
   });
 }
+// 判定でも機械の動きを使うステージか(センサが機械の動きで決まるもの)
+function usesPhys(st){ return (st.machine||[]).some(d=>(d.type==='trainer'&&d.pallet) || (d.type==='cylinder'&&(d.ext||d.ret)) || (d.type==='tank'&&(d.lo||d.hi))); }
+function resetPhys(){ G.phys=physInit(G.stage); applyPhysSensors(); }
+function physics(dt){ if(G.stage) physStep(G.stage, G.phys, G.plc, dt); }
+function applyPhysSensors(){ if(G.stage) physSensors(G.stage, G.phys, G.plc); }
 function updateMachineVis(){
   const el=document.getElementById('machine'); if(!el) return;
   el.querySelectorAll('[data-in]').forEach(b=>{
@@ -3115,6 +3340,11 @@ function updateMachineVis(){
     const p=G.phys[d.dataset.tank]||{lv:0};
     d.querySelector('.lv').style.height=(p.lv*100)+'%';
   });
+  el.querySelectorAll('[data-pallet]').forEach(b=>{
+    const p=G.phys[b.dataset.pallet]||{pos:1};
+    b.style.left=`calc(${(p.pos*100).toFixed(2)}% - ${(p.pos*34).toFixed(1)}px)`;
+  });
+  el.querySelectorAll('[data-revonly]').forEach(d=>{ d.classList.toggle('rev', d.classList.contains('on')); });
   const ol=document.getElementById('tr-oled');
   if(ol){ const t=Object.values(G.plc.tm||{})[0], c=Object.values(G.plc.ct||{})[0];
     ol.textContent = c ? 'CNT '+c.cv : t ? 'T '+((t.et||0)/1000).toFixed(1)+'s' : (G.running?'RUN ':'STOP ')+(G.plc.time/1000).toFixed(1)+'s'; }
