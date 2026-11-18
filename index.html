@@ -664,6 +664,26 @@ table.io th{background:var(--navy)}
 .tbelt .pallet{position:absolute;top:3px;width:34px;height:24px;border-radius:4px;background:linear-gradient(#e9c27a,#c99a45);box-shadow:0 1px 0 #7a5a22,inset 0 0 0 2px rgba(0,0,0,.18);z-index:2}
 .tbelt .pallet::after{content:"";position:absolute;inset:7px 6px;border-radius:2px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 3px,transparent 3px 8px)}
 .tr-sens[data-kind="auto"]{cursor:default}
+/* 実機の配置:上にリレーとコンベア、下に操作部 */
+.tr-relay{display:flex;align-items:center;gap:10px;justify-content:center;font-size:10px;font-weight:800;color:#e8f1ff}
+.tr-ry{display:flex;align-items:center;gap:4px}
+.tr-ry .tr-led{margin:0}
+.tr-cap{font-size:9px;font-weight:700;color:rgba(255,255,255,.65);letter-spacing:.04em;white-space:nowrap}
+.tr-conv{display:flex;align-items:center;gap:6px}
+.tr-lsl{display:flex;flex-direction:column;gap:2px}
+.tr-lsrow{display:flex;align-items:center;gap:3px}
+.tr-lsrow b{width:24px;text-align:right}
+.tr-lsr{display:flex;align-items:center}
+.tr-sens.sm{width:24px;height:16px;border-radius:4px}
+.tr-sens.sm i{width:8px;height:8px;margin:-4px}
+.tr-ops{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.tr-sws{display:flex;gap:8px}
+.tr-dsw{display:flex;gap:6px;align-items:flex-end;background:rgba(0,0,0,.18);border-radius:8px;padding:5px 7px}
+.tr-knob{display:block;width:30px;height:30px;border-radius:50%;background:#2a2e38;box-shadow:inset 0 0 0 3px #4b5263;position:relative;opacity:.55}
+.tr-knob i{position:absolute;left:13px;top:4px;width:4px;height:11px;border-radius:2px;background:#d6dbe4}
+.tr-dpl{display:block;width:24px;height:36px;border-radius:3px;background:#0a0c10;color:#3a1515;font:900 26px/36px Consolas,monospace;text-align:center;box-shadow:inset 0 0 0 2px #262b36}
+.tr-dpl.on{color:#ff4040;text-shadow:0 0 6px #ff4040}
+.trainer .led-ad.dim{color:rgba(255,255,255,.4)}
 .tr-pal-ctl{display:flex;gap:6px;justify-content:center;margin:4px 0 2px}
 .tr-pal-ctl .btn.small{font-size:11px;padding:2px 8px;background:rgba(255,255,255,.12) !important;color:#e8eefc !important;border:1px solid rgba(255,255,255,.4) !important;box-shadow:none !important}
 .tr-mid{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;justify-content:space-between}
@@ -847,7 +867,7 @@ const AREAS = [
   {no:2, name:'自己保持の森', icon:'tree', color:'#22b573', learn:'自己保持、停止優先/起動優先、インターロック'},
   {no:3, name:'タイマの塔',   icon:'tower', color:'#8b5cf6', learn:'TON/TOF、点滅回路、遅延動作'},
   {no:4, name:'運び屋の谷', icon:'gem', color:'#3d9bff', learn:'実習機パネル、コンベアの手動運転、サイクル動作、手動/自動切替'},
-  {no:5, name:'シーケンスの城', icon:'castle', color:'#ff5d8f', learn:'内部リレー(M)、ステップ制御、順序動作'},
+  {no:5, name:'非常の砦', icon:'castle', color:'#ff5d8f', learn:'非常停止(押すと切れる接点)、異常の保持とリセット、点滅、連続運転、3級の模擬'},
   {no:6, name:'工場の迷宮',   icon:'factory', color:'#5b6b8c', learn:'コンベア・パレット、複数機構、非常停止、手動/自動切替'},
   {no:7, name:'検定の頂',     icon:'mountain', color:'#e0a100', learn:'1級風の複合課題、接点数制限、制限時間'},
 ];
@@ -972,13 +992,19 @@ const STAGES = [
   {
     id:'1-5', area:1, title:'ボス:村の水車小屋', type:'build', boss:true,
     story:'村いちばんの大仕事、水車小屋の制御だ。条件が多いぞ。',
-    task:'水車モータ M1 は「運転許可スイッチ SW1 がON」かつ「起動ボタン PB1 または点検ボタン PB2 を押している」かつ「扉センサ S1 がOFF(扉が閉じている)」のときだけ回る。さらに、扉が開いている(S1がON)間は警告灯 PL1 を点灯させよう。',
-    goal:'条件がそろったときだけ水車を回し、扉が開いたら止めて知らせよう',
-    steps:[['{SW1|運転許可スイッチ}がONで、{PB1|起動ボタン}か{PB2|点検ボタン}を押している間','{M1|水車}が回る'],['{SW1|運転許可スイッチ}がOFF','何を押しても回らない'],['{S1|扉センサ}がON(扉が開いた)','水車は止まり、{PL1|警告灯}がつく']],
+    task:'水車モータ M1 は「運転許可スイッチ SW1 がON」かつ「運転ボタン PB1 または点検ボタン PB2 を押している」かつ「扉センサ S1 がOFF(扉が閉じている)」のときだけ回る。さらに、扉が開いている(S1がON)間は警告灯 PL1 を点灯させよう。',
+    goal:'条件がそろっている間だけ水車を回し、扉が開いたら止めて知らせよう',
+    steps:[
+      ['{SW1|運転許可スイッチ}がOFF','どのボタンを押しても回らない'],
+      ['{SW1|運転許可スイッチ}がONで、{PB1|運転ボタン}か{PB2|点検ボタン}を押している間','{M1|水車}が回る(手を離すと止まる)'],
+      ['扉が開く({S1|扉センサ}がON)','ボタンを押していても止まり、{PL1|警告灯}がつく'],
+      ['扉が閉じる({S1|扉センサ}がOFF)','{PL1|警告灯}が消え、押していればまた回る'],
+    ],
+    tip:'このステージでは「押している間だけ」動けばよい(押したら回り続ける自己保持は、次の島で学ぶ)。扉センサは扉が開くとON。',
     io:[
       {a:'I0.0', name:'SW1', desc:'運転許可スイッチ(切替)'},
-      {a:'I0.1', name:'PB1', desc:'起動ボタン'},
-      {a:'I0.2', name:'PB2', desc:'点検ボタン'},
+      {a:'I0.1', name:'PB1', desc:'運転ボタン(押している間だけ)'},
+      {a:'I0.2', name:'PB2', desc:'点検ボタン(押している間だけ)'},
       {a:'I0.3', name:'S1',  desc:'扉センサ(扉が開くとON)'},
       {a:'Q0.0', name:'M1',  desc:'水車モータ'},
       {a:'Q0.1', name:'PL1',  desc:'扉開き警告灯'},
@@ -998,7 +1024,7 @@ const STAGES = [
     ],
     tests:[
       {name:'許可スイッチOFFでは回らない', s:[[0,'I0.1=1',''],[200,'','Q0.0=0']]},
-      {name:'許可ON+起動ボタンで回る', s:[[0,'I0.0=1',''],[100,'I0.1=1',''],[300,'','Q0.0=1'],[400,'I0.1=0',''],[600,'','Q0.0=0']]},
+      {name:'許可ONで運転ボタンを押している間だけ回る', s:[[0,'I0.0=1',''],[100,'I0.1=1',''],[300,'','Q0.0=1'],[400,'I0.1=0',''],[600,'','Q0.0=0']]},
       {name:'許可ON+点検ボタンでも回る', s:[[0,'I0.0=1 I0.2=1',''],[200,'','Q0.0=1']]},
       {name:'扉が開くと止まって警告', s:[[0,'I0.0=1 I0.1=1',''],[200,'','Q0.0=1 Q0.1=0'],[300,'I0.3=1',''],[500,'','Q0.0=0 Q0.1=1'],[600,'I0.3=0',''],[800,'','Q0.0=1 Q0.1=0']]},
     ],
@@ -1353,31 +1379,37 @@ const STAGES = [
 
 /* ---------------- エリア4 運び屋の谷(3級:コンベアの手動・サイクル動作)----------------
    ここから機械の欄は TRAINER-S01 そっくりのパネル。
-   ※ 実習機の割り付けは仮(実機の I/O が分かったら DEV_TRAINER_MAP を合わせる) */
-const DEV_TRAINER_MAP = {PB1:'I0.0', PB2:'I0.1', PB3:'I0.2', PB4:'I0.3', PB5:'I0.4', SS1:'I0.5', LS1:'I0.6', LS2:'I0.7', PL1:'Q0.0', BELT:'Q0.4', BELTL:'Q0.5'};
+   実習機の I/O 割り付け(「PLC-TRAINER-S01 回路図1」より。三菱の X/Y 番号を OpenPLC の番号に置き換え。
+   X は8進なので X10 → %IX1.0、X13 → %IX1.3 のように、そのまま「バイト.ビット」に対応する)
+     入力 X0 LS1(右端) X1 LS2(左端) X2〜X4 LS3〜LS5(左側の品種センサ) X5〜X10 PB1〜PB4 X11 PB5(非常停止)
+          X12 SS1 運転 切/入(入でON) X13 SS0 手動/自動(自動でON)
+     出力 Y0 コンベア左行 Y1 コンベア右行 Y2〜Y5 PL1〜PL4
+     DSW(1,2,4,8)と 7セグ DPL1・DPL2 は TB端子(オプション)。PLC の点数が足りれば使える */
+const DEV_TRAINER_MAP = {LS1:'I0.0', LS2:'I0.1', LS3:'I0.2', LS4:'I0.3', LS5:'I0.4', PB1:'I0.5', PB2:'I0.6', PB3:'I0.7', PB4:'I1.0', PB5:'I1.1', SS1:'I1.2', SS0:'I1.3',
+  BELTL:'Q0.0', BELT:'Q0.1', PL1:'Q0.2', PL2:'Q0.3', PL3:'Q0.4', PL4:'Q0.5'};
 const TR_IO = {
-  PB1:{a:'I0.0', name:'PB1', desc:'左ボタン'}, PB2:{a:'I0.1', name:'PB2', desc:'右ボタン'}, PB3:{a:'I0.2', name:'PB3', desc:'起動ボタン'},
-  SS1:{a:'I0.5', name:'SS1', desc:'手動/自動スイッチ(ONで自動)'},
-  LS1:{a:'I0.6', name:'LS1', desc:'左端センサ'}, LS2:{a:'I0.7', name:'LS2', desc:'右端センサ'},
-  PL1:{a:'Q0.0', name:'PL1', desc:'ランプ'}, BR:{a:'Q0.4', name:'BR', desc:'ベルト右行き'}, BL:{a:'Q0.5', name:'BL', desc:'ベルト左行き'},
+  PB1:{a:'I0.5', name:'PB1', desc:'左ボタン'}, PB2:{a:'I0.6', name:'PB2', desc:'右ボタン'}, PB3:{a:'I0.7', name:'PB3', desc:'起動ボタン'},
+  SS0:{a:'I1.3', name:'SS0', desc:'手動/自動スイッチ(自動でON)'},
+  LS1:{a:'I0.0', name:'LS1', desc:'右端センサ'}, LS2:{a:'I0.1', name:'LS2', desc:'左端センサ'},
+  PL1:{a:'Q0.2', name:'PL1', desc:'ランプ'}, BR:{a:'Q0.1', name:'BR', desc:'コンベア右行'}, BL:{a:'Q0.0', name:'BL', desc:'コンベア左行'},
 };
 const trIO=(...k)=>k.map(x=>Object.assign({}, TR_IO[x]));
 const AREA4_STAGES = [
   {
     id:'4-1', area:4, title:'ベルトを動かしてみよう', type:'build',
     story:'谷の運び屋にやってきた。ここの機械は、本物の実習機そっくりのパネルで動かす。',
-    task:'PB1 を押している間ベルトを左へ動かす。パレットが左端に着いて LS1 がONの間は PL1 をつける。',
+    task:'PB1 を押している間ベルトを左へ動かす。パレットが左端に着いて LS2 がONの間は PL1 をつける。',
     goal:'ボタンでベルトを動かし、端のセンサでランプをつけよう',
-    steps:[['{PB1|左ボタン}を押している間','{BL|ベルト左}が動き、パレットが左へ進む'],['パレットが左端に着く','{LS1|左端センサ}が自動でON → {PL1|ランプ}がつく']],
+    steps:[['{PB1|左ボタン}を押している間','{BL|ベルト左}が動き、パレットが左へ進む'],['パレットが左端に着く','{LS2|左端センサ}が自動でON → {PL1|ランプ}がつく']],
     tip:'センサはパレットが端に着くと自動で入る(手では押せない)。パレットは「右端へ」で置き直せる。',
-    io:trIO('PB1','LS1','PL1','BL'),
+    io:trIO('PB1','LS2','PL1','BL'),
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
     machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
-    answer:[ {r:['a:I0.0 - - -'], o:'Q0.5'}, {r:['a:I0.6 - - -'], o:'Q0.0'} ],
-    wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.5'} ], [ {r:['a:I0.0 - - -'], o:'Q0.5'}, {r:['b:I0.6 - - -'], o:'Q0.0'} ] ],
+    answer:[ {r:['a:I0.5 - - -'], o:'Q0.0'}, {r:['a:I0.1 - - -'], o:'Q0.2'} ],
+    wrong:[ [ {r:['a:I0.5 - - -'], o:'Q0.0'} ], [ {r:['a:I0.5 - - -'], o:'Q0.0'}, {r:['b:I0.1 - - -'], o:'Q0.2'} ] ],
     tests:[
-      {name:'押している間ベルトが左へ動く', s:[[0,'I0.0=1',''],[300,'','Q0.5=1 Q0.0=0'],[800,'I0.0=0',''],[1000,'','Q0.5=0']]},
-      {name:'左端に着くとランプがつく', s:[[0,'I0.0=1',''],[3400,'','I0.6=1 Q0.0=1']]},
+      {name:'押している間ベルトが左へ動く', s:[[0,'I0.5=1',''],[300,'','Q0.0=1 Q0.2=0'],[800,'I0.5=0',''],[1000,'','Q0.0=0']]},
+      {name:'左端に着くとランプがつく', s:[[0,'I0.5=1',''],[3400,'','I0.1=1 Q0.2=1']]},
     ],
     hints:['ラングを2本にする。1本目はベルト左、2本目はランプ。','ランプのラングは「左端センサのa接点 → ランプ」。'],
     unlock:[],
@@ -1385,17 +1417,17 @@ const AREA4_STAGES = [
   {
     id:'4-2', area:4, title:'端で止める', type:'build',
     story:'ベルトを動かしっぱなしにすると、パレットが端に押し付けられて傷む。端に着いたら止めよう。',
-    task:'PB1 を押している間ベルトを左へ動かすが、左端センサ LS1 がONになったら止める。',
+    task:'PB1 を押している間ベルトを左へ動かすが、左端センサ LS2 がONになったら止める。',
     goal:'押している間だけ動き、端に着いたら止まる回路を作ろう',
-    steps:[['{PB1|左ボタン}を押している間','パレットが左へ進む'],['左端に着く({LS1|左端センサ}がON)','押していても{BL|ベルト左}が止まる'],['手を離す','止まる']],
-    io:trIO('PB1','LS1','BL'),
+    steps:[['{PB1|左ボタン}を押している間','パレットが左へ進む'],['左端に着く({LS2|左端センサ}がON)','押していても{BL|ベルト左}が止まる'],['手を離す','止まる']],
+    io:trIO('PB1','LS2','BL'),
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
     machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
-    answer:[ {r:['a:I0.0 b:I0.6 - -'], o:'Q0.5'} ],
-    wrong:[ [ {r:['a:I0.0 - - -'], o:'Q0.5'} ], [ {r:['a:I0.0 a:I0.6 - -'], o:'Q0.5'} ] ],
+    answer:[ {r:['a:I0.5 b:I0.1 - -'], o:'Q0.0'} ],
+    wrong:[ [ {r:['a:I0.5 - - -'], o:'Q0.0'} ], [ {r:['a:I0.5 a:I0.1 - -'], o:'Q0.0'} ] ],
     tests:[
-      {name:'押している間だけ動く', s:[[0,'I0.0=1',''],[300,'','Q0.5=1'],[800,'I0.0=0',''],[1000,'','Q0.5=0']]},
-      {name:'左端に着いたら止まる', s:[[0,'I0.0=1',''],[300,'','Q0.5=1'],[3400,'','Q0.5=0 I0.6=1']]},
+      {name:'押している間だけ動く', s:[[0,'I0.5=1',''],[300,'','Q0.0=1'],[800,'I0.5=0',''],[1000,'','Q0.0=0']]},
+      {name:'左端に着いたら止まる', s:[[0,'I0.5=1',''],[300,'','Q0.0=1'],[3400,'','Q0.0=0 I0.1=1']]},
     ],
     hints:['「センサが入ったら切れる」接点が必要。','左ボタンのa接点の右に、左端センサのb接点を直列に置く。'],
     unlock:[],
@@ -1405,26 +1437,26 @@ const AREA4_STAGES = [
     story:'谷の運び屋のベルト。まずは手で動かせるようにしよう。',
     task:'PB1 を押している間ベルトを左へ、PB2 を押している間右へ動かす。端のセンサで止まり、左右が同時に入らないこと。',
     goal:'ボタンを押している間だけパレットを左右に動かし、端で止めよう',
-    steps:[['{PB1|左ボタン}を押している間','パレットが左へ動く'],['パレットが左端に着く({LS1|左端センサ}がON)','押していても止まる'],['{PB2|右ボタン}を押している間','右へ動き、右端({LS2|右端センサ})で止まる'],['左右のボタンを両方押す','左行きと右行きが同時に入らない']],
+    steps:[['{PB1|左ボタン}を押している間','パレットが左へ動く'],['パレットが左端に着く({LS2|左端センサ}がON)','押していても止まる'],['{PB2|右ボタン}を押している間','右へ動き、右端({LS1|右端センサ})で止まる'],['左右のボタンを両方押す','左行きと右行きが同時に入らない']],
     tip:'パレットは右端から始まる。「パレットを右端へ」で置き直せる。',
     io:[
-      {a:'I0.0', name:'PB1', desc:'左ボタン'}, {a:'I0.1', name:'PB2', desc:'右ボタン'},
-      {a:'I0.6', name:'LS1', desc:'左端センサ'}, {a:'I0.7', name:'LS2', desc:'右端センサ'},
-      {a:'Q0.4', name:'BR', desc:'ベルト右行き'}, {a:'Q0.5', name:'BL', desc:'ベルト左行き'},
+      {a:'I0.5', name:'PB1', desc:'左ボタン'}, {a:'I0.6', name:'PB2', desc:'右ボタン'},
+      {a:'I0.1', name:'LS2', desc:'左端センサ'}, {a:'I0.0', name:'LS1', desc:'右端センサ'},
+      {a:'Q0.1', name:'BR', desc:'ベルト右行き'}, {a:'Q0.0', name:'BL', desc:'ベルト左行き'},
     ],
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:3,
     machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
-    answer:[ {r:['a:I0.0 b:I0.6 b:Q0.4 -'], o:'Q0.5'}, {r:['a:I0.1 b:I0.7 b:Q0.5 -'], o:'Q0.4'} ],
+    answer:[ {r:['a:I0.5 b:I0.1 b:Q0.1 -'], o:'Q0.0'}, {r:['a:I0.6 b:I0.0 b:Q0.0 -'], o:'Q0.1'} ],
     wrong:[
-      [ {r:['a:I0.0 b:Q0.4 - -'], o:'Q0.5'}, {r:['a:I0.1 b:Q0.5 - -'], o:'Q0.4'} ],
-      [ {r:['a:I0.0 b:I0.6 - -'], o:'Q0.5'}, {r:['a:I0.1 b:I0.7 - -'], o:'Q0.4'} ],
+      [ {r:['a:I0.5 b:Q0.1 - -'], o:'Q0.0'}, {r:['a:I0.6 b:Q0.0 - -'], o:'Q0.1'} ],
+      [ {r:['a:I0.5 b:I0.1 - -'], o:'Q0.0'}, {r:['a:I0.6 b:I0.0 - -'], o:'Q0.1'} ],
     ],
-    forbid:[ {all:['Q0.4','Q0.5'], msg:'左行きと右行きが同時に入っています'} ],
+    forbid:[ {all:['Q0.1','Q0.0'], msg:'左行きと右行きが同時に入っています'} ],
     tests:[
-      {name:'押している間だけ左へ動く', s:[[0,'I0.0=1',''],[300,'','Q0.5=1 Q0.4=0'],[1000,'I0.0=0',''],[1200,'','Q0.5=0']]},
-      {name:'左端に着いたら止まる', s:[[0,'I0.0=1',''],[300,'','Q0.5=1'],[3400,'','Q0.5=0 I0.6=1'],[3500,'I0.0=0','']]},
-      {name:'右端では右ボタンを押しても動かない', s:[[0,'I0.1=1',''],[300,'','Q0.4=0']]},
-      {name:'左右を両方押しても同時に入らない', s:[[0,'I0.0=1',''],[300,'I0.1=1',''],[600,'','Q0.5=1 Q0.4=0'],[700,'I0.0=0 I0.1=0','']]},
+      {name:'押している間だけ左へ動く', s:[[0,'I0.5=1',''],[300,'','Q0.0=1 Q0.1=0'],[1000,'I0.5=0',''],[1200,'','Q0.0=0']]},
+      {name:'左端に着いたら止まる', s:[[0,'I0.5=1',''],[300,'','Q0.0=1'],[3400,'','Q0.0=0 I0.1=1'],[3500,'I0.5=0','']]},
+      {name:'右端では右ボタンを押しても動かない', s:[[0,'I0.6=1',''],[300,'','Q0.1=0']]},
+      {name:'左右を両方押しても同時に入らない', s:[[0,'I0.5=1',''],[300,'I0.6=1',''],[600,'','Q0.0=1 Q0.1=0'],[700,'I0.5=0 I0.6=0','']]},
     ],
     hints:['左行きのコイルには「左ボタン」と「左端センサのb接点」を直列に。','インターロック:左行きの行に「右行きのb接点」、右行きの行に「左行きのb接点」。'],
     unlock:[],
@@ -1437,30 +1469,30 @@ const AREA4_STAGES = [
     steps:[['パレットが右端にあるとき{PB3|起動ボタン}を押す','パレットが左へ動く'],['左端に着く','1秒止まる'],['1秒たつ','右へ動き、右端で止まる']],
     tip:'「押す」は押してすぐ離すこと(検定と同じ)。動きを工程に分け、工程ごとに内部リレー(M)を1つ使おう。',
     io:[
-      {a:'I0.2', name:'PB3', desc:'起動ボタン'},
-      {a:'I0.6', name:'LS1', desc:'左端センサ'}, {a:'I0.7', name:'LS2', desc:'右端センサ'},
-      {a:'Q0.4', name:'BR', desc:'ベルト右行き'}, {a:'Q0.5', name:'BL', desc:'ベルト左行き'},
+      {a:'I0.7', name:'PB3', desc:'起動ボタン'},
+      {a:'I0.1', name:'LS2', desc:'左端センサ'}, {a:'I0.0', name:'LS1', desc:'右端センサ'},
+      {a:'Q0.1', name:'BR', desc:'ベルト右行き'}, {a:'Q0.0', name:'BL', desc:'ベルト左行き'},
     ],
     mem:[ {a:'M0.0', name:'M1', desc:'左行き工程'}, {a:'M0.1', name:'M2', desc:'左端で待つ工程'}, {a:'M0.2', name:'M3', desc:'右行き工程'} ],
     timers:['T0'],
     palette:['NO','NC','COIL','TON'], cols:4, maxRows:2, maxRungs:6,
     machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
     answer:[
-      {r:['a:M0.0 a:I0.6 + b:M0.2 -','a:M0.1 -'], o:'M0.1'},
-      {r:['a:I0.2 a:I0.7 + b:I0.6 -','a:M0.0 -'], o:'M0.0'},
+      {r:['a:M0.0 a:I0.1 + b:M0.2 -','a:M0.1 -'], o:'M0.1'},
+      {r:['a:I0.7 a:I0.0 + b:I0.1 -','a:M0.0 -'], o:'M0.0'},
       {r:['a:M0.1 - - -'], o:'TON T0 1000'},
-      {r:['a:T0 + b:I0.7 - -','a:M0.2'], o:'M0.2'},
-      {r:['a:M0.0 - - -'], o:'Q0.5'},
-      {r:['a:M0.2 - - -'], o:'Q0.4'},
+      {r:['a:T0 + b:I0.0 - -','a:M0.2'], o:'M0.2'},
+      {r:['a:M0.0 - - -'], o:'Q0.0'},
+      {r:['a:M0.2 - - -'], o:'Q0.1'},
     ],
     wrong:[
-      [ {r:['a:I0.2 + b:I0.6 - -','a:Q0.5'], o:'Q0.5'} ],
+      [ {r:['a:I0.7 + b:I0.1 - -','a:Q0.0'], o:'Q0.0'} ],
     ],
-    forbid:[ {all:['Q0.4','Q0.5'], msg:'左行きと右行きが同時に入っています'} ],
+    forbid:[ {all:['Q0.1','Q0.0'], msg:'左行きと右行きが同時に入っています'} ],
     tests:[
-      {name:'押すと左へ動き出す(押してすぐ離す)', s:[[0,'I0.2=tap',''],[300,'','Q0.5=1 Q0.4=0']]},
-      {name:'左端で1秒止まってから右へ戻る', s:[[0,'I0.2=tap',''],[3300,'','Q0.5=0 Q0.4=0'],[3800,'','Q0.4=0'],[4400,'','Q0.4=1'],[7700,'','Q0.4=0 I0.7=1']]},
-      {name:'何もしなければ動かない', s:[[0,'',''],[1000,'','Q0.4=0 Q0.5=0']]},
+      {name:'押すと左へ動き出す(押してすぐ離す)', s:[[0,'I0.7=tap',''],[300,'','Q0.0=1 Q0.1=0']]},
+      {name:'左端で1秒止まってから右へ戻る', s:[[0,'I0.7=tap',''],[3300,'','Q0.0=0 Q0.1=0'],[3800,'','Q0.1=0'],[4400,'','Q0.1=1'],[7700,'','Q0.1=0 I0.0=1']]},
+      {name:'何もしなければ動かない', s:[[0,'',''],[1000,'','Q0.1=0 Q0.0=0']]},
     ],
     hints:['工程は「左行き → 左端で待つ → 右行き」の3つ。','左端で待つ工程は、左行き中に左端センサが入ったら始まる。この行を左行きの行より上に置こう。'],
     unlock:[],
@@ -1468,51 +1500,228 @@ const AREA4_STAGES = [
   {
     id:'4-5', area:4, title:'ボス:谷の運び屋', type:'build', boss:true,
     story:'谷いちばんの運び屋。手で寄せることも、自動で往復させることもできる機械に仕上げよう。',
-    task:'SS1 がOFFなら手動(PB1 で左、PB2 で右、押している間だけ・端で停止・インターロック)。SS1 がONなら自動:右端で PB3 を押すとサイクル動作。サイクル中は PL1 を点灯。サイクル中に手動へ切り替えたら止まる。',
+    task:'SS0 がOFFなら手動(PB1 で左、PB2 で右、押している間だけ・端で停止・インターロック)。SS0 がONなら自動:右端で PB3 を押すとサイクル動作。サイクル中は PL1 を点灯。サイクル中に手動へ切り替えたら止まる。',
     goal:'手動と自動を切り替えられるコンベアを作ろう',
     steps:[
-      ['{SS1|切替スイッチ}がOFF(手動)','{PB1|左ボタン}で左、{PB2|右ボタン}で右(押している間だけ・端で止まる・同時に入らない)'],
-      ['{SS1|切替スイッチ}がON(自動)で、右端で{PB3|起動ボタン}を押す','左へ → 左端で1秒止まる → 右へ戻って止まる'],
+      ['{SS0|手動/自動スイッチ}がOFF(手動)','{PB1|左ボタン}で左、{PB2|右ボタン}で右(押している間だけ・端で止まる・同時に入らない)'],
+      ['{SS0|手動/自動スイッチ}がON(自動)で、右端で{PB3|起動ボタン}を押す','左へ → 左端で1秒止まる → 右へ戻って止まる'],
       ['サイクル動作の間','{PL1|ランプ}がつく'],
       ['自動では左右ボタン、手動では起動ボタン','押しても動かない'],
       ['サイクルの途中で手動に切り替える','すぐ止まる'],
     ],
     tip:'4-3 と 4-4 の回路を組み合わせ、どちらにも切替スイッチの条件を足そう。',
-    io:trIO('PB1','PB2','PB3','SS1','LS1','LS2','PL1','BR','BL'),
+    io:trIO('PB1','PB2','PB3','SS0','LS2','LS1','PL1','BR','BL'),
     mem:[ {a:'M0.0', name:'M1', desc:'左行き工程'}, {a:'M0.1', name:'M2', desc:'左端で待つ工程'}, {a:'M0.2', name:'M3', desc:'右行き工程'} ],
     timers:['T0'],
     palette:['NO','NC','COIL','TON'], cols:5, maxRows:3, maxRungs:7,
     machine:[ {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}} ],
     answer:[
-      {r:['a:I0.5 + a:M0.0 a:I0.6 + b:M0.2 -','. a:M0.1 -'], o:'M0.1'},
-      {r:['a:I0.5 + a:I0.2 a:I0.7 + b:I0.6 -','. a:M0.0 -'], o:'M0.0'},
+      {r:['a:I1.3 + a:M0.0 a:I0.1 + b:M0.2 -','. a:M0.1 -'], o:'M0.1'},
+      {r:['a:I1.3 + a:I0.7 a:I0.0 + b:I0.1 -','. a:M0.0 -'], o:'M0.0'},
       {r:['a:M0.1 - - - -'], o:'TON T0 1000'},
-      {r:['a:I0.5 + a:T0 + b:I0.7 - -','. a:M0.2'], o:'M0.2'},
-      {r:['b:I0.5 a:I0.0 b:I0.6 + b:Q0.4 -','a:M0.0 - -'], o:'Q0.5'},
-      {r:['b:I0.5 a:I0.1 b:I0.7 + b:Q0.5 -','a:M0.2 - -'], o:'Q0.4'},
-      {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.0'},
+      {r:['a:I1.3 + a:T0 + b:I0.0 - -','. a:M0.2'], o:'M0.2'},
+      {r:['b:I1.3 a:I0.5 b:I0.1 + b:Q0.1 -','a:M0.0 - -'], o:'Q0.0'},
+      {r:['b:I1.3 a:I0.6 b:I0.0 + b:Q0.0 -','a:M0.2 - -'], o:'Q0.1'},
+      {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.2'},
     ],
     wrong:[
       // 切替スイッチの条件がない(手動ボタンが自動中も効く)
-      [ {r:['a:I0.5 + a:M0.0 a:I0.6 + b:M0.2 -','. a:M0.1 -'], o:'M0.1'}, {r:['a:I0.5 + a:I0.2 a:I0.7 + b:I0.6 -','. a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:I0.5 + a:T0 + b:I0.7 - -','. a:M0.2'], o:'M0.2'},
-        {r:['a:I0.0 b:I0.6 + b:Q0.4 - -','a:M0.0 -'], o:'Q0.5'}, {r:['a:I0.1 b:I0.7 + b:Q0.5 - -','a:M0.2 -'], o:'Q0.4'}, {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.0'} ],
+      [ {r:['a:I1.3 + a:M0.0 a:I0.1 + b:M0.2 -','. a:M0.1 -'], o:'M0.1'}, {r:['a:I1.3 + a:I0.7 a:I0.0 + b:I0.1 -','. a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:I1.3 + a:T0 + b:I0.0 - -','. a:M0.2'], o:'M0.2'},
+        {r:['a:I0.5 b:I0.1 + b:Q0.1 - -','a:M0.0 -'], o:'Q0.0'}, {r:['a:I0.6 b:I0.0 + b:Q0.0 - -','a:M0.2 -'], o:'Q0.1'}, {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.2'} ],
       // 工程に切替スイッチの条件がない(途中で手動にしても止まらない)
-      [ {r:['a:M0.0 a:I0.6 + b:M0.2 - -','a:M0.1 -'], o:'M0.1'}, {r:['a:I0.2 a:I0.7 + b:I0.6 - -','a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:T0 + b:I0.7 - - -','a:M0.2'], o:'M0.2'},
-        {r:['b:I0.5 a:I0.0 b:I0.6 + b:Q0.4 -','a:M0.0 - -'], o:'Q0.5'}, {r:['b:I0.5 a:I0.1 b:I0.7 + b:Q0.5 -','a:M0.2 - -'], o:'Q0.4'}, {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.0'} ],
+      [ {r:['a:M0.0 a:I0.1 + b:M0.2 - -','a:M0.1 -'], o:'M0.1'}, {r:['a:I0.7 a:I0.0 + b:I0.1 - -','a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:T0 + b:I0.0 - - -','a:M0.2'], o:'M0.2'},
+        {r:['b:I1.3 a:I0.5 b:I0.1 + b:Q0.1 -','a:M0.0 - -'], o:'Q0.0'}, {r:['b:I1.3 a:I0.6 b:I0.0 + b:Q0.0 -','a:M0.2 - -'], o:'Q0.1'}, {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.2'} ],
     ],
-    forbid:[ {all:['Q0.4','Q0.5'], msg:'左行きと右行きが同時に入っています'} ],
+    forbid:[ {all:['Q0.1','Q0.0'], msg:'左行きと右行きが同時に入っています'} ],
     tests:[
-      {name:'手動:押している間だけ左へ', s:[[0,'I0.0=1',''],[300,'','Q0.5=1 Q0.0=0'],[800,'I0.0=0',''],[1000,'','Q0.5=0']]},
-      {name:'手動:起動ボタンでは動かない', s:[[0,'I0.2=tap',''],[400,'','Q0.5=0 Q0.4=0']]},
-      {name:'自動:左右ボタンでは動かない', s:[[0,'I0.5=1',''],[100,'I0.0=1',''],[400,'','Q0.5=0'],[500,'I0.0=0','']]},
-      {name:'自動:サイクル動作とランプ', s:[[0,'I0.5=1',''],[100,'I0.2=tap',''],[400,'','Q0.5=1 Q0.0=1'],[3500,'','Q0.5=0 Q0.4=0 Q0.0=1'],[4500,'','Q0.4=1 Q0.0=1'],[7800,'','Q0.4=0 Q0.0=0 I0.7=1']]},
-      {name:'サイクル中に手動へ切り替えると止まる', s:[[0,'I0.5=1',''],[100,'I0.2=tap',''],[1000,'I0.5=0',''],[1200,'','Q0.5=0 Q0.0=0']]},
+      {name:'手動:押している間だけ左へ', s:[[0,'I0.5=1',''],[300,'','Q0.0=1 Q0.2=0'],[800,'I0.5=0',''],[1000,'','Q0.0=0']]},
+      {name:'手動:起動ボタンでは動かない', s:[[0,'I0.7=tap',''],[400,'','Q0.0=0 Q0.1=0']]},
+      {name:'自動:左右ボタンでは動かない', s:[[0,'I1.3=1',''],[100,'I0.5=1',''],[400,'','Q0.0=0'],[500,'I0.5=0','']]},
+      {name:'自動:サイクル動作とランプ', s:[[0,'I1.3=1',''],[100,'I0.7=tap',''],[400,'','Q0.0=1 Q0.2=1'],[3500,'','Q0.0=0 Q0.1=0 Q0.2=1'],[4500,'','Q0.1=1 Q0.2=1'],[7800,'','Q0.1=0 Q0.2=0 I0.0=1']]},
+      {name:'サイクル中に手動へ切り替えると止まる', s:[[0,'I1.3=1',''],[100,'I0.7=tap',''],[1000,'I1.3=0',''],[1200,'','Q0.0=0 Q0.2=0']]},
     ],
     hints:['工程(M1〜M3)の行の先頭に、切替スイッチのa接点を直列に置く。','手動の行は「切替スイッチのb接点 → ボタン → 端センサのb接点」。下の段に工程(M1 か M3)を置くと「または」になる。','ランプは M1・M2・M3 の3つを縦に並べた「または」。'],
     unlock:[],
   },
 ];
 STAGES.push(...AREA4_STAGES);
+
+/* ---------------- エリア5 非常の砦(3級:非常停止・異常の保持とリセット・点滅・連続運転)----------------
+   PB5 は非常停止(押すと切れる接点):ふだん入力ON、押すとOFF。だから「押されたら」は b接点で読む */
+Object.assign(TR_IO, {
+  PB4:{a:'I1.0', name:'PB4', desc:'リセットボタン'}, PB5:{a:'I1.1', name:'PB5', desc:'非常停止ボタン(押すと切れる)'},
+  SS1:{a:'I1.2', name:'SS1', desc:'連続運転スイッチ(ONで連続)'}, PL4:{a:'Q0.5', name:'PL4', desc:'異常ランプ'},
+});
+const TR5 = {type:'trainer', map:DEV_TRAINER_MAP, pallet:{start:'right', travel:3000}};
+const AREA5_STAGES = [
+  {
+    id:'5-1', area:5, title:'非常停止を覚えておく', type:'build',
+    story:'砦の門番いわく「非常停止は一瞬押されただけでも、異常として覚えておくこと。解除はリセットボタンで」。',
+    task:'PB5(非常停止)が押されたら PL4 を点灯し、手を離しても点いたまま。PB4(リセット)を押すと消える。',
+    goal:'非常停止が一瞬でも押されたら異常を覚えておき、リセットで解除しよう',
+    steps:[['何もしない','{PL4|異常ランプ}は消えている'],['{PB5|非常停止}を押してすぐ離す','{PL4|異常ランプ}がつき、つきっぱなし'],['{PB4|リセット}を押す','{PL4|異常ランプ}が消える']],
+    tip:'非常停止は「押すと切れる」ボタン。ふだんONで、押されるとOFFになる。だから「押された」を読むのは b接点。',
+    io:trIO('PB4','PB5','PL4'),
+    palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
+    machine:[ TR5 ],
+    answer:[ {r:['b:I1.1 + b:I1.0 - -','a:Q0.5'], o:'Q0.5'} ],
+    wrong:[ [ {r:['a:I1.1 + b:I1.0 - -','a:Q0.5'], o:'Q0.5'} ], [ {r:['b:I1.1 b:I1.0 - -'], o:'Q0.5'} ] ],
+    tests:[
+      {name:'ふだんは消えている', s:[[0,'',''],[300,'','Q0.5=0']]},
+      {name:'非常停止を押すとつきっぱなし', s:[[0,'I1.1=ntap',''],[300,'','Q0.5=1'],[1000,'','Q0.5=1']]},
+      {name:'リセットで消える', s:[[0,'I1.1=ntap',''],[500,'I1.0=tap',''],[800,'','Q0.5=0']]},
+    ],
+    hints:['自己保持の回路と同じ形。起動のかわりに非常停止、停止のかわりにリセット。','非常停止は押すとOFFになるので、b接点で「押された」を読む。','1行目:b接点 PB5 → b接点 PB4 → 異常ランプ。2行目に 異常ランプのa接点(自己保持)。'],
+    unlock:[],
+  },
+  {
+    id:'5-2', area:5, title:'非常停止で止める', type:'build',
+    story:'砦のコンベア。非常停止が押されたら、ボタンを押していても動いてはいけない。',
+    task:'4-3 の手動運転に、非常停止を足す。非常停止が押されたら異常(M1)を覚えておき、異常中はベルトが動かず PL4 がつく。リセット PB4 で解除。',
+    goal:'非常停止が押されたら、リセットするまで機械を動かさないようにしよう',
+    steps:[['{PB1|左ボタン}/{PB2|右ボタン}を押している間','左右に動く(端で止まる・同時に入らない)'],['{PB5|非常停止}を押す','すぐ止まり、{PL4|異常ランプ}がつく'],['異常のまま左右ボタンを押す','動かない'],['{PB4|リセット}を押す','異常が消え、また動かせる']],
+    tip:'異常は内部リレー M1 に覚えさせ、ベルトの行に M1 のb接点を足そう。',
+    io:trIO('PB1','PB2','PB4','PB5','LS2','LS1','PL4','BR','BL'),
+    mem:[ {a:'M0.0', name:'M1', desc:'異常(保持)'} ],
+    palette:['NO','NC','COIL'], cols:5, maxRows:2, maxRungs:4,
+    machine:[ TR5 ],
+    answer:[
+      {r:['b:I1.1 + b:I1.0 - - -','a:M0.0'], o:'M0.0'},
+      {r:['a:I0.5 b:I0.1 b:Q0.1 b:M0.0 -'], o:'Q0.0'},
+      {r:['a:I0.6 b:I0.0 b:Q0.0 b:M0.0 -'], o:'Q0.1'},
+      {r:['a:M0.0 - - - -'], o:'Q0.5'},
+    ],
+    wrong:[
+      [ {r:['b:I1.1 + b:I1.0 - - -','a:M0.0'], o:'M0.0'}, {r:['a:I0.5 b:I0.1 b:Q0.1 - -'], o:'Q0.0'}, {r:['a:I0.6 b:I0.0 b:Q0.0 - -'], o:'Q0.1'}, {r:['a:M0.0 - - - -'], o:'Q0.5'} ],
+      [ {r:['a:I0.5 b:I0.1 b:Q0.1 a:I1.1 -'], o:'Q0.0'}, {r:['a:I0.6 b:I0.0 b:Q0.0 a:I1.1 -'], o:'Q0.1'}, {r:['b:I1.1 - - - -'], o:'Q0.5'} ],
+    ],
+    forbid:[ {all:['Q0.0','Q0.1'], msg:'左行きと右行きが同時に入っています'} ],
+    tests:[
+      {name:'手動で左へ動く', s:[[0,'I0.5=1',''],[300,'','Q0.0=1 Q0.5=0'],[600,'I0.5=0',''],[800,'','Q0.0=0']]},
+      {name:'非常停止で止まり、押していても動かない', s:[[0,'I0.5=1',''],[300,'','Q0.0=1'],[400,'I1.1=ntap',''],[600,'','Q0.0=0 Q0.5=1'],[1200,'','Q0.0=0']]},
+      {name:'リセットでまた動かせる', s:[[0,'I0.5=1',''],[400,'I1.1=ntap',''],[1200,'I1.0=tap',''],[1500,'','Q0.0=1 Q0.5=0']]},
+    ],
+    hints:['1本目:異常を覚える回路(5-1 と同じ形)を M1 で。','左行き・右行きの行の最後に「M1 のb接点」。','4本目:M1 のa接点 → 異常ランプ。'],
+    unlock:[],
+  },
+  {
+    id:'5-3', area:5, title:'点滅で知らせる', type:'build',
+    story:'砦の見張り台。異常のときは、ランプを点滅させて遠くからでも分かるようにしたい。',
+    task:'非常停止で異常(M1)を覚え、異常の間 PL4 を「0.5秒点灯 → 0.5秒消灯」でくり返し点滅させる。リセット PB4 で解除して消灯。',
+    goal:'異常の間、ランプを0.5秒ずつ点滅させよう(タイマ2つ)',
+    steps:[['{PB5|非常停止}を押す','{PL4|異常ランプ}が「0.5秒つく → 0.5秒消える」をくり返す(つく方から)'],['{PB4|リセット}を押す','{PL4|異常ランプ}が消えたままになる']],
+    tip:'タイマ T0 で「つく時間」、T1 で「消える時間」を計る。T1 が終わったら T0 を最初からやり直す。',
+    io:trIO('PB4','PB5','PL4'),
+    mem:[ {a:'M0.0', name:'M1', desc:'異常(保持)'} ],
+    timers:['T0','T1'],
+    palette:['NO','NC','COIL','TON'], cols:4, maxRows:2, maxRungs:4,
+    machine:[ TR5 ],
+    answer:[
+      {r:['b:I1.1 + b:I1.0 - -','a:M0.0'], o:'M0.0'},
+      {r:['a:M0.0 b:T1 - -'], o:'TON T0 500'},
+      {r:['a:T0 - - -'], o:'TON T1 500'},
+      {r:['a:M0.0 b:T0 - -'], o:'Q0.5'},
+    ],
+    wrong:[
+      [ {r:['b:I1.1 + b:I1.0 - -','a:M0.0'], o:'M0.0'}, {r:['a:M0.0 - - -'], o:'Q0.5'} ],
+      [ {r:['b:I1.1 + b:I1.0 - -','a:M0.0'], o:'M0.0'}, {r:['a:M0.0 - - -'], o:'TON T0 500'}, {r:['a:T0 - - -'], o:'TON T1 500'}, {r:['a:M0.0 b:T0 - -'], o:'Q0.5'} ],
+    ],
+    tests:[
+      {name:'ふだんは消えている', s:[[0,'',''],[500,'','Q0.5=0']]},
+      {name:'異常の間、0.5秒ずつ点滅', s:[[0,'I1.1=ntap',''],[250,'','Q0.5=1'],[750,'','Q0.5=0'],[1250,'','Q0.5=1'],[1750,'','Q0.5=0']]},
+      {name:'リセットで消えたまま', s:[[0,'I1.1=ntap',''],[1400,'I1.0=tap',''],[1700,'','Q0.5=0'],[2300,'','Q0.5=0']]},
+    ],
+    hints:['3-3(点滅する警告灯)と同じ考え方。','T0 の行は「M1 のa接点 → T1 のb接点」。T1 の行は「T0 のa接点」。','ランプは「M1 のa接点 → T0 のb接点」。T0 が計っている間だけつく。'],
+    unlock:[],
+  },
+  {
+    id:'5-4', area:5, title:'続けて運ぶ(連続運転)', type:'build',
+    story:'砦への荷運びは何往復もある。連続運転スイッチが入っている間は、戻ったらまた運び出そう。',
+    task:'4-4 のサイクル動作で、右端に戻ったとき SS1(連続運転)がONなら、すぐ次のサイクルを始める。SS1 がOFFなら右端で止まる(途中でOFFにしたら、今のサイクルを終えてから止まる)。',
+    goal:'連続運転スイッチがONの間は、往復をくり返すようにしよう(サイクル停止)',
+    steps:[['右端で{PB3|起動ボタン}を押す','左へ → 左端で1秒止まる → 右へ戻る'],['戻ったとき{SS1|連続運転スイッチ}がON','すぐ次のサイクルへ(左へ動き出す)'],['戻ったとき{SS1|連続運転スイッチ}がOFF','右端で止まる'],['サイクルの途中でOFFにする','今のサイクルを終えて、右端で止まる']],
+    tip:'左行き工程の始まりを「右端で起動ボタン」または「右端で、連続運転ONかつ右行き工程が終わるところ」にする。',
+    io:trIO('PB3','SS1','LS2','LS1','BR','BL'),
+    mem:[ {a:'M0.0', name:'M1', desc:'左行き工程'}, {a:'M0.1', name:'M2', desc:'左端で待つ工程'}, {a:'M0.2', name:'M3', desc:'右行き工程'} ],
+    timers:['T0'],
+    palette:['NO','NC','COIL','TON'], cols:5, maxRows:3, maxRungs:6,
+    machine:[ TR5 ],
+    answer:[
+      {r:['a:M0.0 a:I0.1 + b:M0.2 - -','a:M0.1 -'], o:'M0.1'},
+      {r:['a:I0.0 + a:I0.7 - + b:I0.1 -','. a:I1.2 a:M0.2 +','a:M0.0 - -'], o:'M0.0'},
+      {r:['a:M0.1 - - - -'], o:'TON T0 1000'},
+      {r:['a:T0 + b:I0.0 - - -','a:M0.2'], o:'M0.2'},
+      {r:['a:M0.0 - - - -'], o:'Q0.0'},
+      {r:['a:M0.2 - - - -'], o:'Q0.1'},
+    ],
+    wrong:[
+      [ {r:['a:M0.0 a:I0.1 + b:M0.2 - -','a:M0.1 -'], o:'M0.1'}, {r:['a:I0.7 a:I0.0 + b:I0.1 - -','a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:T0 + b:I0.0 - - -','a:M0.2'], o:'M0.2'}, {r:['a:M0.0 - - - -'], o:'Q0.0'}, {r:['a:M0.2 - - - -'], o:'Q0.1'} ],
+    ],
+    forbid:[ {all:['Q0.0','Q0.1'], msg:'左行きと右行きが同時に入っています'} ],
+    tests:[
+      {name:'連続OFF:1往復して右端で止まる', s:[[0,'I0.7=tap',''],[300,'','Q0.0=1'],[4500,'','Q0.1=1'],[7600,'','Q0.0=0 Q0.1=0 I0.0=1']]},
+      {name:'連続ON:戻ったらすぐ次へ', s:[[0,'I1.2=1 I0.7=tap',''],[4500,'','Q0.1=1'],[7500,'','Q0.0=1 Q0.1=0']]},
+      {name:'途中でOFF:今のサイクルを終えて止まる', s:[[0,'I1.2=1 I0.7=tap',''],[2000,'I1.2=0',''],[4500,'','Q0.1=1'],[7600,'','Q0.0=0 Q0.1=0 I0.0=1']]},
+    ],
+    hints:['4-4 の回路が土台。変えるのは左行き工程(M1)の行だけ。','M1 の行:右端センサ → (起動ボタン または 連続運転・M3 の直列) → 左端センサのb接点。下の段に M1(自己保持)。','右に戻った瞬間はまだ M3 がONなので、「連続運転・M3」で次の M1 が入る。M1 の行は M3 の行より上に置く。'],
+    unlock:[],
+  },
+  {
+    id:'5-5', area:5, title:'ボス:砦の運び屋(3級の模擬)', type:'build', boss:true,
+    story:'砦の総仕上げ。手動・自動・非常停止・異常の点滅をそろえた、3級の検定と同じ形の機械だ。',
+    task:'手動(SS0 OFF):PB1/PB2 で左右(押している間・端で停止・インターロック)。自動(SS0 ON):右端で PB3 を押すとサイクル動作、サイクル中は PL1 点灯。非常停止 PB5 で全部止め、異常を覚えて PL4 を0.5秒点滅、PB4 で解除。異常中は手動も自動も動かない。',
+    goal:'手動・自動・非常停止・異常の点滅をそろえた、3級と同じ形の機械を作ろう',
+    steps:[
+      ['{SS0|手動/自動スイッチ}がOFF(手動)','{PB1|左ボタン}・{PB2|右ボタン}を押している間だけ左右に動く(端で止まる・同時に入らない)'],
+      ['{SS0|手動/自動スイッチ}がON(自動)で右端で{PB3|起動ボタン}を押す','左へ → 左端で1秒 → 右へ戻って止まる。その間{PL1|ランプ}がつく'],
+      ['{PB5|非常停止}を押す','すぐ全部止まり、{PL4|異常ランプ}が0.5秒ずつ点滅'],
+      ['異常のまま操作する','手動でも自動でも動かない'],
+      ['{PB4|リセット}を押す','異常が消える(自動は起動ボタンを押すまで止まったまま)'],
+    ],
+    tip:'4-5(手動/自動)、5-2(非常停止)、5-3(点滅)の組み合わせ。異常の M4 のb接点を、工程と手動の行に足そう。',
+    io:trIO('PB1','PB2','PB3','PB4','PB5','SS0','LS2','LS1','PL1','PL4','BR','BL'),
+    mem:[ {a:'M0.0', name:'M1', desc:'左行き工程'}, {a:'M0.1', name:'M2', desc:'左端で待つ工程'}, {a:'M0.2', name:'M3', desc:'右行き工程'}, {a:'M0.3', name:'M4', desc:'異常(保持)'} ],
+    timers:['T0','T1','T2'],
+    palette:['NO','NC','COIL','TON'], cols:5, maxRows:3, maxRungs:12,
+    machine:[ TR5 ],
+    answer:[
+      {r:['b:I1.1 + b:I1.0 - - -','a:M0.3'], o:'M0.3'},
+      {r:['a:I1.3 b:M0.3 + a:M0.0 a:I0.1 + b:M0.2','. . a:M0.1 -'], o:'M0.1'},
+      {r:['a:I1.3 b:M0.3 + a:I0.7 a:I0.0 + b:I0.1','. . a:M0.0 -'], o:'M0.0'},
+      {r:['a:M0.1 - - - -'], o:'TON T0 1000'},
+      {r:['a:I1.3 b:M0.3 + a:T0 + b:I0.0 -','. . a:M0.2'], o:'M0.2'},
+      {r:['b:I1.3 a:I0.5 b:I0.1 + b:Q0.1 b:M0.3','a:M0.0 - -'], o:'Q0.0'},
+      {r:['b:I1.3 a:I0.6 b:I0.0 + b:Q0.0 b:M0.3','a:M0.2 - -'], o:'Q0.1'},
+      {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.2'},
+      {r:['a:M0.3 b:T2 - - -'], o:'TON T1 500'},
+      {r:['a:T1 - - - -'], o:'TON T2 500'},
+      {r:['a:M0.3 b:T1 - - -'], o:'Q0.5'},
+    ],
+    wrong:[
+      // 手動の行に異常のb接点がない
+      [ {r:['b:I1.1 + b:I1.0 - - -','a:M0.3'], o:'M0.3'},
+        {r:['a:I1.3 b:M0.3 + a:M0.0 a:I0.1 + b:M0.2','. . a:M0.1 -'], o:'M0.1'}, {r:['a:I1.3 b:M0.3 + a:I0.7 a:I0.0 + b:I0.1','. . a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:I1.3 b:M0.3 + a:T0 + b:I0.0 -','. . a:M0.2'], o:'M0.2'},
+        {r:['b:I1.3 a:I0.5 b:I0.1 + b:Q0.1 -','a:M0.0 - -'], o:'Q0.0'}, {r:['b:I1.3 a:I0.6 b:I0.0 + b:Q0.0 -','a:M0.2 - -'], o:'Q0.1'},
+        {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.2'}, {r:['a:M0.3 b:T2 - - -'], o:'TON T1 500'}, {r:['a:T1 - - - -'], o:'TON T2 500'}, {r:['a:M0.3 b:T1 - - -'], o:'Q0.5'} ],
+      // 異常を覚えていない(非常停止を離すと元に戻る)
+      [ {r:['b:I1.1 - - - -'], o:'M0.3'},
+        {r:['a:I1.3 b:M0.3 + a:M0.0 a:I0.1 + b:M0.2','. . a:M0.1 -'], o:'M0.1'}, {r:['a:I1.3 b:M0.3 + a:I0.7 a:I0.0 + b:I0.1','. . a:M0.0 -'], o:'M0.0'}, {r:['a:M0.1 - - - -'], o:'TON T0 1000'}, {r:['a:I1.3 b:M0.3 + a:T0 + b:I0.0 -','. . a:M0.2'], o:'M0.2'},
+        {r:['b:I1.3 a:I0.5 b:I0.1 + b:Q0.1 b:M0.3','a:M0.0 - -'], o:'Q0.0'}, {r:['b:I1.3 a:I0.6 b:I0.0 + b:Q0.0 b:M0.3','a:M0.2 - -'], o:'Q0.1'},
+        {r:['a:M0.0 + - - - -','a:M0.1 +','a:M0.2'], o:'Q0.2'}, {r:['a:M0.3 b:T2 - - -'], o:'TON T1 500'}, {r:['a:T1 - - - -'], o:'TON T2 500'}, {r:['a:M0.3 b:T1 - - -'], o:'Q0.5'} ],
+    ],
+    forbid:[ {all:['Q0.0','Q0.1'], msg:'左行きと右行きが同時に入っています'} ],
+    tests:[
+      {name:'手動:押している間だけ左へ', s:[[0,'I0.5=1',''],[300,'','Q0.0=1'],[600,'I0.5=0',''],[800,'','Q0.0=0']]},
+      {name:'自動:サイクル動作とランプ', s:[[0,'I1.3=1',''],[100,'I0.7=tap',''],[400,'','Q0.0=1 Q0.2=1'],[3500,'','Q0.0=0 Q0.1=0 Q0.2=1'],[4500,'','Q0.1=1'],[7800,'','Q0.1=0 Q0.2=0 I0.0=1']]},
+      {name:'非常停止ですぐ止まり、異常ランプが点滅', s:[[0,'I1.3=1',''],[100,'I0.7=tap',''],[1000,'I1.1=ntap',''],[1150,'','Q0.0=0 Q0.2=0'],[1250,'','Q0.5=1'],[1750,'','Q0.5=0'],[2250,'','Q0.5=1'],[3000,'','Q0.0=0 Q0.1=0']]},
+      {name:'異常中は手動も動かない', s:[[0,'I1.1=ntap',''],[200,'I0.5=1',''],[400,'','Q0.0=0'],[500,'I0.5=0','']]},
+      {name:'リセット後は起動ボタンでまた動く', s:[[0,'I1.3=1 I1.1=ntap',''],[300,'I0.7=tap',''],[600,'','Q0.0=0'],[800,'I1.0=tap',''],[1100,'','Q0.5=0 Q0.0=0'],[1300,'I0.7=tap',''],[1600,'','Q0.0=1']]},
+    ],
+    hints:['1本目は異常 M4 の自己保持(5-1 と同じ形)。','工程 M1〜M3 の行は「自動スイッチ → M4のb接点」から始める。手動の行の最後にも M4 のb接点。','点滅は 5-3 と同じ:T1(M4・T2のb接点)、T2(T1)、異常ランプ(M4・T1のb接点)。'],
+    unlock:[],
+  },
+];
+STAGES.push(...AREA5_STAGES);
 
 /* 命令図鑑 */
 const DEX = [
@@ -1748,12 +1957,13 @@ const TAP_MS=100;
 function normTest(t){
   const steps=[];
   t.s.forEach(([tm,i,e])=>{
-    const taps=[], rest=[];
-    String(i||'').trim().split(/\s+/).filter(Boolean).forEach(p=>{ const [k,v]=p.split('='); if(v==='tap') taps.push(k); else rest.push(p); });
+    // 'ntap' は押すと切れるボタン(非常停止)を押してすぐ離す:OFF → 0.1秒後にON
+    const taps=[], ntaps=[], rest=[];
+    String(i||'').trim().split(/\s+/).filter(Boolean).forEach(p=>{ const [k,v]=p.split('='); if(v==='tap') taps.push(k); else if(v==='ntap') ntaps.push(k); else rest.push(p); });
     const inp=parseAssign(rest.join(' '));
-    taps.forEach(k=>{ inp[A(k)]=true; });
+    taps.forEach(k=>{ inp[A(k)]=true; }); ntaps.forEach(k=>{ inp[A(k)]=false; });
     steps.push({t:tm, in:inp, ex:parseAssign(e)});
-    if(taps.length){ const off={}; taps.forEach(k=>{ off[A(k)]=false; }); steps.push({t:tm+TAP_MS, in:off, ex:{}}); }
+    if(taps.length||ntaps.length){ const back={}; taps.forEach(k=>{ back[A(k)]=false; }); ntaps.forEach(k=>{ back[A(k)]=true; }); steps.push({t:tm+TAP_MS, in:back, ex:{}}); }
   });
   return {name:t.name, steps:steps.sort((a,b)=>a.t-b.t)};
 }
@@ -1765,6 +1975,7 @@ function runOneTest(prog, test, stage){
   const forbid=(stage.forbid||[]).map(f=>({all:f.all.map(A), msg:f.msg}));
   const ph = usesPhys(stage) ? physInit(stage) : null;   // パレット・シリンダの位置でセンサが決まるステージ
   if(ph) physSensors(stage, ph, plc);
+  initNC(stage, plc);   // 非常停止など「押すと切れる」ボタンはふだんON(テストでは '=0' が押した状態)
   for(let tau=0; tau<=end; tau+=SCAN_MS){
     steps.forEach((s,i)=>{ if(!applied[i] && s.t<=tau){ Object.assign(plc.inputs, s.in); applied[i]=true; } });
     if(ph) physStep(stage, ph, plc, SCAN_MS);
@@ -2517,8 +2728,8 @@ function missionHTML(st){
   if(!st.steps) return `<span class="chip">おしごと</span>${esc(nameText(st, st.task))}`;
   const list=`<ol class="msteps">${st.steps.map(([d,r])=>`<li><span class="mdo">${fillNames(st,d)}</span><span class="marr">→</span><span class="mres">${fillNames(st,r)}</span></li>`).join('')}</ol>
     ${st.tip?`<div class="mtip">${fillNames(st,st.tip)}</div>`:''}`;
-  // 条件が4つ以上ある(ボスなど)ときは折りたたむ。目的の行をタップで開け閉め
-  if(st.steps.length>=4) return `<details class="mdet"><summary class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}
+  // 条件が5つ以上ある(大きなボスなど)ときは折りたたむ。目的の行をタップで開け閉め
+  if(st.steps.length>=5) return `<details class="mdet"><summary class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}
       <span class="mmore"><span class="o">条件を見る(${st.steps.length})</span><span class="c">閉じる</span></span></summary>${list}</details>`;
   return `<div class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}</div>${list}`;
 }
@@ -3158,13 +3369,17 @@ function motorArt(look){
 }
 
 /* ---------- 実習機 PLC TRAINER-S01 そっくりのパネル ----------
-   ステージの machine に {type:'trainer', map:{SS1:'I0.0', PB1:'I0.2', L1:'Q0.0', BELT:'Q0.4', LS1:'I0.6', ...}} を書く。
-   map に無い部品は、使わない部品として薄く表示する。
-   ※ 実機の入出力の割り付けが分かったら、ここの部品名と並びを実機に合わせる */
+   配置は「PLC-TRAINER-S01 回路図1」の実体図に合わせる:
+     上:コンベア(左端に LS2、その上に LS3〜LS5、右端に LS1)、コンベア用リレー RY1(左行)・RY2(右行)
+     下:MAN/AUTO(SS0)、運転 OFF/ON(SS1)、PL1〜PL4 と PB1〜PB4、PB5(非常停止)、DSW と 7セグ DPL2・DPL1
+   ステージの machine に {type:'trainer', map:DEV_TRAINER_MAP, pallet:{...}} を書く。
+   ステージの io に無い部品は、使わない部品として薄く表示する。
+   ※ ランプの色は仮(実機の色が分かったら TRAINER_LED を合わせる) */
 const TRAINER_LED = {PL1:'green', PL2:'yellow', PL3:'red', PL4:'white'};   // PL=パイロットランプ
 function trainerHTML(st, d){
-  const m=d.map||{}, A_=k=>m[k]?A(m[k]):null;
-  const tag=k=>m[k]?`<span class="ad">${A(m[k])}</span>`:'';
+  const used=new Set((st.io||[]).map(x=>A(x.a)));
+  const m=d.map||{}, A_=k=>m[k] && used.has(A(m[k])) ? A(m[k]) : null;
+  const tag=k=>A_(k)?`<span class="ad">${A_(k)}</span>`:'';
   // パレットがあるときは、ベルト両端のセンサはパレットの位置で自動的に入る(手では押せない)
   const pal=d.pallet?palletCfg(d):null, pi=(st.machine||[]).indexOf(d);
   const kindOfSens=k=> pal && (k===pal.left||k===pal.right) ? 'auto' : 'sw';
@@ -3174,22 +3389,26 @@ function trainerHTML(st, d){
   const led=k=>{ const a=A_(k); return `<i class="tr-led ${TRAINER_LED[k]} ${a?'':'unused'}" ${a?`data-out="${a}"`:''}></i>`; };
   const belt=A_('BELT'), beltL=A_('BELTL');
   const beltAttr = belt ? `data-out="${belt}"${beltL?` data-rev="${beltL}"`:''}` : beltL ? `data-out="${beltL}" data-revonly="1"` : '';
+  const relay=(k,lab)=>{ const a=A_(k); return `<span class="tr-ry">${lab}<i class="tr-led red ${a?'':'unused'}" ${a?`data-out="${a}"`:''}></i></span>`; };
+  const lsRow=k=>`<div class="tr-lsrow"><b>${k}</b>${btn(k,'tr-sens sm',kindOfSens(k))}${tag(k)}</div>`;
   return `<div class="trainer">
     <div class="tr-name">PLC-TRAINER-S01</div>
-    <div class="tr-top">
-      <div class="tr-ls">${btn('LS1','tr-sens',kindOfSens('LS1'))}<b>LS1</b>${tag('LS1')}</div>
-      <div class="tbelt ${belt||beltL?'':'unused'}" ${beltAttr}><i></i>${pal?`<b class="pallet" data-pallet="${pi}" title="パレット"></b>`:''}<span>Conv.Belt${belt?` →${tag('BELT')}`:''}${beltL?` ←${tag('BELTL')}`:''}</span></div>
-      <div class="tr-ls">${btn('LS2','tr-sens',kindOfSens('LS2'))}<b>LS2</b>${tag('LS2')}</div>
+    <div class="tr-relay">${relay('BELTL','RY1')}${relay('BELT','RY2')}<span class="tr-cap">Conv. Relay</span></div>
+    <div class="tr-conv">
+      <div class="tr-lsl">${['LS5','LS4','LS3','LS2'].map(lsRow).join('')}</div>
+      <div class="tbelt ${belt||beltL?'':'unused'}" ${beltAttr}><i></i>${pal?`<b class="pallet" data-pallet="${pi}" title="パレット"></b>`:''}<span>${beltL?`←左行${tag('BELTL')} `:''}${belt?`右行→${tag('BELT')}`:''}</span></div>
+      <div class="tr-lsr">${lsRow('LS1')}</div>
     </div>
     ${pal?`<div class="tr-pal-ctl"><button class="btn small" data-pal-move="${pi}" data-to="0">パレットを左端へ</button><button class="btn small" data-pal-move="${pi}" data-to="1">右端へ</button></div>`:''}
-    <div class="tr-mid">
-      <div class="tr-ss">${['SS1','SS2'].map(k=>`<div class="tr-cell">${btn(k,'tr-slide','sw')}<b>${k}</b>${tag(k)}</div>`).join('')}</div>
-      <div class="tr-pbs">${[1,2,3,4].map(i=>`<div class="tr-cell">${m['PL'+i]?`<span class="led-ad">PL${i}<span class="ad"> ${A(m['PL'+i])}</span></span>`:'<span class="led-ad">&nbsp;</span>'}${led('PL'+i)}${btn('PB'+i,'tr-pb','pb')}<b>PB${i}</b>${tag('PB'+i)}</div>`).join('')}</div>
-      <div class="tr-cell">${btn('PB5','tr-pbr','pb')}<b>PB5</b>${tag('PB5')}</div>
-    </div>
-    <div class="tr-bot">
-      ${['T1','T2'].map(k=>`<div class="tr-cell sm">${btn(k,'tr-tact','pb')}<b>${k}</b></div>`).join('')}
-      <div class="tr-oled" id="tr-oled">READY</div>
+    <div class="tr-ops">
+      <div class="tr-sws">
+        <div class="tr-cell"><span class="tr-cap">MAN AUTO</span>${btn('SS0','tr-slide','sw')}<b>SS0</b>${tag('SS0')}</div>
+        <div class="tr-cell"><span class="tr-cap">Cont. Oper. OFF ON</span>${btn('SS1','tr-slide','sw')}<b>SS1</b>${tag('SS1')}</div>
+      </div>
+      <div class="tr-pbs">${[1,2,3,4].map(i=>`<div class="tr-cell">${A_('PL'+i)?`<span class="led-ad">PL${i}<span class="ad"> ${A_('PL'+i)}</span></span>`:`<span class="led-ad dim">PL${i}</span>`}${led('PL'+i)}${btn('PB'+i,'tr-pb','pb')}<b>PB${i}</b>${tag('PB'+i)}</div>`).join('')}
+        <div class="tr-cell"><span class="led-ad dim">非常停止</span>${btn('PB5','tr-pbr','pbnc')}<b>PB5</b>${tag('PB5')}</div></div>
+      <div class="tr-dsw"><div class="tr-cell"><span class="tr-knob"><i></i></span><b>DSW</b></div>
+        <div class="tr-cell"><span class="tr-dpl" id="tr-dpl2">8</span><b>DPL2</b></div><div class="tr-cell"><span class="tr-dpl" id="tr-dpl1">8</span><b>DPL1</b></div></div>
     </div>
   </div>`;
 }
@@ -3233,6 +3452,8 @@ function renderMachine(){
   el.querySelectorAll('[data-in]').forEach(btn=>{
     const a=btn.dataset.in, kind=btn.dataset.kind;
     if(kind==='auto') return;
+    // pbnc = 押すと切れる押しボタン(非常停止)。ふだんは入力ON、押している間OFF
+    const PRESS = kind==='pbnc' ? false : true;
     btn.addEventListener('contextmenu', e=>e.preventDefault());
     btn.addEventListener('pointerdown', e=>{
       e.preventDefault();
@@ -3241,20 +3462,21 @@ function renderMachine(){
       const now=Date.now();
       // 押しボタン:押しっぱなし中は、もう一度ダブルタップで離す(1回のタップでは離れない)
       if(G.latch.has(a)){
-        if(G.lastTap[a] && now-G.lastTap[a]<350){ G.latch.delete(a); G.lastTap[a]=0; setIn(a,false); SFX.play('remove'); }
+        if(G.lastTap[a] && now-G.lastTap[a]<350){ G.latch.delete(a); G.lastTap[a]=0; setIn(a,!PRESS); SFX.play('remove'); }
         else G.lastTap[a]=now;
         return;
       }
       // 0.35秒以内の2回目のタップで押しっぱなしにする(2つ同時押し用)
-      if(G.lastTap[a] && now-G.lastTap[a]<350){ G.lastTap[a]=0; G.latch.add(a); setIn(a,true); SFX.play('place'); return; }
+      if(G.lastTap[a] && now-G.lastTap[a]<350){ G.lastTap[a]=0; G.latch.add(a); setIn(a,PRESS); SFX.play('place'); return; }
       G.lastTap[a]=now;
-      setIn(a, true); try{ btn.setPointerCapture(e.pointerId); }catch(_){}
+      setIn(a, PRESS); try{ btn.setPointerCapture(e.pointerId); }catch(_){}
     });
-    const up=()=>{ if(kind==='pb' && !G.latch.has(a)) setIn(a,false); };
+    const isPB = kind==='pb' || kind==='pbnc';
+    const up=()=>{ if(isPB && !G.latch.has(a)) setIn(a,!PRESS); };
     btn.addEventListener('pointerup', up);
     btn.addEventListener('pointercancel', up);
-    btn.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); if(kind==='sw'){ if(!e.repeat) setIn(a,!G.plc.inputs[a]); } else setIn(a,true);} });
-    btn.addEventListener('keyup', e=>{ if((e.key===' '||e.key==='Enter') && kind==='pb' && !G.latch.has(a)) setIn(a,false); });
+    btn.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); if(kind==='sw'){ if(!e.repeat) setIn(a,!G.plc.inputs[a]); } else setIn(a,PRESS);} });
+    btn.addEventListener('keyup', e=>{ if((e.key===' '||e.key==='Enter') && isPB && !G.latch.has(a)) setIn(a,!PRESS); });
   });
   updateMachineVis();
 }
@@ -3262,7 +3484,8 @@ function setIn(a,v){ G.plc.inputs[a]=v; updateMachineVis(); }
 /* ---------- 機械の動き(シリンダ・タンク・実習機のベルトとパレット) ----------
    画面の実行と判定(テスト)の両方で同じ動きを使えるよう、ステージ・状態・PLC を引数で受け取る */
 // 実習機のベルト:map.BELT=右行き、map.BELTL=左行き。pallet:{start:'right'|'left', travel:端から端までのms, left:'LS1', right:'LS2'}
-function palletCfg(d){ const p=d.pallet||{}; return {start:p.start||'right', travel:p.travel||3000, left:p.left||'LS1', right:p.right||'LS2'}; }
+// 実機は右端が LS1、左端が LS2(左側には品種センサ LS3〜LS5 も並ぶ)
+function palletCfg(d){ const p=d.pallet||{}; return {start:p.start||'right', travel:p.travel||3000, left:p.left||'LS2', right:p.right||'LS1'}; }
 function physInit(st){
   const ph={};
   (st && st.machine||[]).forEach((d,i)=>{
@@ -3311,15 +3534,27 @@ function physSensors(st, ph, plc){
 }
 // 判定でも機械の動きを使うステージか(センサが機械の動きで決まるもの)
 function usesPhys(st){ return (st.machine||[]).some(d=>(d.type==='trainer'&&d.pallet) || (d.type==='cylinder'&&(d.ext||d.ret)) || (d.type==='tank'&&(d.lo||d.hi))); }
-function resetPhys(){ G.phys=physInit(G.stage); applyPhysSensors(); }
+// 押すと切れるボタン(非常停止 PB5)は、何もしていないとき入力ON
+function ncInputs(st){
+  const out=[];
+  (st && st.machine||[]).forEach(d=>{
+    if(d.type==='trainer' && d.map && d.map.PB5) out.push(A(d.map.PB5));
+    if(d.type==='pb' && d.nc) out.push(A(d.a));
+  });
+  const used=new Set((st && st.io||[]).map(x=>A(x.a)));
+  return out.filter(a=>used.has(a));
+}
+function initNC(st, plc){ ncInputs(st).forEach(a=>{ plc.inputs[a]=true; }); }
+function resetPhys(){ G.phys=physInit(G.stage); applyPhysSensors(); initNC(G.stage, G.plc); }
 function physics(dt){ if(G.stage) physStep(G.stage, G.phys, G.plc, dt); }
 function applyPhysSensors(){ if(G.stage) physSensors(G.stage, G.phys, G.plc); }
 function updateMachineVis(){
   const el=document.getElementById('machine'); if(!el) return;
   el.querySelectorAll('[data-in]').forEach(b=>{
-    const on=!!G.plc.inputs[b.dataset.in];
+    // 押すと切れるボタンは、入力がOFFのときが「押されている」見た目
+    const nc=b.dataset.kind==='pbnc', on = nc ? !G.plc.inputs[b.dataset.in] : !!G.plc.inputs[b.dataset.in];
     b.classList.toggle('on', on);
-    if(b.dataset.kind==='pb') b.classList.toggle('held', G.latch.has(b.dataset.in) && on);
+    if(b.dataset.kind==='pb'||nc) b.classList.toggle('held', G.latch.has(b.dataset.in) && on);
   });
   const outv=a=> G.running || G.plc.time>0 ? G.plc.get(a) : false;
   el.querySelectorAll('[data-out]').forEach(d=>{
@@ -3426,22 +3661,52 @@ function openHint(){
 }
 
 /* ---------- 判定・クリア ---------- */
-function failHTML(st, r){
-  const name=a=>{ const n=showName(st,a); return n? (addrOn()?`${n}(${dispAddr(a)})`:n) : dispAddr(a); };
-  const sec=t=>(t/1000).toFixed(2)+'秒';
-  let tl='';
-  for(const s of r.steps){
-    if(s.t>r.t) break;
-    const ins=Object.entries(s.in).map(([a,v])=>`${name(a)}を${v?'ON':'OFF'}`);
-    if(ins.length) tl+=`<div>${sec(s.t)}:${esc(ins.join('、'))}</div>`;
+// 入力の種類(押しボタン・切替スイッチ・センサ・押すと切れるボタン)
+function inKind(st, a){
+  for(const d of (st.machine||[])){
+    if(d.type==='trainer'){ for(const k in (d.map||{})) if(A(d.map[k])===a){ if(k==='PB5') return 'pbnc'; if(/^PB/.test(k)) return 'pb'; if(/^SS/.test(k)) return 'sw'; if(/^LS/.test(k)) return 'sensor'; } continue; }
+    if(d.a && A(d.a)===a) return d.type==='pb' ? (d.nc?'pbnc':'pb') : d.type;
+    for(const key of ['ext','ret','lo','hi']) if(d[key] && A(d[key])===a) return 'sensor';
   }
+  return '?';
+}
+// 不合格の説明:テストでの操作を、ふだんの言葉で順に書く(「押してすぐ離す」はまとめる)
+function failHTML(st, r){
+  // 「運転ボタン(ボタン1)」のように、割付表の役割名+部品名で書く
+  const P=prep(st);
+  const name=a=>{ const n=showName(st,a)||dispAddr(a), io=P.io.find(x=>x.a===a)||P.mem.find(x=>x.a===a);
+    const role=io&&io.desc ? io.desc.split(/[((]/)[0].trim() : '';
+    const base = role && role!==n ? `${role}(${n})` : n;
+    return addrOn() ? `${base} ${dispAddr(a)}` : base; };
+  const sec=t=>(t/1000).toFixed(1)+'秒';
+  const verb=(a,v)=>{ const k=inKind(st,a), n=name(a);
+    if(k==='pb') return v?`${n}を押す(押したまま)`:`${n}を離す`;
+    if(k==='pbnc') return v?`${n}を離す`:`${n}を押す(押したまま)`;
+    if(k==='sw') return `${n}を${v?'ON':'OFF'}にする`;
+    if(k==='sensor') return `${n}が${v?'ON':'OFF'}になる`;
+    return `${n}を${v?'ON':'OFF'}`; };
+  const skip=new Set(); let tl='';
+  r.steps.forEach((s,i)=>{
+    if(s.t>r.t) return;
+    const ins=[];
+    for(const [a,v] of Object.entries(s.in)){
+      if(skip.has(s.t+'|'+a)) continue;
+      // 0.1秒後に元へ戻すものは「押してすぐ離す」
+      const back=r.steps.find(x=>x.t===s.t+TAP_MS && x.in[a]===!v);
+      const k=inKind(st,a);
+      if(back && (k==='pb'||k==='pbnc') && (k==='pb'?v:!v)){ skip.add(back.t+'|'+a); ins.push(`${name(a)}を押してすぐ離す`); continue; }
+      ins.push(verb(a,v));
+    }
+    if(ins.length) tl+=`<div>${sec(s.t)}:${esc(ins.join('、'))}</div>`;
+  });
+  const state=(a,v)=>{ const k=kindOf(a); return k==='Q' ? (v?'ON(動く・つく)':'OFF(止まる・消える)') : (v?'ON':'OFF'); };
   let bad;
   if(r.forbid) bad=`${sec(r.t)}:危険! ${esc(r.forbid.msg || r.forbid.all.map(name).join(' と ')+' が同時にON')}`;
-  else bad=`${sec(r.t)}:${esc(name(r.addr))} は <b>${r.exp?'ON':'OFF'}</b> のはずが、実際は <b>${r.act?'ON':'OFF'}</b>`;
+  else bad=`${sec(r.t)}の時点で、${esc(name(r.addr))} は <b>${state(r.addr,r.exp)}</b> のはずが、<b>${state(r.addr,r.act)}</b> になっていました`;
   return `<p class="result-ng">不合格… テスト${r.idx+1}「${esc(r.name)}」</p>
-    <div class="note">入力の流れ(すべて最初はOFF)</div>
-    <div class="timeline">${tl||'<div>(入力の操作なし)</div>'}<div class="bad">${bad}</div></div>
-    <p class="note">機械のボタンで同じ順番に操作すると、ラダー図の「✕」と下の説明で、どこで止まるか確かめられます。</p>`;
+    <div class="note">このテストでの操作(最初は全部OFF・離した状態)</div>
+    <div class="timeline">${tl||'<div>(何も操作しない)</div>'}<div class="bad">${bad}</div></div>
+    <p class="note">機械のボタンで同じ順番に操作して、ラダー図の光がどこで途切れるか見てみよう。</p>`;
 }
 function judge(){
   if(G.judging) return;
