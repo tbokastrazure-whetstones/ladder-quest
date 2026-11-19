@@ -435,7 +435,12 @@ body.quake{animation:quake .5s}
 .stage-btn .nxt{background:var(--act);color:var(--ink)}
 .pb.held{outline:3px dashed var(--ink)}
 /* 押しっぱなし(ダブルタップ)中:黄色の輪で目立たせる */
-[data-kind="pb"].held{outline:4px solid #f5c400 !important;outline-offset:4px;box-shadow:0 0 0 8px rgba(245,196,0,.25)}
+[data-kind="pb"].held,[data-kind="pbnc"].held{outline:4px solid #f5c400 !important;outline-offset:4px;box-shadow:0 0 0 8px rgba(245,196,0,.25)}
+[data-kind="pb"],[data-kind="pbnc"]{position:relative}
+/* 固定中は「固定」の札を出す */
+[data-kind="pb"].held::after,[data-kind="pbnc"].held::after{content:"固定";position:absolute;left:50%;top:-17px;transform:translateX(-50%);font-size:10px;font-weight:900;line-height:1;color:#24305e;background:#f5c400;border-radius:999px;padding:2px 6px;white-space:nowrap;pointer-events:none;z-index:3}
+/* 1回目の短いタップのあと:もう1回で固定できる目印 */
+[data-kind="pb"].tap1:not(.held),[data-kind="pbnc"].tap1:not(.held){outline:3px dashed rgba(245,196,0,.9);outline-offset:4px}
 .mach-ctrl .hold-tip{font-size:12px}
 .hint{border-left-color:var(--info);background:#eaf4ff}
 .clear-title.boss{color:var(--ng)}
@@ -525,6 +530,28 @@ body.on-map::before{content:"";position:fixed;inset:0;pointer-events:none;z-inde
   radial-gradient(40% 10% at 60% 30%,rgba(255,255,255,.12),transparent 70%)}
 .map-greet{max-width:620px;margin:10px auto 0;padding:0 12px}
 .map-greet .talk{margin:0}
+/* 検定までの道のり+今日の1問 */
+.goals{display:flex;gap:8px;margin-top:8px;align-items:stretch}
+.road{flex:1;background:rgba(255,255,255,.92);border-radius:12px;padding:8px 10px;box-shadow:0 2px 8px rgba(10,20,50,.12);min-width:0}
+.road-h{font-size:12px;font-weight:900;color:#24305e;display:flex;align-items:center;gap:4px}
+.road-h .ic{width:14px;height:14px}
+.road-bars{display:flex;gap:4px;margin:6px 0 4px}
+.rb{flex:1;position:relative;height:18px;border-radius:5px;background:#e6e9f2;overflow:hidden}
+.rb:first-child{flex:.45}
+.rb i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#4ade80,#22b573);border-radius:5px}
+.rb.full i{background:linear-gradient(90deg,#f5c400,#e0a100)}
+.rb span{position:relative;display:block;text-align:center;font-size:10.5px;font-weight:900;line-height:18px;color:#24305e}
+.road-t{font-size:12px;font-weight:700;color:#24305e}
+.road-s{color:var(--sub);font-weight:700}
+.daily{flex:none;width:92px;border:0;border-radius:12px;background:#24305e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;box-shadow:0 2px 8px rgba(10,20,50,.2);padding:6px}
+.daily .ic{width:20px;height:20px;color:#f5c400}
+.daily b{font-size:12.5px}
+.daily small{font-size:10px;opacity:.8}
+.daily.done{background:#e6e9f2;color:#24305e}
+.daily.done .ic{color:#22b573}
+.dq{margin:10px 0 6px;font-size:15px}
+.dq-opts .opt{flex:1;font-size:14px;padding:10px 6px}
+.mascot.react svg{animation:hop .5s ease-in-out 2}
 .world-wrap{position:relative;padding-bottom:calc(20px + var(--sb))}
 .world-wrap.land{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
 .world{position:relative;margin:0 auto}
@@ -834,6 +861,86 @@ body.on-stage:has(.coach) .stage{padding-bottom:calc(240px + var(--sb))}
   .conv{width:120px}
   .cyl{width:120px}
 }
+/* ---------- 部品を置く・機械が動く(2026-11-19 作り替え) ----------
+   置く:上から少し落ちてはまる(弾まない)+枠が紺で一瞬濃くなる。動く:ランプはじわっと点灯、モーターは回り始めがゆっくり */
+.rung-svg g.pop{animation:none}
+.rung-svg g.seat{transform-box:fill-box;transform-origin:center;animation:seatIn .16s ease-out}
+@keyframes seatIn{from{transform:translateY(-5px);opacity:.35}to{transform:none;opacity:1}}
+.rung-svg .cell.placed .sym,.rung-svg .out.placed path,.rung-svg .out.placed rect.box{stroke:#24305e!important;stroke-width:4}
+.rung-svg .cell.placed .cfill,.rung-svg .out.placed .ofill{fill:rgba(36,48,94,.12)}
+.rung-svg .cell.placed text.lab,.rung-svg .out.placed text.lab{fill:#24305e}
+.rung-svg .cell.placed .hit{stroke:#24305e;stroke-width:2;fill:rgba(36,48,94,.05)}
+.rung-svg .place-ring{display:none}
+.lamp.on{transform:none}
+.lamp{transition:background .3s ease-out,box-shadow .45s ease-out}
+.lamp.warm{filter:brightness(.75)}
+.lamp{transition:background .3s ease-out,box-shadow .45s ease-out,filter .4s ease-out}
+.tr-led{transition:background .25s ease-out,box-shadow .4s ease-out}
+.dev .on-burst{animation:none}
+/* 回り始め:ふだんの約2.5倍ゆっくり(0.9秒後にふだんの速さへ) */
+.motor.on.spinup .fan{animation-duration:1.25s}
+.motor.look-waterwheel.on.spinup .fan{animation-duration:6s}
+.motor.look-windmill.on.spinup .fan{animation-duration:4.5s}
+.motor.look-mill.on.spinup .fan{animation-duration:5s}
+.motor.look-fan.on.spinup .fan{animation-duration:.9s}
+.motor.look-saw.on.spinup .fan{animation-duration:.65s}
+.motor.look-pump.on.spinup .fan{animation-duration:1.5s}
+/* ---------- 判定・合格・ボス撃破(2026-11-19 作り替え:試験装置・判子・送電) ----------
+   跳ねる・回る・紙ふぶきはやめ、「すっと出て止まる」動きにそろえる */
+.tbench{position:fixed;inset:0;z-index:28;background:rgba(10,14,30,.72);display:flex;align-items:center;justify-content:center;padding:12px;animation:fade .15s;cursor:pointer}
+.tb{width:min(440px,100%);background:#0f1626;color:#d9e4f5;border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.45),inset 0 0 0 1px #2a3550;padding:14px 14px 10px}
+.tb-head{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid #2a3550;padding-bottom:8px}
+.tb-title{font-weight:900;font-size:16px;letter-spacing:.2em;color:#fff}
+.tb-id{font-size:12px;color:#8fa3c4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-bar{height:4px;background:#1d2840;border-radius:2px;margin:10px 0 8px;overflow:hidden}
+.tb-bar i{display:block;height:100%;width:0;background:#4ade80;transition:width .25s ease-out}
+.tb-bar i.ng{background:#ff5a6e}
+.tb-row{display:grid;grid-template-columns:42px 1fr 52px 14px;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px dashed #22304a;font-size:13px;color:#5d6f8f}
+.tb-row .no{font-family:Consolas,monospace;font-size:11.5px}
+.tb-row .st{font-family:Consolas,monospace;font-weight:900;font-size:12px;text-align:right}
+.tb-row .lp{width:12px;height:12px;border-radius:50%;background:#2a3550}
+.tb-row.run{color:#e8eefc}
+.tb-row.run .st{color:#ffd84d}
+.tb-row.run .lp{background:#ffd84d;box-shadow:0 0 8px #ffd84d;animation:blink .5s steps(2) infinite}
+.tb-row.ok{color:#d9e4f5}
+.tb-row.ok .st{color:#4ade80}
+.tb-row.ok .lp{background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,.8)}
+.tb-row.ng{color:#fff;background:rgba(255,90,110,.12)}
+.tb-row.ng .st{color:#ff5a6e}
+.tb-row.ng .lp{background:#ff5a6e;box-shadow:0 0 10px #ff5a6e}
+.tb-foot{text-align:right;font-size:10.5px;color:#5d6f8f;margin-top:8px}
+/* 合格 */
+.pass{position:relative;margin:-4px 0 6px}
+.pass-head{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:10px 12px;border:1px solid #d9dee8;border-radius:10px;background:#fbfbf8}
+.pass-doc{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pass-doc small{font-size:11px;color:var(--sub);letter-spacing:.1em}
+.pass-doc b{font-size:16px;color:#24305e}
+.pass-doc span{font-size:12px;color:#137a4b;font-weight:700}
+.stamp{flex:none;width:86px;height:86px;border:4px solid #d23a3a;border-radius:50%;color:#d23a3a;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-12deg);opacity:0;animation:stampIn .32s cubic-bezier(.2,.9,.3,1) both;box-shadow:inset 0 0 0 3px #fff,inset 0 0 0 5px rgba(210,58,58,.55)}
+.stamp span{font-size:28px;font-weight:900;letter-spacing:.06em;line-height:1}
+.stamp small{font-size:10px;font-weight:900;margin-top:3px}
+@keyframes stampIn{0%{opacity:0;transform:rotate(-12deg) scale(1.7)}70%{opacity:1;transform:rotate(-12deg) scale(.96)}100%{opacity:.92;transform:rotate(-12deg) scale(1)}}
+.plamps{display:flex;gap:6px;margin:10px 0 4px}
+.plamp{flex:1;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;background:#f1f3f8;font-size:11.5px;font-weight:700;color:#8a93a8;min-width:0}
+.plamp span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plamp i{flex:none;width:12px;height:12px;border-radius:50%;background:#cfd5e0}
+.plamp.on{animation:lampOn .01s var(--d) both}
+.plamp.on i{animation:lampI .25s var(--d) both}
+@keyframes lampOn{to{color:#24305e;background:#eaf7ef}}
+@keyframes lampI{from{background:#cfd5e0;box-shadow:none}to{background:#22b573;box-shadow:0 0 8px rgba(34,181,115,.7)}}
+.pass .xpgain{font-size:18px;color:#24305e;margin-top:6px}
+.lvcard{margin:8px auto 0;max-width:320px;background:#24305e;color:#fff;border-radius:10px;padding:8px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:inset 0 0 0 2px #d9a62e;animation:slideUp .4s 1.6s ease-out both}
+.lvcard small{font-size:10.5px;letter-spacing:.15em;color:#d9a62e}
+.lvcard b{font-size:16px}
+.lvcard span{font-size:12px;color:#e8eefc}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* ボス:送電 */
+.power{background:#0f1626;border-radius:10px;padding:8px 10px;margin-bottom:8px;color:#d9e4f5}
+.pw-t{font-size:12px;font-weight:900;display:flex;align-items:center;gap:4px}
+.pw-t .ic{width:14px;height:14px;color:#ffd84d}
+.pw-lamps{display:flex;gap:5px;margin-top:6px}
+.pw-lamps i{flex:1;height:8px;border-radius:4px;background:#2a3550;animation:pwOn .2s both}
+@keyframes pwOn{from{background:#2a3550}to{background:#ffd84d;box-shadow:0 0 8px rgba(255,216,77,.8)}}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
@@ -2116,7 +2223,7 @@ function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
    ここから画面(ブラウザでのみ実行)
    ===================================================================== */
 const G = { save:null, stage:null, prog:null, plc:new PLC(), running:false, acc:0, last:0,
-            latch:new Set(), lastTap:{}, tab:'task', phys:{}, raf:0 };
+            latch:new Set(), tapInfo:{}, tab:'task', phys:{}, raf:0 };
 
 function persist(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(G.save)); }
@@ -2172,6 +2279,7 @@ const ICONS = {
   bolt:'<path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12z"/>',
   bell:'<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l2 2H4z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
   sparkle:'<path d="M12 3l1.8 7.2L21 12l-7.2 1.8L12 21l-1.8-7.2L3 12l7.2-1.8z"/>',
+  flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   reset:'<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4.5H9"/>',
   map:'<path d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
   gear:'<circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="7"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
@@ -2194,10 +2302,17 @@ const RELAY_FACE = {
   think:'<rect x="15" y="15" width="7" height="5" rx="2.5" class="fl"/><rect x="34" y="11" width="7" height="12" rx="3.5" class="fl"/><path d="M23 30 H33"/><circle cx="47" cy="8" r="1.6" class="fl"/><circle cx="51" cy="4" r="1.1" class="fl"/>',
 };
 const RELAY_LAMP = {normal:'#ffd84d', happy:'#4ade80', sad:null, think:'#ffd84d'};
+/* 腕のポーズ(肩を中心に回す角度。L=左腕、R=右腕。0で真下、マイナスで外→上へ)
+   表情に合わせて自動で選ぶ:happy=ばんざい、sad=しょんぼり、think=あごに手、normal=気をつけ。point=指さし(案内用) */
+const RELAY_POSE = {
+  rest:{L:8, R:8}, banzai:{L:150, R:-150}, droop:{L:-4, R:4}, chin:{L:8, R:112}, point:{L:8, R:-105}, wave:{L:8, R:-160},
+};
+const MOOD_POSE = {normal:'rest', happy:'banzai', sad:'droop', think:'chin'};
 function mascotSVG(mood, pose){
-  const m = RELAY_FACE[mood] ? mood : 'normal', lamp = RELAY_LAMP[m], up = pose==='banzai';
+  const m = RELAY_FACE[mood] ? mood : 'normal', lamp = RELAY_LAMP[m];
+  const P = RELAY_POSE[pose] || RELAY_POSE[MOOD_POSE[m]] || RELAY_POSE.rest;
   const arm = side=>{
-    const x = side<0 ? 16 : 74, rot = up ? side*-150 : side*8;
+    const x = side<0 ? 16 : 74, rot = side<0 ? P.L : P.R;
     return `<g transform="rotate(${rot} ${x+5} 92)"><rect x="${x}" y="90" width="10" height="24" rx="5" fill="#ffc23d"/><rect x="${x+5}" y="90" width="5" height="24" rx="2.5" fill="#f4a21f"/><path d="M${x+1} 114 a4 4 0 1 0 8 0" fill="none" stroke="#454a59" stroke-width="3" stroke-linecap="round"/></g>`;
   };
   return `<svg class="relay2 m-${m}" viewBox="0 0 100 140" role="img" aria-label="リレーくん">
@@ -2253,9 +2368,79 @@ function palSVG(id, mood, cls){
     <rect x="32" y="14" width="36" height="25" rx="7" fill="#1b1d29"/>
     <g class="rface" transform="translate(32 14) scale(.64)">${RELAY_FACE[m]}</g></svg>`;
 }
-function talkHTML(text, mood, bounce){
-  return `<div class="talk"><div class="mascot ${bounce?'bounce':''}">${mascotSVG(mood||'normal')}</div>
+function talkHTML(text, mood, bounce, pose){
+  return `<div class="talk"><div class="mascot ${bounce?'bounce':''}">${mascotSVG(mood||'normal', pose)}</div>
     <div class="bubble"><b class="who">リレーくん</b>${text}</div></div>`;
+}
+// ステージ中のリレーくんが、機械が動いた瞬間などに少しの間だけ表情とポーズを変える
+function relayReact(mood, ms, pose){
+  const els=document.querySelectorAll('#bottom .mascot, .stage .talk .mascot'); if(!els.length) return;
+  const now=Date.now(); if(G.reactUntil && now<G.reactUntil-200 && mood==='happy') return;   // 連続で鳴らしすぎない
+  els.forEach(e=>{ e.innerHTML=mascotSVG(mood, pose); e.classList.add('react'); });
+  clearTimeout(G.reactT); G.reactUntil=now+(ms||1200);
+  G.reactT=setTimeout(()=>{ document.querySelectorAll('#bottom .mascot, .stage .talk .mascot').forEach(e=>{ e.innerHTML=mascotSVG('normal'); e.classList.remove('react'); }); }, ms||1200);
+}
+
+/* ---------- 検定までの道のり(メーター)---------- */
+// 構成案 v4:1エリア5ステージ。入門=エリア1、3級=2〜5、2級=6〜9、1級=10〜13
+const ROAD = [ {name:'入門', areas:[1]}, {name:'3級', areas:[2,3,4,5]}, {name:'2級', areas:[6,7,8,9]}, {name:'1級', areas:[10,11,12,13]} ];
+const ROAD_PER_AREA = 5;
+function roadStats(){
+  return ROAD.map(l=>{
+    const planned=l.areas.length*ROAD_PER_AREA;
+    const done=STAGES.filter(s=>l.areas.includes(s.area) && isCleared(s.id)).length;
+    return {name:l.name, planned, done:Math.min(done,planned)};
+  });
+}
+function goalsHTML(){
+  const R=roadStats(), total=R.reduce((t,x)=>t+x.planned,0), done=R.reduce((t,x)=>t+x.done,0);
+  const nx=R.find(x=>x.done<x.planned);
+  const msg = nx ? `次の目標:<b>${nx.name}レベル</b>まで あと<b>${nx.planned-nx.done}</b>ステージ` : '<b>1級レベル</b>に到達!';
+  const daily=dailyState();
+  return `<div class="goals">
+    <div class="road"><div class="road-h">${ic('flag')} 検定までの道のり</div>
+      <div class="road-bars">${R.map(x=>`<div class="rb ${x.done>=x.planned?'full':''}"><i style="width:${Math.round(x.done/x.planned*100)}%"></i><span>${x.name}</span></div>`).join('')}</div>
+      <div class="road-t">${msg}<span class="road-s">・実機モードまで あと${total-done}</span></div></div>
+    <button class="daily ${daily.done?'done':''}" data-act="daily">${daily.done?ic('check'):ic('sparkle')}<b>今日の1問</b><small>${daily.done?'クリア済み':'1分・XP+20'}</small></button>
+  </div>`;
+}
+
+/* ---------- 今日の1問(クリアしたステージから、毎日1問) ----------
+   模範解答のラダーと操作の流れを見せて、「このとき出力はON?OFF?」を答える。判定テストの期待値を使うので答えは必ず正しい */
+function dailyState(){ const d=G.save.daily||{}; return {date:d.date, done:d.date===ymd(new Date()), ok:d.ok}; }
+function hashStr(s){ let h=2166136261; for(const c of s){ h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
+function dailyPick(){
+  const seed=hashStr(ymd(new Date()));
+  let pool=STAGES.filter(s=>isCleared(s.id)); if(!pool.length) pool=[STAGES[0]];
+  const st=pool[seed%pool.length], P=prep(st), cand=[];
+  P.tests.forEach(t=>t.steps.forEach(s=>Object.keys(s.ex).forEach(a=>{ if(kindOf(a)==='Q') cand.push({test:t, step:s, a}); })));
+  const c=cand[(seed>>>5)%cand.length];
+  return {st, test:c.test, step:c.step, a:c.a, exp:c.step.ex[c.a]};
+}
+function openDaily(){
+  const q=dailyPick(), st=q.st, P=prep(st), ds=dailyState();
+  const name=a=>ioLabel(st,a);
+  const ops=opsTimeline(st, q.test.steps, q.step.t);
+  const body=`<h2>${ic('sparkle')} 今日の1問</h2>
+    <div class="note">${esc(st.id)}「${esc(st.title)}」の回路</div>
+    ${P.answer.map((rg,i)=>`<div class="preview-svg">${rungSVGStatic(rg,i,st)}</div>`).join('')}
+    <div class="note">この回路で、次のように操作すると…</div>
+    <div class="timeline">${ops||'<div>(何も操作しない)</div>'}</div>
+    <p class="dq"><b>${(q.step.t/1000).toFixed(1)}秒の時点で、${esc(name(q.a))} は?</b></p>
+    <div class="opts dq-opts"><button class="opt" data-m="ans" data-v="1">ON(動く・つく)</button><button class="opt" data-m="ans" data-v="0">OFF(止まる・消える)</button></div>
+    ${ds.done?'<p class="note">今日はクリア済み。何度でも挑戦できます(XPは1日1回)。</p>':''}
+    <div class="acts"><button class="btn" data-m="close">閉じる</button></div>`;
+  const bg=openModal(body, t=>{
+    if(t.dataset.m!=='ans') return;
+    const ok = (t.dataset.v==='1')===q.exp, first=!dailyState().done;
+    if(first){ G.save.daily={date:ymd(new Date()), ok}; G.save.xp+=ok?20:5; touchStreak(); persist(); }
+    SFX.play(ok?'chime':'fail');
+    bg.querySelector('.modal').innerHTML=`<h2>${ic('sparkle')} 今日の1問</h2>
+      ${talkHTML(ok?`正解!<b>${esc(name(q.a))}</b> は <b>${q.exp?'ON':'OFF'}</b>。よく読めたね!`:`ざんねん。正解は <b>${q.exp?'ON(動く・つく)':'OFF(止まる・消える)'}</b> だよ。回路の光の流れを思い浮かべてみよう。`, ok?'happy':'think')}
+      ${first?`<p class="note">${ok?'XP +20':'挑戦ボーナス XP +5'}・連続日数を更新しました</p>`:''}
+      <div class="acts"><button class="btn primary" data-m="close">マップへ</button></div>`;
+    bg.querySelector('[data-m="close"]').onclick=()=>{ closeModal(); showMap(); };
+  });
 }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 const LINES = {
@@ -2317,29 +2502,29 @@ const SFX = {
     g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
     o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+0.02);
   },
-  noise(t0, dur, vol){
+  noise(t0, dur, vol, freq){
     const c=this.ac(); if(!c) return;
     const t=c.currentTime+(t0||0), n=Math.floor(c.sampleRate*dur), b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0);
     for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
     const s=c.createBufferSource(), g=c.createGain(), f=c.createBiquadFilter();
-    f.type='bandpass'; f.frequency.value=1800; s.buffer=b; g.gain.value=vol||0.15;
+    f.type='bandpass'; f.frequency.value=freq||1800; s.buffer=b; g.gain.value=vol||0.15;
     s.connect(f); f.connect(g); g.connect(c.destination); s.start(t);
   },
   play(name, k){
     const T=(...a)=>this.tone(...a);
     switch(name){
-      case 'click': T(660,0,.05,'square',.06); break;
-      case 'place': T(520,0,.06,'square',.08); T(880,.05,.09,'square',.08); break;
-      case 'remove': T(400,0,.08,'triangle',.1,200); break;
-      case 'press': T(300,0,.05,'square',.07); break;
-      case 'outOn': T(1200,0,.05,'triangle',.05); break;
-      case 'run': T(392,0,.07,'square',.08); T(523,.07,.07,'square',.08); T(784,.14,.12,'square',.08); break;
-      case 'stop': T(523,0,.08,'square',.07); T(330,.08,.14,'square',.07); break;
-      case 'tick': T(880,0,.04,'square',.05); break;
-      case 'testOk': { const m=Math.pow(2,Math.min(k||0,12)*2/12);   // 合格が続くたびに1音ずつ高くなる
-        T(523*m,0,.06,'square',.08); T(784*m,.06,.1,'square',.08); break; }
-      case 'drum': for(let i=0;i<10;i++) this.noise(i*.05,.04,.06); break;
-      case 'fail': T(523,0,.16,'triangle',.12); T(392,.16,.3,'triangle',.12); break;
+      // 2026-11-19:ピコピコ音をやめ、制御盤・工具の音に寄せる(短く、低め、サイン波と雑音)
+      case 'click': T(1100,0,.018,'sine',.05); break;                                            // 画面のボタン:小さなタッチ音
+      case 'place': this.noise(0,.02,.22,2600); T(140,0,.06,'sine',.12,90); break;              // 部品を置く:端子にカチッとはまる
+      case 'remove': this.noise(0,.03,.14,900); T(220,0,.05,'sine',.07,140); break;            // 取り外す:低いカチ
+      case 'press': this.noise(0,.015,.16,1800); T(180,0,.03,'sine',.08); break;               // 押しボタン:機械的なクリック
+      case 'outOn': this.noise(0,.05,.2,500); this.noise(.004,.015,.12,3000); T(90,0,.08,'sine',.12,60); break;  // 電磁接触器:ガチャン
+      case 'run': T(660,0,.05,'sine',.06); break;
+      case 'stop': T(440,0,.06,'sine',.06); break;
+      case 'tick': T(1400,0,.02,'sine',.045); break;
+      case 'testOk': T(1320,0,.07,'sine',.08); break;
+      case 'drum': T(1760,0,.03,'sine',.05); break;
+      case 'fail': T(150,0,.3,'square',.06); T(155,0,.3,'sawtooth',.035); break;               // 不合格:ブザー
       case 'clear': [523,659,784,1047].forEach((f,i)=>T(f,i*.09,.12,'square',.1)); T(784,.4,.1,'square',.1); T(1047,.5,.5,'square',.11); T(1319,.5,.5,'triangle',.07); break;
       case 'boss': [392,523,659,784,659,784].forEach((f,i)=>T(f,i*.11,.13,'square',.1)); T(1047,.7,.8,'square',.12); T(523,.7,.8,'triangle',.1); this.noise(.7,.4,.12); break;
       case 'star': T(1568,0,.08,'triangle',.09); T(2093,.06,.15,'triangle',.08); break;
@@ -2347,6 +2532,14 @@ const SFX = {
       case 'intro': T(200,0,.25,'sawtooth',.06,1200); this.noise(0,.25,.06); break;
       case 'alarm': for(let i=0;i<4;i++){ T(880,i*.24,.11,'square',.08); T(660,i*.24+.12,.11,'square',.08); } break;
       case 'hint': T(740,0,.08,'sine',.12); T(988,.08,.16,'sine',.1); break;
+      // 試験装置・制御盤の音(判定・合格・ボス撃破)
+      case 'scan': T(1760,0,.03,'sine',.05); break;
+      case 'okbeep': T(1320,0,.07,'sine',.09); break;
+      case 'ngbuzz': T(150,0,.32,'square',.07); T(155,0,.32,'sawtooth',.04); break;
+      case 'relay': this.noise(0,.018,.18,3200); T(2200,0,.012,'square',.04); break;
+      case 'stamp': this.noise(0,.09,.35,220); T(90,0,.14,'sine',.25,55); this.noise(.005,.03,.12,1200); break;
+      case 'chime': T(880,0,.5,'sine',.07); T(1320,.12,.6,'sine',.06); break;
+      case 'power': T(55,0,1.2,'sawtooth',.05,110); T(110,.3,.9,'sine',.05,220); this.noise(0,1.0,.03,400); break;
     }
   }
 };
@@ -2593,7 +2786,7 @@ function showMap(pro){
     <button class="btn small" data-act="dex">${ic('book')} 命令図鑑</button>
     <button class="btn small" data-act="data">${ic('save')} データ</button>${soundBtnHTML()}
     <button class="btn small icon-btn" data-act="settings" title="設定" aria-label="設定">${ic('gear')}</button></div>
-    <div class="map-greet">${talkHTML(mapGreeting(), 'normal')}</div>
+    <div class="map-greet">${talkHTML(mapGreeting(), 'normal', false, 'wave')}${pro?'':goalsHTML()}</div>
     <div class="world-wrap" id="world-wrap"><div class="world" id="world"></div></div>`;
   const app=document.getElementById('app');
   app.innerHTML=h;
@@ -2608,6 +2801,7 @@ function showMap(pro){
     if(a==='title') showTitle();
     if(a==='tut'){ closeAreaSheet(); openStage(tutStage()); }
     if(a==='settings') openSettings();
+    if(a==='daily'){ SFX.play('place'); openDaily(); }
   };
   // 新しく行けるようになったエリアがあれば、その区間の電線に電気が流れる演出
   const n=unlockedCount();
@@ -2684,7 +2878,7 @@ function openStage(st){
   stopRun(); stopCoach();
   document.querySelectorAll('.prolog').forEach(e=>e.remove());
   document.body.classList.remove('on-map','prologue'); document.body.classList.add('on-stage'); closeAreaSheet();
-  G.stage=st; G.tab='task'; G.latch=new Set(); G.mapArea=st.area; G.tool=null;
+  G.stage=st; G.tab='task'; G.latch=new Set(); G.tapInfo={}; G.mapArea=st.area; G.tool=null;
   setupHandDrag();
   const P=prep(st);
   let d=st.tutorial ? null : G.save.drafts[st.id];      // チュートリアルは毎回まっさらから
@@ -2916,23 +3110,15 @@ function renderEditor(){
   if(G.pop){ placedFx(document.getElementById(G.pop)); G.pop=null; }
   updateLadderVis();
 }
-// 部品を置いた瞬間の手応え:部品が金色に光る+輪が広がる+火花+音+(Androidは)短い振動
+// 部品を置いた瞬間の手応え:上から「すっ」と落ちてはまり、マスの枠が一瞬濃く光る+カチッという音+(Androidは)短い振動
+// (2026-11-19 火花・広がる輪・金色の光はやめた)
 function placedFx(pe){
   SFX.play('place');
-  try{ if(navigator.vibrate) navigator.vibrate(18); }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate(15); }catch(e){}
   if(!pe) return;
-  pe.classList.add('pop','placed');
-  setTimeout(()=>pe.classList.remove('placed'), 700);
-  burstAt(pe, 18, {power:60, size:8, colors:['#ffc23d','#fff3a0','#ffffff']});
-  if(reduced()) return;
-  const hit=pe.querySelector('.hit'), svg=pe.ownerSVGElement; if(!hit || !svg) return;
-  const b=hit.getBBox(), ns='http://www.w3.org/2000/svg';
-  for(const [d,w] of [[0,3.5],[120,2]]){
-    const c=document.createElementNS(ns,'circle');
-    c.setAttribute('cx', b.x+b.width/2); c.setAttribute('cy', b.y+b.height/2); c.setAttribute('r', Math.min(b.width,b.height)*0.42);
-    c.setAttribute('class','place-ring'); c.style.strokeWidth=w; c.style.animationDelay=d+'ms';
-    svg.appendChild(c); setTimeout(()=>c.remove(), 800+d);
-  }
+  pe.classList.remove('seat','placed'); void pe.getBBox();
+  pe.classList.add('seat','placed');
+  setTimeout(()=>pe.classList.remove('placed','seat'), 450);
 }
 function edited(){ saveDraft(); renderEditor(); }
 function addRung(){ const P=prep(G.stage); if(G.prog.length<P.maxRungs){ G.prog.push(newRung(P.cols)); edited(); } }
@@ -3455,26 +3641,41 @@ function renderMachine(){
     // pbnc = 押すと切れる押しボタン(非常停止)。ふだんは入力ON、押している間OFF
     const PRESS = kind==='pbnc' ? false : true;
     btn.addEventListener('contextmenu', e=>e.preventDefault());
+    /* ダブルタップの判定(押しっぱなしの固定・解除)
+       ・「短いタップ」= 押していた時間が TAP_SHORT 未満
+       ・短いタップを離してから DBL_GAP 以内に、同じボタンをもう一度押したらダブルタップ
+       ・固定・解除に使ったタップの「離す」は数えない(3連打で固定→すぐ解除、を防ぐ) */
+    const TAP_SHORT=260, DBL_GAP=330;
+    const info=()=> (G.tapInfo[a] ||= {down:0, lastUp:0, lastShort:false, consume:false});
     btn.addEventListener('pointerdown', e=>{
       e.preventDefault();
       SFX.play('press');
       if(kind==='sw'){ setIn(a, !G.plc.inputs[a]); return; }
-      const now=Date.now();
-      // 押しボタン:押しっぱなし中は、もう一度ダブルタップで離す(1回のタップでは離れない)
+      const now=Date.now(), t=info();
+      const dbl = t.lastShort && now-t.lastUp < DBL_GAP;
+      t.lastShort=false; t.down=now;
+      try{ btn.setPointerCapture(e.pointerId); }catch(_){}
       if(G.latch.has(a)){
-        if(G.lastTap[a] && now-G.lastTap[a]<350){ G.latch.delete(a); G.lastTap[a]=0; setIn(a,!PRESS); SFX.play('remove'); }
-        else G.lastTap[a]=now;
+        // 固定中:1回のタップでは離れない。ダブルタップで解除
+        if(dbl){ G.latch.delete(a); t.consume=true; setIn(a,!PRESS); SFX.play('remove'); try{ navigator.vibrate&&navigator.vibrate([12,40,12]); }catch(_){} }
         return;
       }
-      // 0.35秒以内の2回目のタップで押しっぱなしにする(2つ同時押し用)
-      if(G.lastTap[a] && now-G.lastTap[a]<350){ G.lastTap[a]=0; G.latch.add(a); setIn(a,PRESS); SFX.play('place'); return; }
-      G.lastTap[a]=now;
-      setIn(a, PRESS); try{ btn.setPointerCapture(e.pointerId); }catch(_){}
+      if(dbl){ G.latch.add(a); t.consume=true; setIn(a,PRESS); SFX.play('place'); try{ navigator.vibrate&&navigator.vibrate(25); }catch(_){} return; }
+      setIn(a, PRESS);
     });
     const isPB = kind==='pb' || kind==='pbnc';
-    const up=()=>{ if(isPB && !G.latch.has(a)) setIn(a,!PRESS); };
+    const up=()=>{
+      if(!isPB) return;
+      const t=info(), now=Date.now();
+      if(t.consume){ t.consume=false; t.lastShort=false; t.lastUp=now; return; }
+      t.lastShort = now-t.down < TAP_SHORT; t.lastUp=now;
+      if(G.latch.has(a)) return;
+      setIn(a,!PRESS);
+      // 1回目の短いタップのあと少しの間、「もう1回で固定」の目印を出す
+      if(t.lastShort){ btn.classList.add('tap1'); clearTimeout(btn._t1); btn._t1=setTimeout(()=>btn.classList.remove('tap1'), DBL_GAP); }
+    };
     btn.addEventListener('pointerup', up);
-    btn.addEventListener('pointercancel', up);
+    btn.addEventListener('pointercancel', ()=>{ const t=info(); t.consume=false; t.lastShort=false; if(isPB && !G.latch.has(a)) setIn(a,!PRESS); });
     btn.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); if(kind==='sw'){ if(!e.repeat) setIn(a,!G.plc.inputs[a]); } else setIn(a,PRESS);} });
     btn.addEventListener('keyup', e=>{ if((e.key===' '||e.key==='Enter') && isPB && !G.latch.has(a)) setIn(a,!PRESS); });
   });
@@ -3560,8 +3761,11 @@ function updateMachineVis(){
   el.querySelectorAll('[data-out]').forEach(d=>{
     const f=outv(d.dataset.out), r=d.dataset.rev?outv(d.dataset.rev):false;
     if((f||r) && !d.classList.contains('on') && G.running){
-      SFX.play('outOn'); burstAt(d, 10, {power:45, size:6, colors:['#ffc23d','#fff3a0','#7dffb8']});
-      d.classList.remove('on-burst'); void d.offsetWidth; d.classList.add('on-burst');
+      // 電磁接触器の音。ランプは「じわっ」と点き、モーターはゆっくり回り始めてから速くなる(火花はやめた)
+      SFX.play('outOn'); relayReact('happy', 1300);
+      d.classList.remove('warm','spinup'); void d.offsetWidth; d.classList.add('warm','spinup');
+      clearTimeout(d._w); d._w=setTimeout(()=>d.classList.remove('warm'), 450);
+      clearTimeout(d._s); d._s=setTimeout(()=>d.classList.remove('spinup'), 900);
     }
     d.classList.toggle('on', f||r);
     d.classList.toggle('rev', !f && r);
@@ -3614,7 +3818,7 @@ function stopRun(){
 }
 function resetRun(){
   stopRun();
-  G.plc=new PLC(); G.latch=new Set();
+  G.plc=new PLC(); G.latch=new Set(); G.tapInfo={};
   resetPhys();
   updateLadderVis(); updateMachineVis();
 }
@@ -3671,14 +3875,16 @@ function inKind(st, a){
   return '?';
 }
 // 不合格の説明:テストでの操作を、ふだんの言葉で順に書く(「押してすぐ離す」はまとめる)
-function failHTML(st, r){
-  // 「運転ボタン(ボタン1)」のように、割付表の役割名+部品名で書く
-  const P=prep(st);
-  const name=a=>{ const n=showName(st,a)||dispAddr(a), io=P.io.find(x=>x.a===a)||P.mem.find(x=>x.a===a);
-    const role=io&&io.desc ? io.desc.split(/[((]/)[0].trim() : '';
-    const base = role && role!==n ? `${role}(${n})` : n;
-    return addrOn() ? `${base} ${dispAddr(a)}` : base; };
-  const sec=t=>(t/1000).toFixed(1)+'秒';
+// 「運転ボタン(ボタン1)」のように、割付表の役割名+部品名で書く
+function ioLabel(st, a){
+  const P=prep(st), n=showName(st,a)||dispAddr(a), io=P.io.find(x=>x.a===a)||P.mem.find(x=>x.a===a);
+  const role=io&&io.desc ? io.desc.split(/[((]/)[0].trim() : '';
+  const base = role && role!==n ? `${role}(${n})` : n;
+  return addrOn() ? `${base} ${dispAddr(a)}` : base;
+}
+// テストの操作を、ふだんの言葉で時刻順に書く(upto 秒まで。「押してすぐ離す」はまとめる)
+function opsTimeline(st, steps, upto){
+  const name=a=>ioLabel(st,a), sec=t=>(t/1000).toFixed(1)+'秒';
   const verb=(a,v)=>{ const k=inKind(st,a), n=name(a);
     if(k==='pb') return v?`${n}を押す(押したまま)`:`${n}を離す`;
     if(k==='pbnc') return v?`${n}を離す`:`${n}を押す(押したまま)`;
@@ -3686,19 +3892,23 @@ function failHTML(st, r){
     if(k==='sensor') return `${n}が${v?'ON':'OFF'}になる`;
     return `${n}を${v?'ON':'OFF'}`; };
   const skip=new Set(); let tl='';
-  r.steps.forEach((s,i)=>{
-    if(s.t>r.t) return;
+  steps.forEach(s=>{
+    if(s.t>upto) return;
     const ins=[];
     for(const [a,v] of Object.entries(s.in)){
       if(skip.has(s.t+'|'+a)) continue;
-      // 0.1秒後に元へ戻すものは「押してすぐ離す」
-      const back=r.steps.find(x=>x.t===s.t+TAP_MS && x.in[a]===!v);
+      const back=steps.find(x=>x.t===s.t+TAP_MS && x.in[a]===!v);
       const k=inKind(st,a);
       if(back && (k==='pb'||k==='pbnc') && (k==='pb'?v:!v)){ skip.add(back.t+'|'+a); ins.push(`${name(a)}を押してすぐ離す`); continue; }
       ins.push(verb(a,v));
     }
     if(ins.length) tl+=`<div>${sec(s.t)}:${esc(ins.join('、'))}</div>`;
   });
+  return tl;
+}
+function failHTML(st, r){
+  const name=a=>ioLabel(st,a), sec=t=>(t/1000).toFixed(1)+'秒';
+  const tl=opsTimeline(st, r.steps, r.t);
   const state=(a,v)=>{ const k=kindOf(a); return k==='Q' ? (v?'ON(動く・つく)':'OFF(止まる・消える)') : (v?'ON':'OFF'); };
   let bad;
   if(r.forbid) bad=`${sec(r.t)}:危険! ${esc(r.forbid.msg || r.forbid.all.map(name).join(' と ')+' が同時にON')}`;
@@ -3722,32 +3932,37 @@ function judge(){
     onClear();
   };
   if(reduced()){ finish(); return; }
-  // 判定中の演出:テストを1つずつ確認していく(結果はすでに計算済み)
+  // 判定中の演出:試験装置の検査画面。テスト項目を1行ずつ「待機 → 試験中 → OK/NG」と埋めていく(結果は計算済み)
   G.judging=true;
   const upto = r.ok ? P.tests.length : r.idx+1;
-  const ov=document.createElement('div'); ov.className='judging';
-  ov.innerHTML=`<div class="jb"><h2><span>判</span><span>定</span><span>中</span><span>…</span><span>!</span></h2>
-    ${P.tests.map((t,i)=>`<div class="jrow" id="jr${i}"><span class="mk"></span><span>テスト${i+1} ${esc(t.name||'')}</span></div>`).join('')}</div>`;
+  const ov=document.createElement('div'); ov.className='tbench';
+  ov.innerHTML=`<div class="tb">
+    <div class="tb-head"><span class="tb-title">動作試験</span><span class="tb-id">${esc(st.id)} ${esc(st.title)}</span></div>
+    <div class="tb-bar"><i id="tbbar"></i></div>
+    ${P.tests.map((t,i)=>`<div class="tb-row" id="jr${i}"><span class="no">No.${i+1}</span><span class="nm">${esc(t.name||'')}</span><span class="st">待機</span><i class="lp"></i></div>`).join('')}
+    <div class="tb-foot">タップで結果へ</div></div>`;
   document.body.appendChild(ov);
   let done=false;
   const end=()=>{ if(done) return; done=true; ov.remove(); finish(); };
   ov.addEventListener('click', end);   // タップで演出を飛ばす
-  SFX.play('drum');
-  const step=Math.max(160, Math.min(380, 1500/P.tests.length));
+  const step=Math.max(220, Math.min(420, 1600/P.tests.length));
+  const bar=ov.querySelector('#tbbar');
   let i=0;
   const next=()=>{
     if(done) return;
     if(i>0){
       const prev=ov.querySelector('#jr'+(i-1)), bad=!r.ok && i-1===r.idx;
       prev.classList.remove('run'); prev.classList.add(bad?'ng':'ok');
-      prev.querySelector('.mk').textContent=bad?'✕':'✓';
-      if(!bad){ SFX.play('testOk', i-1); burstAt(prev.querySelector('.mk'), 6+Math.min(i,8)*2, {power:30+Math.min(i,8)*5, size:6, colors:['#22c58b','#7dffb8','#fff']}); }
+      prev.querySelector('.st').textContent=bad?'NG':'OK';
+      SFX.play(bad?'ngbuzz':'okbeep');
+      bar.style.width=Math.round(i/P.tests.length*100)+'%';
+      if(bad) bar.classList.add('ng');
     }
-    if(i>=upto){ setTimeout(end, r.ok?260:520); return; }
-    const cur=ov.querySelector('#jr'+i); cur.classList.add('run'); SFX.play('tick');
+    if(i>=upto){ setTimeout(end, r.ok?380:700); return; }
+    const cur=ov.querySelector('#jr'+i); cur.classList.add('run'); cur.querySelector('.st').textContent='試験中'; SFX.play('scan');
     i++; setTimeout(next, step);
   };
-  setTimeout(next, 250);
+  setTimeout(next, 200);
 }
 /* ---------- チュートリアル(1-1 と同じ回路を、リレーくんの案内つきで1手ずつ組む) ---------- */
 function tutStage(){
@@ -3791,7 +4006,7 @@ function coachGo(i){
   const d=document.getElementById('coach');
   // {PB1} のような書き方は、設定に合わせた部品名に置き換える
   const txt=s.text.replace(/\{(\w+)\}/g, (_,n)=>{ const x=prep(G.stage).io.find(v=>v.name===n); return x ? esc(showName(G.stage,x.a)) : n; });
-  d.innerHTML=`<div class="coach-in">${talkHTML(txt, i>=7?'happy':'normal')}
+  d.innerHTML=`<div class="coach-in">${talkHTML(txt, i>=7?'happy':'normal', false, i>=7?undefined:'point')}
     <div class="coach-acts"><span class="coach-n">${i+1} / ${TUT_STEPS.length}</span>
       <button class="btn small" data-coach="skip">スキップ</button>
       ${s.until?'':'<button class="btn small primary" data-coach="next">次へ</button>'}</div></div>`;
@@ -3812,8 +4027,9 @@ function coachTick(scroll){
 function tutorialClear(){
   stopCoach();
   G.save.tut=true; persist();
-  SFX.play('clear'); confetti(45);
-  openModal(`<div class="clear-wrap"><p class="clear-title">CLEAR!</p></div>
+  setTimeout(()=>SFX.play('stamp'), 200); setTimeout(()=>SFX.play('chime'), 900);
+  openModal(`<div class="pass"><div class="pass-head"><div class="pass-doc"><small>チュートリアル</small><b>はじめての回路</b><span>操作の基本 OK</span></div>
+    <div class="stamp" style="animation-delay:.15s"><span>完了</span></div></div></div>
     ${talkHTML('チュートリアル完了!部品を選んで置く、ボタンで動かす、判定で確かめる。これで基本はばっちりだよ。いよいよ<b>はじまりの村</b>へ出発だ!','happy')}
     <div class="acts"><button class="btn primary" data-m="go">${ic('map')} 冒険へ出発</button></div>`, t=>{
     if(t.dataset.m==='go'){ closeModal(); G.mapArea=1; showMap(); }
@@ -3842,37 +4058,43 @@ function onClear(){
   const next=nextStage(st);
   const dexNames=newDex.map(id=>{ const d=DEX.find(x=>x.id===id); return d?d.name:id; });
   const lvUp=newL>oldL, newTitle=titleOf(newL)!==titleOf(oldL);
-  const html=`<div class="clear-wrap ${st.boss?'boss':''}"><p class="clear-title ${st.boss?'boss':''}">${st.boss?'BOSS CLEAR!':'CLEAR!'}</p>
-    <p class="result-ok" style="text-align:center;margin:0">${st.id} ${esc(st.title)} 合格</p>
-    <div class="bigstars">${stars.map((s,i)=>`<span class="s ${s?'on':'off'}" style="animation-delay:${.35+i*.25}s">★</span>`).join('')}</div></div>
-    <ul class="starlist">
-      <li class="${stars[0]?'got':''}">${stars[0]?'★':'☆'} テスト合格</li>
-      <li class="${stars[1]?'got':''}">${stars[1]?'★':'☆'} 接点数 ${n}個(目標 ${P.target}個以下)</li>
-      <li class="${stars[2]?'got':''}">${stars[2]?'★':'☆'} ヒント未使用</li>
-    </ul>
+  // 合格:試験成績書のような見た目。判子が押され、評価の表示灯が1つずつ点く(紙ふぶきは使わない)
+  // ボス:先に「送電」の表示灯が左から順に点き、島に電気が通ったことを見せる
+  const T0 = st.boss ? 1.25 : 0;   // ボスは送電の演出のぶん遅らせる
+  const ar=AREAS[st.area-1]||{};
+  const html=`<div class="pass ${st.boss?'boss':''}">
+    ${st.boss?`<div class="power"><div class="pw-t">${ic('bolt')} エリア${st.area}「${esc(ar.name||'')}」に送電</div>
+      <div class="pw-lamps">${Array.from({length:10},(_,i)=>`<i style="animation-delay:${.08+i*.09}s"></i>`).join('')}</div></div>`:''}
+    <div class="pass-head">
+      <div class="pass-doc"><small>動作試験 成績</small><b>${esc(st.id)} ${esc(st.title)}</b><span>試験項目 ${P.tests.length}/${P.tests.length} OK</span></div>
+      <div class="stamp" style="animation-delay:${T0+.15}s"><span>合格</span>${st.boss?'<small>ボス撃破</small>':''}</div>
+    </div>
+    <div class="plamps">
+      ${[['テスト合格',stars[0]],[`接点数 ${n}個(目標${P.target}以下)`,stars[1]],['ヒントなし',stars[2]]].map(([l,on],i)=>
+        `<div class="plamp ${on?'on':''}" style="--d:${T0+.6+i*.28}s"><i></i><span>${l}</span></div>`).join('')}
+    </div>
     <div class="xpgain">${gain>0?`+<span id="xpcount">0</span> XP`:'<span class="note">(獲得XPなし:すでに取得済み)</span>'}</div>
-    ${lvUp?`<div class="lvup">${ic('sparkle')} レベルアップ! Lv.${newL}${newTitle?` 称号「${esc(titleOf(newL))}」を獲得!`:''}</div>`:''}
+    ${lvUp?`<div class="lvcard"><small>レベルアップ</small><b>Lv.${oldL} → Lv.${newL}</b>${newTitle?`<span>${ic('medal')} 称号「${esc(titleOf(newL))}」</span>`:''}</div>`:''}
+    </div>
     ${newDex.some(id=>PALS[id])?`<div class="pal-join">${newDex.filter(id=>PALS[id]).map(id=>`<div class="pal-card">${palSVG(id,'happy')}<b>${esc((DEX.find(x=>x.id===id)||{}).name||id)}</b><small>が仲間になった!</small></div>`).join('')}</div>`:''}
     ${dexNames.length?`<div class="newdex">${ic('book')} 命令図鑑に追加:<b>${esc(dexNames.join('、'))}</b></div>`:''}
     ${talkHTML(pick(st.boss?LINES.boss:LINES.clear),'happy')}
     <div class="acts">
       <button class="btn" data-m="close">このステージに残る</button>
-      <button class="btn" data-m="map">マップへ</button>
-      ${next?`<button class="btn primary" data-m="next">次のステージへ</button>`:''}
+      ${st.boss
+        ? `${next?`<button class="btn" data-m="next">次のステージへ</button>`:''}<button class="btn primary" data-m="map">${ic('map')} マップで送電を見る</button>`
+        : `<button class="btn" data-m="map">マップへ</button>${next?`<button class="btn primary" data-m="next">次のステージへ</button>`:''}`}
     </div>`;
   openModal(html, t=>{
     if(t.dataset.m==='map'){ closeModal(); saveDraft(); showMap(); }
     if(t.dataset.m==='next'){ closeModal(); saveDraft(); openStage(next); }
   });
-  // 普通のステージは星と小さめの紙ふぶきだけ。花火・フラッシュ・後光はボスのときだけ
-  SFX.play(st.boss?'boss':'clear');
-  if(st.boss){ confetti(140); flash(); fireworks(5); }
-  else confetti(45);
-  document.querySelectorAll('.bigstars .s').forEach((s,i)=>{
-    if(!s.classList.contains('on')) return;
-    setTimeout(()=>{ SFX.play('star'); burstAt(s, 16, {power:70, size:8, colors:['#ffc23d','#fff3a0','#ffffff']}); }, (350+i*250)+200);
-  });
-  if(lvUp) setTimeout(()=>levelSplash(oldL, newL), st.boss?2200:1700);
+  // 音:ボスは送電のうなり → 判子 → 表示灯のカチッ → チャイム。ふつうは判子から
+  const ms=s=>Math.round(s*1000);
+  if(st.boss) SFX.play('power');
+  setTimeout(()=>SFX.play('stamp'), ms(T0+.2));
+  stars.forEach((on,i)=>{ if(on) setTimeout(()=>SFX.play('relay'), ms(T0+.6+i*.28)); });
+  setTimeout(()=>SFX.play('chime'), ms(T0+1.5));
   const xc=document.getElementById('xpcount');
   if(xc){ const t0=performance.now(), dur=900;
     const tick=()=>{ const k=Math.min(1,(performance.now()-t0)/dur); xc.textContent=Math.round(gain*k); if(k<1 && xc.isConnected) requestAnimationFrame(tick); };
