@@ -861,6 +861,36 @@ body.on-stage:has(.coach) .stage{padding-bottom:calc(240px + var(--sb))}
   .conv{width:120px}
   .cyl{width:120px}
 }
+/* ---------- ことば(用語のタップ説明・新しいことば) ---------- */
+.term{display:inline;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;cursor:help;border-bottom:1.5px dashed #6b7ab0;line-height:inherit;-webkit-tap-highlight-color:transparent}
+.term:active{background:rgba(107,122,176,.15)}
+.term-demo{border-bottom:1.5px dashed #6b7ab0}
+.term.qm{border:0;width:17px;height:17px;border-radius:50%;background:#e6e9f2;color:#24305e;font-size:11px;font-weight:900;line-height:17px;text-align:center;margin-left:-4px}
+.term-pop{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;width:min(420px,calc(100vw - 20px));background:#fff;border-radius:14px;box-shadow:0 10px 36px rgba(10,15,40,.35);padding:12px;display:flex;flex-direction:column;gap:8px;animation:slideUp .18s ease-out}
+.term-pop .btn{align-self:flex-end}
+.tcards{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.tcard{display:flex;gap:10px;align-items:flex-start;background:#f6f7fb;border-radius:10px;padding:10px}
+.tcard .ti{flex:none;width:48px;height:34px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:8px;color:#24305e}
+.tcard .ti svg{width:40px;height:24px}
+.tcard .tt b{font-size:16px;color:#24305e}
+.tcard .tt small{margin-left:6px;font-size:11px;color:var(--sub)}
+.tcard .tt p{margin:4px 0 0;font-size:13.5px;line-height:1.55}
+.tcard .tt p.tex{font-size:12.5px;color:#4f5873}
+.hcard{height:auto;min-height:54px;padding:4px 2px}
+.hcard small{font-size:8.5px;font-weight:700;color:var(--sub);line-height:1.1;white-space:nowrap}
+/* ---------- 横向き(スマホを横にしたとき:左にラダー図、右に機械) ---------- */
+@media (orientation:landscape) and (max-height:500px){
+  .rotate-tip{display:none!important}
+  .stage-head{padding-top:4px;padding-bottom:4px;gap:6px}
+  .stage-head .t{font-size:14px}
+  .stage{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)!important;grid-template-areas:"mission machine" "editor machine" "bottom machine"!important;gap:8px!important;padding:6px max(8px,var(--sr)) calc(62px + var(--sb)) max(8px,var(--sl))!important}
+  .stage .machine{position:sticky;top:44px;align-self:start;max-height:calc(100vh - 110px);overflow:auto}
+  .mission{font-size:13.5px;padding:6px 10px;max-height:118px;overflow:auto;overscroll-behavior:contain}
+  .mission .msteps li{padding:2px 8px;font-size:13px}
+  .ctrlbar{padding-top:6px!important;padding-bottom:max(6px,var(--sb))!important}
+  .ctrlbar .btn{padding:5px 10px;font-size:14px}
+  .term-pop{bottom:calc(60px + env(safe-area-inset-bottom))}
+}
 /* ---------- 部品を置く・機械が動く(2026-11-19 作り替え) ----------
    置く:上から少し落ちてはまる(弾まない)+枠が紺で一瞬濃くなる。動く:ランプはじわっと点灯、モーターは回り始めがゆっくり */
 .rung-svg g.pop{animation:none}
@@ -2886,8 +2916,90 @@ function openStage(st){
   G.prog = d ? clone(d) : initialProg(st);
   G.plc=new PLC(); G.running=false; resetPhys();
   renderStage();
-  stageIntro(st);
+  // 初めて出てくる言葉があれば、ステージの前に「新しいことば」を見せる(大きな STAGE 表示の代わり)
+  const fresh=(st.tutorial?[]:STAGE_TERMS[st.id]||[]).filter(k=>TERMS[k] && !(G.save.seenTerms||[]).includes(k));
+  if(fresh.length) termPreview(st, fresh); else stageIntro(st);
   if(st.tutorial) setTimeout(()=>{ if(G.stage===st) startCoach(); }, reduced()?100:1600);
+}
+/* ---------- ことば(用語を、はじめての人にも分かる言葉で) ----------
+   画面の中の用語はタップで説明が出る。ステージで初めて使う言葉は、始める前にまとめて見せる */
+const TERMS = {
+  'ラダー図':{yomi:'らだーず', plain:'機械の動かし方を、電気の通り道の絵で書いたもの。左の線から右の線まで電気が届くと、右端につないだ機械が動く。', ex:'はしご(ラダー)のような形なので、この名前。'},
+  'ラング':{yomi:'らんぐ', plain:'ラダー図の横1行ぶん。1本のラングで、ふつう1つの出力(ランプやモーター)を動かす。', ex:'はしごの「段」のこと。'},
+  '接点':{yomi:'せってん', plain:'電気を通したり切ったりする「入口の部品」。ボタンやセンサの状態を読む。', ex:'a接点とb接点の2種類がある。'},
+  'a接点':{yomi:'えーせってん', plain:'ボタンやセンサがONのときだけ電気を通す接点。ふだん(OFF)は切れている。', ex:'「押している間だけランプをつける」ときに使う。'},
+  'b接点':{yomi:'びーせってん', plain:'a接点の逆。ふだん(OFF)は電気を通し、ONになると切れる接点。', ex:'「押したら止める」停止ボタンに使う。'},
+  'コイル':{yomi:'こいる', plain:'電気が届くと、つないだ機械(ランプ・モーターなど)を動かす「出口の部品」。ラングの右端に置く。', ex:'コイルがONになる=機械が動く。'},
+  '出力':{yomi:'しゅつりょく', plain:'PLCから機械へ出す信号。ランプをつける、モーターを回すなど。ラングの右端に置く。', ex:'反対に、ボタンやセンサからの信号は「入力」。'},
+  '入力':{yomi:'にゅうりょく', plain:'ボタンやセンサからPLCに入ってくる信号。接点で読む。', ex:'押しボタンを押す=入力がON。'},
+  '直列':{yomi:'ちょくれつ', plain:'接点を横に並べること。並べた接点が全部通ったときだけ電気が届く。', ex:'「AもBも押したとき」= AND(かつ)。'},
+  '並列':{yomi:'へいれつ', plain:'接点を縦に並べて、枝分かれさせること。どれか1つが通れば電気が届く。', ex:'「AかBを押したとき」= OR(または)。'},
+  '枝分かれ':{yomi:'えだわかれ', plain:'ラングの下の段に接点を置くと、上の段と並ぶ別の道ができる(並列)。このアプリでは下の段に置くと自動でつながる。', ex:'縦の線で上下の道がつながる。'},
+  '自己保持':{yomi:'じこほじ', plain:'一度押したら、手を離しても動き続ける回路。動いている自分自身の接点で、電気の道を保つ。', ex:'起動ボタンで回り始め、停止ボタンで止まるモーター。'},
+  '停止優先':{yomi:'ていしゆうせん', plain:'起動と停止を同時に押したら、止まる方が勝つ回路。安全のため、ふつうはこちら。', ex:'停止ボタンのb接点を、枝分かれの外に置く。'},
+  '起動優先':{yomi:'きどうゆうせん', plain:'起動と停止を同時に押したら、動く方が勝つ回路。機械では危ないことが多い。', ex:'停止ボタンのb接点が、枝分かれの中にある形。'},
+  'インターロック':{yomi:'いんたーろっく', plain:'2つの動きが同時に入らないようにするしかけ。片方が動いている間は、もう片方を動かせない。', ex:'前に進むのと後ろに進むのを同時にしない。'},
+  '正転・逆転':{yomi:'せいてん・ぎゃくてん', plain:'モーターを前向きに回す(正転)、後ろ向きに回す(逆転)こと。', ex:'台車やコンベアを行ったり来たりさせる。'},
+  'タイマ':{yomi:'たいま', plain:'決めた時間をはかる部品。時間がたつとONになる。', ex:'「3秒たったら門を開ける」など。'},
+  'TON':{yomi:'てぃーおん', plain:'オンディレイタイマ。電気が届いてから、決めた時間がたつとONになるタイマ。', ex:'スイッチを入れて3秒後に動く。'},
+  'TOF':{yomi:'てぃーおふ', plain:'オフディレイタイマ。電気が切れてから、決めた時間がたつとOFFになるタイマ。', ex:'照明を消しても、換気扇だけ5秒回る。'},
+  '点滅':{yomi:'てんめつ', plain:'ついて消えてをくり返すこと。タイマを2つ使い、交互に時間をはかって作る。', ex:'警告灯や異常ランプ。'},
+  'センサ':{yomi:'せんさ', plain:'物が来たか、扉が開いたかなどを見張って、入力をON/OFFする部品。', ex:'ベルトの端にパレットが着くとONになる。'},
+  '実習機':{yomi:'じっしゅうき', plain:'PLCの練習に使う本物の機械。このアプリでは TRAINER-S01 そっくりのパネルで動かす。', ex:'ボタン・ランプ・ベルト・センサがついている。'},
+  '内部リレー':{yomi:'ないぶりれー', plain:'PLCの中だけにある、目に見えないコイルと接点(M1、M2 など)。「今どの工程か」を覚えておくのに使う。', ex:'機械にはつながっていないメモのようなもの。'},
+  '工程':{yomi:'こうてい', plain:'動きを順番に区切った1つ1つ。「左へ行く」「待つ」「右へ戻る」など。', ex:'工程ごとに内部リレーを1つ使うと組みやすい。'},
+  'サイクル動作':{yomi:'さいくるどうさ', plain:'ボタン1回で、決まった一連の動きを最後までやること。', ex:'左へ運ぶ → 1秒待つ → 右へ戻る。'},
+  '手動運転':{yomi:'しゅどううんてん', plain:'人がボタンを押している間だけ、機械を動かすこと。位置合わせや点検に使う。', ex:'押している間だけ左へ寄せる。'},
+  '手動・自動':{yomi:'しゅどう・じどう', plain:'切替スイッチで、手で動かす(手動)か、決まった動きを自動でやる(自動)かを選ぶこと。', ex:'自動中は手動のボタンを効かなくする。'},
+  '非常停止':{yomi:'ひじょうていし', plain:'危ないときに機械を全部止める赤いボタン。押すと電気が切れるつくり(ふだんON、押すとOFF)。', ex:'だから「押された」はb接点で読む。'},
+  'リセット':{yomi:'りせっと', plain:'覚えていた異常などを消して、元に戻すこと。', ex:'非常停止のあと、リセットボタンで解除する。'},
+  '異常':{yomi:'いじょう', plain:'非常停止が押された、など困ったことが起きた状態。リセットされるまで覚えておき、機械を動かさない。', ex:'異常ランプで知らせる。'},
+  '連続運転':{yomi:'れんぞくうんてん', plain:'サイクル動作が終わったら、すぐ次のサイクルを始めること。スイッチを切ると、今のサイクルを終えて止まる。', ex:'実習機の Cont. Oper.(連続運転)スイッチ。'},
+};
+// ステージごとに、初めて出てくることば
+const STAGE_TERMS = {
+  '1-1':['ラダー図','接点','a接点','コイル'], '1-2':['b接点'], '1-3':['直列'], '1-4':['並列','枝分かれ'],
+  '2-1':['自己保持'], '2-2':['停止優先'], '2-3':['起動優先'], '2-4':['インターロック','正転・逆転'],
+  '3-1':['タイマ','TON'], '3-2':['TOF'], '3-3':['点滅'],
+  '4-1':['実習機','センサ','出力','入力'], '4-3':['手動運転'], '4-4':['サイクル動作','内部リレー','工程'], '4-5':['手動・自動'],
+  '5-1':['非常停止','リセット'], '5-2':['異常'], '5-4':['連続運転'],
+};
+// 文章の中の用語を、タップできる形にする(同じ用語は最初の1回だけ。タグの中は触らない)
+const TERM_RE = new RegExp('('+Object.keys(TERMS).concat(['正転','逆転','停止ボタン']).filter(k=>TERMS[k]).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g');
+function termify(html, seen){
+  seen=seen||new Set();
+  return String(html).split(/(<[^>]+>)/).map(part=>{
+    if(part.startsWith('<')) return part;
+    return part.replace(TERM_RE, w=>{ if(seen.has(w)) return w; seen.add(w); return `<button type="button" class="term" data-term="${w}">${w}</button>`; });
+  }).join('');
+}
+function termCard(k){
+  const t=TERMS[k]; if(!t) return '';
+  const icon = k==='a接点'?toolIcon('NO') : k==='b接点'?toolIcon('NC') : k==='コイル'?toolIcon('COIL') : '';
+  return `<div class="tcard">${icon?`<div class="ti">${icon}</div>`:''}<div class="tt"><b>${esc(k)}</b><small>${esc(t.yomi)}</small><p>${esc(t.plain)}</p><p class="tex">例:${esc(t.ex)}</p></div></div>`;
+}
+function showTerm(k){
+  document.querySelectorAll('.term-pop').forEach(e=>e.remove());
+  if(!TERMS[k]) return;
+  const d=document.createElement('div'); d.className='term-pop';
+  d.innerHTML=`${termCard(k)}<button class="btn small" data-tclose="1">閉じる</button>`;
+  document.body.appendChild(d); SFX.play('click');
+  const close=e=>{ if(e && e.target.closest && e.target.closest('.term-pop') && !e.target.closest('[data-tclose]')) return; d.remove(); document.removeEventListener('pointerdown', close, true); };
+  setTimeout(()=>document.addEventListener('pointerdown', close, true), 0);
+  d.querySelector('[data-tclose]').onclick=()=>close();
+}
+document.addEventListener('click', e=>{
+  const t=e.target.closest && e.target.closest('.term'); if(!t) return;
+  e.preventDefault(); e.stopPropagation(); showTerm(t.dataset.term);
+}, true);
+function termPreview(st, keys){
+  const bg=openModal(`<h2>${ic('book')} 新しいことば</h2>
+    <div class="note">${esc(st.id)}「${esc(st.title)}」で使う言葉です。あとからでも、画面の<span class="term-demo">点線の言葉</span>をタップすると見られます。</div>
+    <div class="tcards">${keys.map(termCard).join('')}</div>
+    <div class="acts"><button class="btn primary" data-m="go">わかった、始める</button></div>`, t=>{
+    if(t.dataset.m==='go') closeModal();
+  });
+  G.save.seenTerms=Array.from(new Set((G.save.seenTerms||[]).concat(keys))); persist();
 }
 function initialProg(st){
   const P=prep(st);
@@ -2918,7 +3030,8 @@ function fillNames(st, text){
     return `<b class="nm">${label}${shown && shown!==label ? `<small>${esc(shown)}</small>` : ''}</b>`;
   });
 }
-function missionHTML(st){
+function missionHTML(st){ return termify(missionRaw(st)); }
+function missionRaw(st){
   if(!st.steps) return `<span class="chip">おしごと</span>${esc(nameText(st, st.task))}`;
   const list=`<ol class="msteps">${st.steps.map(([d,r])=>`<li><span class="mdo">${fillNames(st,d)}</span><span class="marr">→</span><span class="mres">${fillNames(st,r)}</span></li>`).join('')}</ol>
     ${st.tip?`<div class="mtip">${fillNames(st,st.tip)}</div>`:''}`;
@@ -3104,7 +3217,11 @@ function renderEditor(){
   });
   h+='</div>'+handHTML(st);
   const el=document.getElementById('editor');
+  // 描き直しで手札などの横スクロールが一番左に戻らないよう、スクロール位置を覚えて戻す
+  const keep=[];
+  el.querySelectorAll('*').forEach((x,i)=>{ if(x.scrollLeft||x.scrollTop) keep.push([x.className+'#'+[...el.querySelectorAll('.'+String(x.className).split(' ')[0])].indexOf(x), x.scrollLeft, x.scrollTop]); });
   el.innerHTML=h;
+  keep.forEach(([key,l,t])=>{ const [cls,idx]=key.split('#'); const c=cls.split(' ')[0]; if(!c) return; const x=el.querySelectorAll('.'+c)[+idx]; if(x){ x.scrollLeft=l; x.scrollTop=t; } });
   el.classList.toggle('placing', !!G.tool);
   el.classList.toggle('running', G.running);
   if(G.pop){ placedFx(document.getElementById(G.pop)); G.pop=null; }
@@ -3248,8 +3365,11 @@ function handHTML(st){
   const secs=handTools(st), o=toolObj();
   const tip = !o ? '<b>① 下の部品をタップ</b>(またはマスへドラッグ)して選ぼう。置いた部品は長押しで動かせるよ'
     : `<b>② 光っているマスをタップ</b>して置こう。${o.t==='COIL'||o.t==='FB'?'コイルは右端の「出力」に置きます。':''}もう一度部品をタップで選ぶのをやめる`;
-  const card=it=>`<button class="hcard t-${it.t} ${G.tool===it.k?'sel':''}" data-act="tool" data-k="${esc(it.k)}" aria-pressed="${G.tool===it.k}">${toolIcon(it.t)}<span>${esc(it.name)}</span></button>`;
-  const secHTML=s=>`<div class="hsec ${s.cls}"><div class="hsec-h"><b>${s.title}</b>${s.hint?`<span>${s.hint}</span>`:''}</div>
+  // 手札のカードには、ふだんの言葉の説明を小さく添える(a接点=ONで通る、b接点=ONで切れる)
+  const SUB={NO:'ONで通る', NC:'ONで切れる', W:'線をつなぐ', E:'部品を消す'};
+  const card=it=>`<button class="hcard t-${it.t} ${G.tool===it.k?'sel':''}" data-act="tool" data-k="${esc(it.k)}" aria-pressed="${G.tool===it.k}">${toolIcon(it.t)}<span>${esc(it.name)}</span>${SUB[it.t]?`<small>${SUB[it.t]}</small>`:''}</button>`;
+  const QM={'接点':'接点','コイル':'コイル'};
+  const secHTML=s=>`<div class="hsec ${s.cls}"><div class="hsec-h"><b>${s.title}</b>${QM[s.title]?`<button type="button" class="term qm" data-term="${QM[s.title]}" aria-label="${s.title}とは">?</button>`:''}${s.hint?`<span>${s.hint}</span>`:''}</div>
     <div class="hand-row">${s.groups.map(g=>`
       <div class="hgrp">${g.label?`<div class="gh">${esc(g.label)}${g.sub&&g.sub!==g.label?` <span>${esc(g.sub)}</span>`:''}</div>`:''}<div class="gc">${g.items.map(card).join('')}</div></div>`).join('')}
     </div></div>`;
@@ -3844,7 +3964,7 @@ function renderBottom(){
   const tabs=[['task','説明・評価'],['io','割付表'],['hint','ヒント ('+rec.hints+'/'+st.hints.length+')']];
   let h=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${G.tab===k?'act':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`;
   if(G.tab==='task'){
-    h+=`${st.story?talkHTML(`<p class="story">${esc(st.story)}</p>`, 'normal'):''}
+    h+=`${st.story?talkHTML(`<p class="story">${termify(esc(st.story))}</p>`, 'normal'):''}
       <div class="goal">評価:★1 テスト合格 / ★2 接点数 ${P.target}個以下 / ★3 ヒントを使わずにクリア
       ${st.type==='short'?'<br><b>最短挑戦:</b>できるだけ少ない接点数でクリアを目指そう。'+(rec.best!=null?'(自己ベスト '+rec.best+'個)':''):''}
       ${st.type==='fill'?'<br><b>穴埋め:</b>「?」のマスだけ編集できます。':''}
@@ -3852,7 +3972,7 @@ function renderBottom(){
   } else if(G.tab==='io'){
     h+=ioTableHTML(st);
   } else {
-    for(let i=0;i<rec.hints;i++) h+=`<div class="hint"><b>ヒント${i+1}</b> ${esc(nameText(st, st.hints[i]))}</div>`;
+    for(let i=0;i<rec.hints;i++) h+=`<div class="hint"><b>ヒント${i+1}</b> ${termify(esc(nameText(st, st.hints[i])))}</div>`;
     if(rec.hints<st.hints.length) h+=`<button class="btn" data-act="hint">ヒント${rec.hints+1}を見る(★3が消えます)</button>`;
     else h+='<div class="note">ヒントはここまで。「模範解答」ボタンで答えも見られます。</div>';
   }
@@ -4006,7 +4126,7 @@ function coachGo(i){
   const d=document.getElementById('coach');
   // {PB1} のような書き方は、設定に合わせた部品名に置き換える
   const txt=s.text.replace(/\{(\w+)\}/g, (_,n)=>{ const x=prep(G.stage).io.find(v=>v.name===n); return x ? esc(showName(G.stage,x.a)) : n; });
-  d.innerHTML=`<div class="coach-in">${talkHTML(txt, i>=7?'happy':'normal', false, i>=7?undefined:'point')}
+  d.innerHTML=`<div class="coach-in">${talkHTML(termify(txt), i>=7?'happy':'normal', false, i>=7?undefined:'point')}
     <div class="coach-acts"><span class="coach-n">${i+1} / ${TUT_STEPS.length}</span>
       <button class="btn small" data-coach="skip">スキップ</button>
       ${s.until?'':'<button class="btn small primary" data-coach="next">次へ</button>'}</div></div>`;
@@ -4026,7 +4146,10 @@ function coachTick(scroll){
 }
 function tutorialClear(){
   stopCoach();
-  G.save.tut=true; persist();
+  G.save.tut=true;
+  // チュートリアルで説明した言葉は、1-1 の前に改めて出さない
+  G.save.seenTerms=Array.from(new Set((G.save.seenTerms||[]).concat(['ラダー図','接点','a接点','コイル'])));
+  persist();
   setTimeout(()=>SFX.play('stamp'), 200); setTimeout(()=>SFX.play('chime'), 900);
   openModal(`<div class="pass"><div class="pass-head"><div class="pass-doc"><small>チュートリアル</small><b>はじめての回路</b><span>操作の基本 OK</span></div>
     <div class="stamp" style="animation-delay:.15s"><span>完了</span></div></div></div>
