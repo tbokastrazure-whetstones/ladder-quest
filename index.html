@@ -3047,7 +3047,9 @@ const STAGE_TERMS = {
   '5-1':['非常停止','リセット'], '5-2':['異常'], '5-4':['連続運転'],
 };
 // 文章の中の用語を、タップできる形にする(同じ用語は最初の1回だけ。タグの中は触らない)
-const TERM_RE = new RegExp('('+Object.keys(TERMS).concat(['正転','逆転','停止ボタン']).filter(k=>TERMS[k]).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g');
+// js/ の追加ファイルが用語を足したら buildTermRe() で作り直す
+function buildTermRe(){ return new RegExp('('+Object.keys(TERMS).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g'); }
+let TERM_RE = new RegExp('('+Object.keys(TERMS).concat(['正転','逆転','停止ボタン']).filter(k=>TERMS[k]).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g');
 function termify(html, seen){
   seen=seen||new Set();
   return String(html).split(/(<[^>]+>)/).map(part=>{
@@ -4536,7 +4538,31 @@ function boot(){
   document.addEventListener('pointerdown', ()=>SFX.wake(), true);
   showTitle();
 }
-if(typeof document!=='undefined') boot();
+/* ---------- 追加のファイルを読み込んでから起動する ----------
+   2026-11-24 から、新しく書く部分は js/ フォルダに分けて置く(1ファイルを数百行までにするため)。
+   作業用の ladder_game.html から開いたときは ladder-app/js/ を、公開版(index.html)では js/ を読む */
+const JS_BASE = /ladder_game\.html$/i.test(location.pathname) ? 'ladder-app/js/' : 'js/';
+const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js'];
+
+function loadScript(src){
+  return new Promise(resolve=>{
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = ()=>resolve(true);
+    // 読み込めなくても、今あるステージだけで起動する
+    s.onerror = ()=>{ console.warn('読み込めませんでした: ' + src); resolve(false); };
+    document.body.appendChild(s);
+  });
+}
+
+async function loadExtrasAndBoot(){
+  for(const f of EXTRA_JS){
+    await loadScript(JS_BASE + f);
+  }
+  boot();
+}
+
+if(typeof document!=='undefined') loadExtrasAndBoot();
 </script>
 </body>
 </html>
