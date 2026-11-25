@@ -3458,7 +3458,7 @@ function toolIcon(t){
 }
 function handHTML(st){
   const secs=handTools(st), o=toolObj();
-  const tip = !o ? '<b>① 下の部品をタップ</b>(またはマスへドラッグ)して選ぼう。置いた部品は長押しで動かせるよ'
+  const tip = !o ? '<b>① 下の部品をタップ</b>(またはマスへドラッグ)して選ぼう。置いた部品はドラッグで動かせる。ダブルタップで固定(動かなくなる)'
     : `<b>② 光っているマスをタップ</b>して置こう。${o.t==='COIL'||o.t==='FB'?'コイルは右端の「出力」に置きます。':''}もう一度部品をタップで選ぶのをやめる`;
   // 手札のカードには、ふだんの言葉の説明を小さく添える(a接点=ONで通る、b接点=ONで切れる)
   const SUB={NO:'ONで通る', NC:'ONで切れる', W:'線をつなぐ', E:'部品を消す'};
@@ -3513,12 +3513,14 @@ function setupHandDrag(){
     const ri=+h.dataset.ri, rg=G.prog[ri]; if(!rg) return;
     let src=null, t=null;
     if(h.dataset.act==='cell'){ const r=+h.dataset.r, c=+h.dataset.c, cell=rg.cells[r][c];
-      if(cell && (cell.t==='NO'||cell.t==='NC') && !cellLocked(rg,r,c)){ src={kind:'cell', ri, r, c}; t=cell.t; } }
-    else if(h.dataset.act==='out'){ if(rg.out && !outLocked(rg)){ src={kind:'out', ri}; t=rg.out.t==='COIL'?'COIL':'FB'; } }
+      // pin = ダブルタップで固定した部品(ドラッグで動かさない。js/pin.js)
+      if(cell && (cell.t==='NO'||cell.t==='NC') && !cellLocked(rg,r,c) && !cell.pin){ src={kind:'cell', ri, r, c}; t=cell.t; } }
+    else if(h.dataset.act==='out'){ if(rg.out && !outLocked(rg) && !rg.out.pin){ src={kind:'out', ri}; t=rg.out.t==='COIL'?'COIL':'FB'; } }
     if(!src) return;
-    d={kind:'move', src, t, x:e.clientX, y:e.clientY, on:false, armed:e.pointerType==='mouse', g:null, hl:null};
-    if(!d.armed){ const dd=d; dd.timer=setTimeout(()=>{ if(d===dd && !dd.cancel){ dd.armed=true; SFX.play('tick'); try{ navigator.vibrate&&navigator.vibrate(10); }catch(_){}
-      h.classList.add('over'); } }, 260); }
+    // 2026-11-25:長押しをやめ、置いた部品の上から指を動かしたらすぐドラッグにする。
+    // 部品の上から始めたときは画面をスクロールさせない(空いているマスからはスクロールできる)
+    d={kind:'move', src, t, x:e.clientX, y:e.clientY, on:false, armed:true, g:null, hl:null};
+    if(e.pointerType!=='mouse') G.dragging=true;
   });
   addEventListener('pointermove', e=>{
     if(!d) return;
@@ -4506,7 +4508,7 @@ function openSettings(){
       <div class="note">効果音</div>
       <div class="opts"><button class="opt ${SFX.on()?'sel':''}" data-m="snd" data-v="1">ON</button><button class="opt ${SFX.on()?'':'sel'}" data-m="snd" data-v="0">OFF</button></div>
       <div class="note">そのほか</div>
-      <div class="opts"><button class="btn small" data-m="words">${ic('book')} ことば帳</button><button class="btn small" data-m="install">${ic('save')} アプリとして使う・人に教える</button><button class="btn small" data-m="tut">${ic('hint')} チュートリアルをもう一度</button><button class="btn small" data-m="data">${ic('save')} データ(書き出し・読み込み)</button></div>
+      <div class="opts"><button class="btn small" data-m="lesson">${ic('hint')} 基礎講座(ラダー図のしくみ)</button><button class="btn small" data-m="words">${ic('book')} ことば帳</button><button class="btn small" data-m="install">${ic('save')} アプリとして使う・人に教える</button><button class="btn small" data-m="tut">${ic('hint')} チュートリアルをもう一度</button><button class="btn small" data-m="data">${ic('save')} データ(書き出し・読み込み)</button></div>
       <div class="acts"><button class="btn primary" data-m="close">閉じる</button></div>`;
   };
   const bg=openModal(draw(), t=>{
@@ -4519,6 +4521,7 @@ function openSettings(){
     if(m==='addrmode'){ const v=t.dataset.v; G.set.addr = v!=='off'; if(v!=='off') G.set.astyle=v; saveSettings(); applySettings();
       bg.querySelector('.modal').innerHTML=draw(); if(G.stage){ renderEditor(); renderMachine(); renderBottom(); } return; }
     if(m==='words'){ closeModal(); showGlossary(); return; }
+    if(m==='lesson'){ closeModal(); if(typeof showLesson==='function') showLesson(); return; }
     if(m==='install'){ closeModal(); showInstall(); return; }
     if(m==='snd'){ SFX.set(t.dataset.v==='1'); document.querySelectorAll('[data-snd]').forEach(x=>x.innerHTML=ic(SFX.on()?'sound':'mute')); bg.querySelector('.modal').innerHTML=draw(); return; }
     if(m==='tut'){ closeModal(); openStage(tutStage()); return; }
@@ -4542,7 +4545,7 @@ function boot(){
    2026-11-24 から、新しく書く部分は js/ フォルダに分けて置く(1ファイルを数百行までにするため)。
    作業用の ladder_game.html から開いたときは ladder-app/js/ を、公開版(index.html)では js/ を読む */
 const JS_BASE = /ladder_game\.html$/i.test(location.pathname) ? 'ladder-app/js/' : 'js/';
-const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js'];
+const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js'];
 
 function loadScript(src){
   return new Promise(resolve=>{
