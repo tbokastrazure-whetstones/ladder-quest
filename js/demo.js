@@ -11,8 +11,8 @@
   const baseMissionHTML = missionHTML;
   missionHTML = function(st){
     let h = baseMissionHTML(st);
-    // 「おしごと」の札の横に「?」(問題の読み方)
-    h = h.replace('<span class="chip">おしごと</span>', '<span class="chip">おしごと</span><button type="button" class="howto" data-howto="1" aria-label="問題の読み方">?</button>');
+    // 「依頼」の札の横に「?」(問題の読み方)
+    h = h.replace('<span class="chip">依頼</span>', '<span class="chip">依頼</span><button type="button" class="howto" data-howto="1" aria-label="問題の読み方">?</button>');
     if(st.tests && st.tests.length){
       h += '<div class="demo-row"><button type="button" class="demo-btn" data-demo="1">▶ 正解の動きを見る</button><span>お手本の回路で、機械がどう動けば正解かを見られます</span></div>';
     }

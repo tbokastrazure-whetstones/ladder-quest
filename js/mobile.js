@@ -66,8 +66,14 @@
     '  body.on-stage #editor .hand .gc{gap:3px}',
     '  body.on-stage #editor .hand .hgrp{padding:3px 4px}',
     '  body.on-stage #editor .hand .hand-row{gap:5px}',
-    '  .hand-fold{display:block;width:100%;border:0;background:none;color:#6b7590;font-size:11.5px;font-weight:800;padding:2px 0 4px;cursor:pointer}',
+    // たたむボタンは蛍光色にして、たたんだあとも見失わないようにする
+    '  .hand-fold{display:block;width:100%;border:0;background:#eaff7a;color:#1d2a52;font-size:11.5px;font-weight:900;padding:3px 0;margin:2px 0 4px;border-radius:8px;cursor:pointer}',
+    '  body.on-stage #editor .hand.folded{padding:6px 8px;background:#1d2a52}',
+    '  body.on-stage #editor .hand.folded .hand-fold{background:#d4ff00;color:#1d2a52;font-size:13.5px;padding:8px 0;margin:0;box-shadow:0 0 14px rgba(212,255,0,.75);animation:foldGlow 1.6s ease-in-out infinite}',
     '  body.on-stage #editor .hand.folded > :not(.hand-fold){display:none}',
+    '}',
+    '@keyframes foldGlow{0%,100%{box-shadow:0 0 6px rgba(212,255,0,.5)}50%{box-shadow:0 0 18px rgba(212,255,0,.95)}}',
+    '@media (max-width:860px) and (orientation:portrait){',
     '}',
   ].join('\n');
   document.head.appendChild(css);

@@ -222,7 +222,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tabs button.act{background:var(--ink);color:#fff}
 .story{color:var(--ink);font-size:14px;margin:0}
 .task{font-size:15.5px;margin:0 0 8px;background:var(--panel2);border:2.5px solid var(--ink);border-radius:12px;padding:8px 12px;font-weight:700}
-.task::before{content:"おしごと";display:block;font-size:11px;color:#b07800}
+.task::before{content:"依頼";display:block;font-size:11px;color:#b07800}
 .goal{font-size:13px;color:var(--sub)}
 table.io{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;border:2px solid var(--ink);border-radius:10px;overflow:hidden}
 table.io th,table.io td{border-bottom:1px solid var(--soft);border-right:1px solid var(--soft);padding:5px 8px;text-align:left}
@@ -3027,7 +3027,7 @@ const TERMS = {
   'TOF':{yomi:'てぃーおふ', plain:'オフディレイタイマ。電気が切れてから、決めた時間がたつとOFFになるタイマ。', ex:'照明を消しても、換気扇だけ5秒回る。'},
   '点滅':{yomi:'てんめつ', plain:'ついて消えてをくり返すこと。タイマを2つ使い、交互に時間をはかって作る。', ex:'警告灯や異常ランプ。'},
   'センサ':{yomi:'せんさ', plain:'物が来たか、扉が開いたかなどを見張って、入力をON/OFFする部品。', ex:'ベルトの端にパレットが着くとONになる。'},
-  '実習機':{yomi:'じっしゅうき', plain:'PLCの練習に使う本物の機械。このアプリでは TRAINER-S01 そっくりのパネルで動かす。', ex:'ボタン・ランプ・ベルト・センサがついている。'},
+  '実習機':{yomi:'じっしゅうき', plain:'PLCの練習に使う本物の機械。このアプリでは、実習機と同じ並びのパネルで動かす。', ex:'ボタン・ランプ・ベルト・センサがついている。'},
   '内部リレー':{yomi:'ないぶりれー', plain:'PLCの中だけにある、目に見えないコイルと接点(M1、M2 など)。「今どの工程か」を覚えておくのに使う。', ex:'機械にはつながっていないメモのようなもの。'},
   '工程':{yomi:'こうてい', plain:'動きを順番に区切った1つ1つ。「左へ行く」「待つ」「右へ戻る」など。', ex:'工程ごとに内部リレーを1つ使うと組みやすい。'},
   'サイクル動作':{yomi:'さいくるどうさ', plain:'ボタン1回で、決まった一連の動きを最後までやること。', ex:'左へ運ぶ → 1秒待つ → 右へ戻る。'},
@@ -3127,13 +3127,13 @@ function fillNames(st, text){
 }
 function missionHTML(st){ return termify(missionRaw(st)); }
 function missionRaw(st){
-  if(!st.steps) return `<span class="chip">おしごと</span>${esc(nameText(st, st.task))}`;
+  if(!st.steps) return `<span class="chip">依頼</span>${esc(nameText(st, st.task))}`;
   const list=`<ol class="msteps">${st.steps.map(([d,r])=>`<li><span class="mdo">${fillNames(st,d)}</span><span class="marr">→</span><span class="mres">${fillNames(st,r)}</span></li>`).join('')}</ol>
     ${st.tip?`<div class="mtip">${fillNames(st,st.tip)}</div>`:''}`;
   // 条件が5つ以上ある(大きなボスなど)ときは折りたたむ。目的の行をタップで開け閉め
-  if(st.steps.length>=5) return `<details class="mdet"><summary class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}
+  if(st.steps.length>=5) return `<details class="mdet"><summary class="mgoal"><span class="chip">依頼</span>${esc(st.goal)}
       <span class="mmore"><span class="o">条件を見る(${st.steps.length})</span><span class="c">閉じる</span></span></summary>${list}</details>`;
-  return `<div class="mgoal"><span class="chip">おしごと</span>${esc(st.goal)}</div>${list}`;
+  return `<div class="mgoal"><span class="chip">依頼</span>${esc(st.goal)}</div>${list}`;
 }
 function renderStage(){
   const st=G.stage, P=prep(st), rec=stRec(st.id);
@@ -3795,7 +3795,6 @@ function trainerHTML(st, d){
   const relay=(k,lab)=>{ const a=A_(k); return `<span class="tr-ry">${lab}<i class="tr-led red ${a?'':'unused'}" ${a?`data-out="${a}"`:''}></i></span>`; };
   const lsRow=k=>`<div class="tr-lsrow"><b>${k}</b>${btn(k,'tr-sens sm',kindOfSens(k))}${tag(k)}</div>`;
   return `<div class="trainer">
-    <div class="tr-name">PLC-TRAINER-S01</div>
     <div class="tr-relay">${relay('BELTL','RY1')}${relay('BELT','RY2')}<span class="tr-cap">Conv. Relay</span></div>
     <div class="tr-conv">
       <div class="tr-lsl">${['LS5','LS4','LS3','LS2'].map(lsRow).join('')}</div>
@@ -4230,7 +4229,7 @@ function tutStage(){
   return Object.assign({}, b, {id:'0-1', title:'はじめての回路', tutorial:true, hints:[], story:'', boss:false});
 }
 const TUT_STEPS = [
-  {sel:'.mission', text:'ここが「おしごと」。今回は<b>押しボタンを押している間だけ、ランプをつける</b>回路を作るよ。'},
+  {sel:'.mission', text:'ここが「依頼」。今回は<b>押しボタンを押している間だけ、ランプをつける</b>回路を作るよ。'},
   {sel:'.rung', text:'これが<b>ラダー図</b>。左の緑の線から右の緑の線まで電気が届くと、右端につないだ機械が動くんだ。'},
   {sel:'.hcard[data-k^="NO|"]', text:'まず部品を選ぼう。左にある「<b>{PB1}</b>」の「<b>a接点</b>」をタップしてね。<br>a接点は「ボタンを押すと電気を通す部品」だよ。',
    until:()=>(G.tool||'').startsWith('NO|')},
@@ -4545,7 +4544,7 @@ function boot(){
    2026-11-24 から、新しく書く部分は js/ フォルダに分けて置く(1ファイルを数百行までにするため)。
    作業用の ladder_game.html から開いたときは ladder-app/js/ を、公開版(index.html)では js/ を読む */
 const JS_BASE = /ladder_game\.html$/i.test(location.pathname) ? 'ladder-app/js/' : 'js/';
-const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js'];
+const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js'];
 
 function loadScript(src){
   return new Promise(resolve=>{
