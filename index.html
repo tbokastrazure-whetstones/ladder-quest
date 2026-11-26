@@ -1133,8 +1133,8 @@ const STAGES = [
     goal:'どちらのボタンでもランプがつくように、回路を直そう',
     steps:[['{PB1|手前ボタン}を押している間','{PL1|ランプ}がつく'],['{PB2|奥ボタン}を押している間','{PL1|ランプ}がつく(今はつかない)']],
     io:[
-      {a:'I0.0', name:'PB1', desc:'手前のボタン'},
-      {a:'I0.1', name:'PB2', desc:'奥のボタン'},
+      {a:'I0.0', name:'PB1', desc:'手前ボタン'},
+      {a:'I0.1', name:'PB2', desc:'奥ボタン'},
       {a:'Q0.0', name:'PL1',  desc:'廊下ランプ'},
     ],
     palette:['NO','NC','COIL'], cols:4, maxRows:2, maxRungs:2,
@@ -1337,9 +1337,9 @@ const STAGES = [
     goal:'丸のこが回っているときだけ、木材を送れるようにしよう',
     steps:[['{PB1|起動ボタン}を押して離す','{SAW|丸のこ}が回り続け、{PL1|運転表示灯}がつく'],['{PB3|送りボタン}を押して離す','{FEED|送りコンベア}が動き続ける(丸のこが回っているときだけ)'],['{PB2|停止ボタン}を押す','丸のこも送りも止まる']],
     io:[
-      {a:'I0.0', name:'PB1',  desc:'丸のこ起動'},
-      {a:'I0.1', name:'PB2',  desc:'停止'},
-      {a:'I0.2', name:'PB3',  desc:'送り起動'},
+      {a:'I0.0', name:'PB1',  desc:'起動ボタン'},
+      {a:'I0.1', name:'PB2',  desc:'停止ボタン'},
+      {a:'I0.2', name:'PB3',  desc:'送りボタン'},
       {a:'Q0.0', name:'SAW',  desc:'丸のこモータ'},
       {a:'Q0.1', name:'FEED', desc:'送りコンベア'},
       {a:'Q0.2', name:'PL1',   desc:'運転表示灯'},
@@ -3152,7 +3152,7 @@ function renderStage(){
     <section class="pane bottom" id="bottom"></section>
   </div>
   <div class="ctrlbar">
-    <button class="btn" data-act="reset" title="機械を最初の状態に戻す">${ic('reset')} リセット</button>
+    <button class="btn" data-act="reset" title="ラダー図を最初の状態に戻す">${ic('reset')} リセット</button>
     <button class="btn" data-act="tab" data-tab="hint" data-go="1">${ic('hint')} ヒント</button>
     <button class="btn primary" data-act="judge">${ic('ok')} 判定</button>
   </div>`;
@@ -3297,18 +3297,17 @@ function renderEditor(){
     ${guided?`<div class="guide-note">${ic('hint')} 点線の<b>+</b>の枠に部品を置こう。線のつなぎ方は、最初から用意してあるよ(設定で枠なしにもできます)</div>`:''}
     <div class="toolbar">
       ${fill?'':`<button class="btn small" data-act="addRung" ${G.prog.length>=P.maxRungs?'disabled':''}>+ ラング追加</button>`}
-      <button class="btn small" data-act="clearAll">最初に戻す</button>
       <button class="btn small" data-act="answer">模範解答</button>
       <span class="cnt ${n>0&&n<=P.target?'good':''}">接点数 <b>${n}</b> 個(★目標 ${P.target}個以下)</span>
     </div><div id="rungs">`;
   G.prog.forEach((rg,ri)=>{
-    h+=`<div class="rung"><div class="rung-head"><span class="n">ラング ${ri+1}</span>`;
+    h+=`<div class="rung"><div class="rung-head"><span class="n">ラング ${ri+1}</span><div class="rstat" id="rs-${ri}"></div>`;
     if(!fill){
       h+=`<button data-act="up" data-ri="${ri}" ${ri===0?'disabled':''}>↑</button>
           <button data-act="down" data-ri="${ri}" ${ri===G.prog.length-1?'disabled':''}>↓</button>
           <button data-act="rungDel" data-ri="${ri}">削除</button>`;
     }
-    h+=`</div>${rungSVG(rg,ri,st)}<div class="rstat" id="rs-${ri}"></div></div>`;
+    h+=`</div>${rungSVG(rg,ri,st)}</div>`;
   });
   h+='</div>'+handHTML(st);
   const el=document.getElementById('editor');
@@ -4544,7 +4543,7 @@ function boot(){
    2026-11-24 から、新しく書く部分は js/ フォルダに分けて置く(1ファイルを数百行までにするため)。
    作業用の ladder_game.html から開いたときは ladder-app/js/ を、公開版(index.html)では js/ を読む */
 const JS_BASE = /ladder_game\.html$/i.test(location.pathname) ? 'ladder-app/js/' : 'js/';
-const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js'];
+const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js', 'usability.js'];
 
 function loadScript(src){
   return new Promise(resolve=>{
