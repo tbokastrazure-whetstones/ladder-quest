@@ -4505,6 +4505,7 @@ function openSettings(){
       <div class="set-ex">表示の例:<b>${esc(ex)}</b></div>
       <div class="note">効果音</div>
       <div class="opts"><button class="opt ${SFX.on()?'sel':''}" data-m="snd" data-v="1">ON</button><button class="opt ${SFX.on()?'':'sel'}" data-m="snd" data-v="0">OFF</button></div>
+      ${typeof bgmSettingsHTML==='function'?bgmSettingsHTML():''}
       <div class="note">そのほか</div>
       <div class="opts"><button class="btn small" data-m="lesson">${ic('hint')} 基礎講座(ラダー図のしくみ)</button><button class="btn small" data-m="words">${ic('book')} ことば帳</button><button class="btn small" data-m="install">${ic('save')} アプリとして使う・人に教える</button><button class="btn small" data-m="tut">${ic('hint')} チュートリアルをもう一度</button><button class="btn small" data-m="data">${ic('save')} データ(書き出し・読み込み)</button></div>
       <div class="acts"><button class="btn primary" data-m="close">閉じる</button></div>`;
@@ -4543,7 +4544,7 @@ function boot(){
    2026-11-24 から、新しく書く部分は js/ フォルダに分けて置く(1ファイルを数百行までにするため)。
    作業用の ladder_game.html から開いたときは ladder-app/js/ を、公開版(index.html)では js/ を読む */
 const JS_BASE = /ladder_game\.html$/i.test(location.pathname) ? 'ladder-app/js/' : 'js/';
-const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js', 'usability.js', 'bridge.js', 'story.js', 'wrap.js'];
+const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js', 'usability.js', 'bridge.js', 'story.js', 'wrap.js', 'bgm-tracks.js', 'bgm.js'];
 
 function loadScript(src){
   return new Promise(resolve=>{
