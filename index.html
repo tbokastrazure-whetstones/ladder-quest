@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CIRCUIT ISLES</title>
+<title>ラダークエスト 〜回路の島々〜</title>
 <meta name="description" content="回路を組み、島に電気を通す。PLC制御(ラダー)の入門パズル">
 <!-- 共有したときの見出し・プレビュー(画像は公開URLの絶対パスで指定する必要がある) -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="CIRCUIT ISLES">
+<meta property="og:title" content="ラダークエスト 〜回路の島々〜">
 <meta property="og:description" content="回路を組み、島に電気を通す。PLC制御(ラダー)の入門パズル">
 <meta property="og:url" content="https://tbokastrazure-whetstones.github.io/ladder-quest/">
 <meta property="og:image" content="https://tbokastrazure-whetstones.github.io/ladder-quest/icon-512.png?v=5">
@@ -18,7 +18,7 @@
 <meta name="theme-color" content="#24305e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="CIRCUIT ISLES">
+<meta name="apple-mobile-web-app-title" content="ラダークエスト">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png?v=5">
@@ -2706,7 +2706,7 @@ function showTitle(){
   const L=levelOf(G.save.xp);
   const app=document.getElementById('app');
   app.innerHTML=`<div class="title-screen tt2" data-act="start">
-    <div class="tt-head"><h1>CIRCUIT ISLES</h1>
+    <div class="tt-head"><h1>ラダークエスト<small class="tt-isles">〜回路の島々〜</small></h1>
       <div class="tt-sub">回路を組み、島に電気を通す。<br>PLC制御の入門パズル</div></div>
     <div class="tt-art">
       <div class="tt-clouds back">${titleClouds('back')}</div>
@@ -2746,14 +2746,14 @@ function showInstall(){
     <ol class="inst">
       <li><span class="ii"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></span><span>画面の下(iPadは上)の<b>共有ボタン</b>をタップ</span></li>
       <li><span class="ii"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span><span>メニューを下へずらして<b>「ホーム画面に追加」</b>をタップ</span></li>
-      <li><span class="ii"><b style="font-size:11px">追加</b></span><span>右上の<b>「追加」</b>をタップ。ホーム画面に CIRCUIT ISLES のアイコンが出ます</span></li>
+      <li><span class="ii"><b style="font-size:11px">追加</b></span><span>右上の<b>「追加」</b>をタップ。ホーム画面に ラダークエスト のアイコンが出ます</span></li>
     </ol>`;
   else body=`<p>ブラウザのメニュー(右上の <b>︙</b>)から<b>「ホーム画面に追加」</b>または<b>「アプリをインストール」</b>を選んでください。</p>
     <p class="note">PCの Chrome・Edge では、アドレスバーの右にある「インストール」のマークからも追加できます。</p>`;
   const bg=openModal(`<h2>${ic('save')} アプリとして使う</h2>${body}${share}<div class="acts"><button class="btn" data-m="close">閉じる</button></div>`, async t=>{
     const m=t.dataset.m;
     if(m==='do' && G.installEvt){ const ev=G.installEvt; G.installEvt=null; ev.prompt(); try{ await ev.userChoice; }catch(_){} closeModal(); }
-    if(m==='share'){ try{ await navigator.share({title:'CIRCUIT ISLES', text:'回路を組み、島に電気を通す。PLC制御の入門パズル', url:APP_URL}); }catch(_){} }
+    if(m==='share'){ try{ await navigator.share({title:'ラダークエスト', text:'回路を組み、島に電気を通す。PLC制御の入門パズル', url:APP_URL}); }catch(_){} }
     if(m==='copy'){ try{ await navigator.clipboard.writeText(APP_URL); toast('URLをコピーしました'); }catch(_){ prompt('このURLをコピーしてください', APP_URL); } }
   });
   G.save.installSeen=true; persist();
@@ -2891,7 +2891,7 @@ function showMap(pro){
   G.stage=null;
   document.querySelectorAll('.intro').forEach(e=>e.remove());
   document.body.classList.add('on-map'); document.body.classList.remove('on-stage');
-  const h=`<div class="topbar"><h1 data-act="title" title="タイトルへ">CIRCUIT ISLES<small>PLC制御の入門パズル</small></h1>${statusHTML()}
+  const h=`<div class="topbar"><h1 data-act="title" title="タイトルへ">ラダークエスト<small>回路の島々</small></h1>${statusHTML()}
     <button class="btn small" data-act="dex">${ic('book')} 命令図鑑</button>
     <button class="btn small" data-act="data">${ic('save')} データ</button>${soundBtnHTML()}
     <button class="btn small icon-btn" data-act="settings" title="設定" aria-label="設定">${ic('gear')}</button></div>
@@ -4337,7 +4337,7 @@ function onClear(){
     <div class="xpgain">${gain>0?`+<span id="xpcount">0</span> XP`:'<span class="note">(獲得XPなし:すでに取得済み)</span>'}</div>
     ${lvUp?`<div class="lvcard"><small>レベルアップ</small><b>Lv.${oldL} → Lv.${newL}</b>${newTitle?`<span>${ic('medal')} 称号「${esc(titleOf(newL))}」</span>`:''}</div>`:''}
     </div>
-    ${newDex.some(id=>PALS[id])?`<div class="pal-join">${newDex.filter(id=>PALS[id]).map(id=>`<div class="pal-card">${palSVG(id,'happy')}<b>${esc((DEX.find(x=>x.id===id)||{}).name||id)}</b><small>が仲間になった!</small></div>`).join('')}</div>`:''}
+    ${newDex.some(id=>PALS[id])?`<div class="pal-join">${newDex.filter(id=>PALS[id]).map(id=>`<div class="pal-card">${palSVG(id,'happy')}<b>${esc((DEX.find(x=>x.id===id)||{}).name||id)}</b><small>を手札で使えるようになった</small></div>`).join('')}</div>`:''}
     ${dexNames.length?`<div class="newdex">${ic('book')} 命令図鑑に追加:<b>${esc(dexNames.join('、'))}</b></div>`:''}
     ${talkHTML(pick(st.boss?LINES.boss:LINES.clear),'happy')}
     <div class="acts">
@@ -4422,8 +4422,8 @@ function showDex(){
   h+=`<div class="pal-shelf">${Object.keys(PALS).map(id=>{
       const d=DEX.find(x=>x.id===id)||{}, have=got.includes(id);
       return `<div class="pal-card ${have?'':'unk'}">${palSVG(id, have?'happy':'normal')}
-        <b>${have?esc(d.name||id):'???'}</b>${have?`<small>「${esc(PALS[id].say)}」</small>`:`<small>エリア${d.area||'?'}で仲間に</small>`}</div>`;
-    }).join('')}</div><p class="note" style="margin:2px 0 10px">命令を覚えると、その命令が仲間になります。</p>`;
+        <b>${have?esc(d.name||id):'???'}</b>${have?`<small>「${esc(PALS[id].say)}」</small>`:`<small>エリア${d.area||'?'}で覚える</small>`}</div>`;
+    }).join('')}</div><p class="note" style="margin:2px 0 10px">新しい部品や命令を覚えると、ここに並び、手札で使えるようになります。</p>`;
   for(const d of DEX){
     if(got.includes(d.id)){
       h+=`<div class="dex-item ${PALS[d.id]?'has-pal':''}">${PALS[d.id]?palSVG(d.id,'normal','dex-pal'):''}<div><h4>${esc(d.name)}</h4><div class="op">${esc(d.op)}</div><p style="margin:4px 0">${esc(d.text)}</p><div class="note">ポイント:${esc(d.tip)}</div></div></div>`;
@@ -4543,7 +4543,7 @@ function boot(){
    2026-11-24 から、新しく書く部分は js/ フォルダに分けて置く(1ファイルを数百行までにするため)。
    作業用の ladder_game.html から開いたときは ladder-app/js/ を、公開版(index.html)では js/ を読む */
 const JS_BASE = /ladder_game\.html$/i.test(location.pathname) ? 'ladder-app/js/' : 'js/';
-const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js', 'usability.js'];
+const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js', 'usability.js', 'bridge.js', 'story.js', 'wrap.js'];
 
 function loadScript(src){
   return new Promise(resolve=>{

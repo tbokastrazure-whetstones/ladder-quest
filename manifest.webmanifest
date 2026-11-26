@@ -1,6 +1,6 @@
 {
-  "name": "CIRCUIT ISLES",
-  "short_name": "CIRCUIT ISLES",
+  "name": "ラダークエスト 〜回路の島々〜",
+  "short_name": "ラダークエスト",
   "description": "回路を組み、島に電気を通す。PLC制御(ラダー)の入門パズル",
   "lang": "ja",
   "start_url": "./index.html",
