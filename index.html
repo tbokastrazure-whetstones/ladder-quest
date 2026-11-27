@@ -4500,6 +4500,7 @@ function openSettings(){
     return `<h2>${ic('gear')} 設定</h2>
       <div class="note">部品の名前</div>
       <div class="opts">${o('names','easy','やさしい名前','ボタン1・ランプ1')}${o('names','symbol','記号','PB1・PL1')}${o('names','both','両方','ボタン1 PB1')}</div>
+      ${typeof ruleSettingsHTML==='function'?ruleSettingsHTML():''}
       <div class="note">アドレス(入力・出力の番号)</div>
       <div class="opts">${am('off','表示しない','はじめての人向け')}${am('mel','三菱式','X0・Y0(検定・実習機)')}${am('iec','OpenPLC式','%IX0.0・%QX0.0')}</div>
       <div class="set-ex">表示の例:<b>${esc(ex)}</b></div>
@@ -4544,7 +4545,7 @@ function boot(){
    2026-11-24 から、新しく書く部分は js/ フォルダに分けて置く(1ファイルを数百行までにするため)。
    作業用の ladder_game.html から開いたときは ladder-app/js/ を、公開版(index.html)では js/ を読む */
 const JS_BASE = /ladder_game\.html$/i.test(location.pathname) ? 'ladder-app/js/' : 'js/';
-const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js', 'usability.js', 'bridge.js', 'story.js', 'wrap.js', 'bgm-tracks.js', 'bgm.js'];
+const EXTRA_JS = ['ext-instr.js', 'area6.js', 'demo.js', 'mission.js', 'mem.js', 'mobile.js', 'lesson.js', 'pin.js', 'practice.js', 'usability.js', 'bridge.js', 'story.js', 'wrap.js', 'num-instr.js', 'num-panel.js', 'area7.js', 'chara.js', 'mitsu.js', 'mode.js', 'ux.js', 'bgm-tracks.js', 'bgm.js'];
 
 function loadScript(src){
   return new Promise(resolve=>{

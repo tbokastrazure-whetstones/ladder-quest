@@ -152,8 +152,9 @@
     }
     const draw = ()=>{
       const extras = prep(st).mem.filter(x=>x.extra);
+      const add = `<div class="acts" style="justify-content:flex-start;margin-top:0"><button class="btn primary" data-m="add">＋ 内部リレーを1つ足す</button><span class="note">(今 ${extras.length} 個)</span></div>`;
       if(!extras.length){
-        return '<h2>内部リレーを消す</h2><p>足した内部リレーはありません。</p><div class="acts"><button class="btn primary" data-m="close">閉じる</button></div>';
+        return '<h2>内部リレー</h2>' + add + '<div class="acts"><button class="btn" data-m="close">閉じる</button></div>';
       }
       const rows = extras.map(x=>{
         const used = usedInProg(x.a);
@@ -161,13 +162,18 @@
           + `<button class="btn small" data-m="del" data-a="${x.a}" ${used ? 'disabled' : ''}>消す</button></div>`;
       }).join('');
       const unused = extras.filter(x=>!usedInProg(x.a)).length;
-      return `<h2>内部リレーを消す</h2>`
-        + '<p class="note">ラダー図で使っている内部リレーは消せません。先にラダー図から外してください。</p>'
+      return `<h2>内部リレー</h2>` + add
+        + '<p class="note">足した内部リレーを消すこともできます。ラダー図で使っているものは消せません(先にラダー図から外す)。</p>'
         + `<div class="mdel-list">${rows}</div>`
         + `<div class="acts"><button class="btn" data-m="delall" ${unused ? '' : 'disabled'}>使っていない ${unused} 個を消す</button><button class="btn primary" data-m="close">閉じる</button></div>`;
     };
     const bg = openModal(draw(), t=>{
       const m = t.dataset.m;
+      if(m === 'add'){
+        addMemByUser();
+        bg.querySelector('.modal').innerHTML = draw();
+        return;
+      }
       if(m === 'del'){
         removeMems(st, [t.dataset.a]);
       }
@@ -204,10 +210,8 @@
     const util = secs.find(s=>s.cls === 's-util');
     if(util){
       const items = util.groups[0].items;
+      // 消すのは「＋内部リレー」から開く一覧の中で(手札は置く部品だけにする)
       items.unshift({k:ADD_KEY, t:'ADDM', name:'＋内部リレー'});
-      if(prep(st).mem.some(x=>x.extra)){
-        items.splice(1, 0, {k:DEL_KEY, t:'DELM', name:'−内部リレー'});
-      }
     }
     return secs;
   };
@@ -225,6 +229,12 @@
   // タップでも、ドラッグして離しても、M を足す・消す画面を開くだけ(マスには置かない)
   const baseSelectTool = selectTool;
   selectTool = function(k){
+    // まだ1つも足していなければすぐ足す。足してあれば、足す・消すの一覧を開く
+    if(k === ADD_KEY && G.stage && prep(G.stage).mem.some(x=>x.extra)){
+      G.tool = null;
+      openMemDelete();
+      return;
+    }
     if(k === ADD_KEY){
       addMemByUser();
       return;
@@ -240,7 +250,7 @@
   const basePlaceTool = placeTool;
   placeTool = function(ri, r, c, where){
     if(G.tool === ADD_KEY){
-      addMemByUser();
+      selectTool(ADD_KEY);
       return true;
     }
     if(G.tool === DEL_KEY){
